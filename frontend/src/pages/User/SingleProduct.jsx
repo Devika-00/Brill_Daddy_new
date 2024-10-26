@@ -7,11 +7,15 @@ import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
 import { SERVER_URL } from "../../Constants";
+import { useAppSelector } from '../../Redux/Store/store';
 
 const SingleProduct = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [mainImage, setMainImage] = useState('');
+
+  const user = useAppSelector((state) => state.user);
+  const userId = user.id;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -28,6 +32,23 @@ const SingleProduct = () => {
 
     fetchProduct();
   }, [id]);
+
+
+  const handleAddToCart = async () => {
+    try {
+      const response = await axios.post(`${SERVER_URL}/user/cart/add`, {
+        userId,
+        productId: product._id,
+        quantity: 1, // default quantity
+      });
+      if (response.status === 200) {
+        alert('Product added to cart successfully!');
+      }
+    } catch (error) {
+      console.error('Error adding product to cart:', error);
+      alert('Could not add product to cart. Please try again.');
+    }
+  }
 
   // Ensure product is available before rendering
   if (!product) {
@@ -93,7 +114,9 @@ const SingleProduct = () => {
 
               {/* Add to Cart and Buy Now Buttons */}
               <div className="mt-6 flex space-x-4">
-                <button className="px-6 py-3 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-700 transition-colors duration-300 flex items-center">
+                <button 
+                 onClick={handleAddToCart}
+                className="px-6 py-3 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-700 transition-colors duration-300 flex items-center">
                   <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
                   Add to Cart
                 </button>

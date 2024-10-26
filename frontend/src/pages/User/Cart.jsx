@@ -1,39 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import OrginalNavbar from "../../components/User/OrginalUserNavbar";
 import NavbarWithMenu from "../../components/User/NavbarwithMenu";
 import Footer from "../../components/User/Footer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faHeart } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom"; 
+import { useAppSelector } from '../../Redux/Store/store';
+import axios from "axios";
+import { SERVER_URL } from "../../Constants";
 
 const Cart = () => {
   const navigate = useNavigate();
 
-  // Sample data for cart items
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Wireless Earbuds",
-      description: "High-quality wireless earbuds with noise cancellation.",
-      price: 2999,
-      quantity: 1,
-      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRoH1FVqXmtQaPVbxYo6PYydWBazgypysZjA&s",
-    },
-    {
-      id: 2,
-      name: "Smartphone",
-      description: "Latest smartphone with AMOLED display and 128GB storage.",
-      price: 12999,
-      quantity: 1,
-      image: "https://m.media-amazon.com/images/I/71hIfcIPyxS._SX679_.jpg",
-    },
-  ]);
+  const user = useAppSelector((state) => state.user);
+  const userId = user.id;
 
+  const [cartItems, setCartItems] = useState([]);
+  const [imageUrls, setImageUrls] = useState({});
   const GST_PERCENT = 18;
+
+  
+  
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      try {
+        const response = await axios.get(`${SERVER_URL}/user/cart/${userId}`);
+        console.log(response.data,"llllllllllllllll")
+        setCartItems(response.data);
+
+        response.data.forEach(async (item) => {
+          const imageId = item.productId.images[0];
+          const imageResponse = await axios.get(`${SERVER_URL}/user/images/${imageId}`);
+          setImageUrls((prev) => ({ ...prev, [imageId]: imageResponse.data.imageUrl }));
+        });
+      } catch (error) {
+        console.error("Error fetching cart items:", error);
+      }
+    };
+  
+    fetchCartItems();
+  }, []);
 
   // Function to calculate total
   const calculateTotal = () => {
-    const subTotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const subTotal = cartItems.reduce((acc, item) => acc + item.productId.salePrice * item.productId.quantity, 0);
     const gst = (subTotal * GST_PERCENT) / 100;
     const total = subTotal + gst;
     return { subTotal, gst, total };
@@ -49,6 +59,21 @@ const Cart = () => {
       )
     );
   };
+
+  const removeItemFromCart = async (id) => {
+    try {
+      // Send a DELETE request to remove the item from the cart
+      const response = await axios.delete(`${SERVER_URL}/user/cart/${userId}/${id}`);
+      // Update the state to remove the item from the cart items
+      setCartItems((prevItems) => 
+        prevItems.filter((item) => item.productId._id !== id)
+      );
+      alert("Product remove from the cart")
+    } catch (error) {
+      console.error("Error removing item from cart:", error);
+    }
+  };
+  
 
   // Navigate to checkout on "Buy Now" click
   const handleBuyNow = () => {
@@ -67,16 +92,22 @@ const Cart = () => {
           <div className="w-full lg:w-3/4 space-y-6">
             {cartItems.map((item) => (
               <div key={item.id} className="flex flex-col lg:flex-row items-center bg-white shadow-lg rounded-lg p-4">
-                <img src={item.image} alt={item.name} className="w-32 h-32 object-cover rounded-lg" />
+                <img 
+                  src={imageUrls[item.productId.images[0]]} 
+                  alt={item.productId.name} 
+                  className="w-32 h-32 object-cover rounded-lg" 
+                />
                 <div className="flex-grow px-4 mt-4 lg:mt-0">
-                  <h3 className="text-lg font-semibold">{item.name}</h3>
-                  <p className="text-gray-600">{item.description}</p>
-                  <p className="text-gray-800 font-bold mt-2">₹{item.price}</p>
+                  <h3 className="text-lg font-semibold">{item.productId.name}</h3>
+                  <p className="text-gray-600">{item.productId.description}</p>
+                  <p className="text-gray-800 font-bold mt-2">₹{item.productId.salePrice}</p>
                   <div className="flex items-center mt-4 space-x-4">
                     <button className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-700">
                       Add to Wishlist <FontAwesomeIcon icon={faHeart} className="ml-2" />
                     </button>
-                    <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700">
+                    <button 
+                    onClick={() => removeItemFromCart(item.productId._id)}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700">
                       Remove <FontAwesomeIcon icon={faTrash} className="ml-2" />
                     </button>
                   </div>

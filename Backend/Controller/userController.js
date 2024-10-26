@@ -7,6 +7,8 @@ const OTP = require("../Models/otpModel");
 const crypto = require("crypto");
 const { sendOtpToEmail, sendOtpToPhone } = require('../utils/otpService');
 const jwt = require('jsonwebtoken');
+const Cart = require("../Models/cartModel");
+const mongoose = require('mongoose');
 
 const getProducts = async (req,res) =>{
     try {
@@ -156,5 +158,88 @@ const registerUser = async (req, res) => {
 };
 
 
-module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp
+const addItemToCart = async (req, res) => {
+  const { userId, productId, quantity } = req.body;
+
+  try {
+    let cart = await Cart.findOne({ userId });
+
+    // If cart does not exist, create a new one
+    if (!cart) {
+      cart = new Cart({ userId, items: [{ productId, quantity }] });
+    } else {
+      // Check if the product already exists in the cart
+      const itemIndex = cart.items.findIndex(item => item.productId.toString() === productId);
+
+      if (itemIndex > -1) {
+        // If product exists, update quantity
+        cart.items[itemIndex].quantity += quantity;
+      } else {
+        // If product does not exist, add as new item
+        cart.items.push({ productId, quantity });
+      }
+    }
+
+    await cart.save();
+    res.status(200).json({ message: 'Product added to cart successfully', cart });
+  } catch (error) {
+    console.error('Error adding product to cart:', error);
+    res.status(500).json({ message: 'Error adding product to cart', error });
+  }
+};
+
+
+const getCartItems = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const cart = await Cart.findOne({ userId }).populate('items.productId'); // Populates product details
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found' });
+    }
+    res.status(200).json(cart.items);
+  } catch (error) {
+    console.error('Error fetching cart items:', error);
+    res.status(500).json({ message: 'Error fetching cart items', error });
+  }
+};
+
+const removeCartItem = async (req, res) => {
+  const { userId, productId } = req.params;
+
+  try {
+    console.log(productId);
+    console.log(userId);
+
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ message: 'Invalid productId format' });
+    }
+    // Find the cart for the user
+    const cart = await Cart.findOne({ userId });
+
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found' });
+    }
+
+    // Convert productId from string to ObjectId
+    const productObjectId = new mongoose.Types.ObjectId(productId);
+
+    // Filter out the item with the specified productId
+    cart.items = cart.items.filter(item => !item.productId.equals(productObjectId));
+
+    console.log(cart.items, "Updated items after removal"); // Log the updated items array
+
+    // Save the updated cart
+    await cart.save();
+
+    res.status(200).json({ message: 'Item removed from cart', cart });
+  } catch (error) {
+    console.error("Error removing item from cart:", error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+
+module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem
 }
