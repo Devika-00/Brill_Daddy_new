@@ -6,9 +6,15 @@ import Footer from '../../components/User/Footer';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { SERVER_URL } from "../../Constants";
 import axios from "axios";
+import ImageOne from "../../assets/one.jpg"
+import ImageTwo from "../../assets/two.jpg"
+import ImageThree from "../../assets/three.jpg"
 
 const HomePage = () => {
 
+  const carouselImages = [ImageOne,ImageTwo,ImageOne,ImageTwo,ImageOne,ImageTwo,ImageOne,ImageTwo];
+  
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const [products, setProducts] = useState([]);
   const [electronicProducts, setElectronicProducts] = useState([]);
@@ -43,6 +49,14 @@ const HomePage = () => {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % carouselImages.length);
+    }, 3000); // Change image every 3 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, []);
+
   console.log(electronicProducts,"pppppppppppppppppppppp")
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -70,6 +84,15 @@ const HomePage = () => {
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
       <OrginalNavbar />
       <NavbarWithMenu />
+      
+      {/* Image Carousel */}
+      <div className="relative w-full overflow-hidden">
+        <div className="flex transition-transform duration-500" style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}>
+          {carouselImages.map((image, index) => (
+            <img key={index} src={image} alt={`Carousel ${index}`} className="w-full h-80 mt-3" />
+          ))}
+        </div>
+      </div>
 
       {/* Container for featured categories */}
       <div className="p-6 grid gap-8 md:grid-cols-4 sm:grid-cols-2 lg:gap-12 mx-auto max-w-7xl">
