@@ -9,6 +9,7 @@ const { sendOtpToEmail, sendOtpToPhone } = require('../utils/otpService');
 const jwt = require('jsonwebtoken');
 const Cart = require("../Models/cartModel");
 const mongoose = require('mongoose');
+const Wishlist = require("../Models/wishlistModel");
 
 const getProducts = async (req,res) =>{
     try {
@@ -239,7 +240,39 @@ const removeCartItem = async (req, res) => {
   }
 };
 
+const addWishlist = async (req, res) => {
+  try {
+    const newWishlistItem = new Wishlist({
+        userId: req.params.userId,
+        productId: req.body.productId,
+    });
+    await newWishlistItem.save();
+    res.status(201).json(newWishlistItem);
+} catch (error) {
+    res.status(500).json({ message: "Error adding to wishlist" });
+}
+};
+
+const getWishlist = async (req, res) => {
+  try {
+    const wishlistItems = await Wishlist.find({ userId: req.params.userId }).populate('productId');
+    res.status(200).json(wishlistItems);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const removeWishlist = async (req, res) => {
+  try {
+    await Wishlist.findOneAndDelete({ productId: req.params.itemId, userId: req.params.userId });
+    res.status(200).json({ message: 'Item removed from wishlist' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 
-module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem
+
+module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem,addWishlist,
+  getWishlist, removeWishlist
 }

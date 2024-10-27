@@ -1,109 +1,125 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
+import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
-import { FaHeart } from 'react-icons/fa'; // Importing heart icon from react-icons
+import { FaHeart, FaSearch } from 'react-icons/fa'; // Import FaSearch icon
+import axios from 'axios';
+import { SERVER_URL } from "../../Constants/index";
 
 const Shop = () => {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('default');
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      title: 'Product 1',
-      salePrice: 100,
-      productPrice: 150,
-      category: { title: 'Category 1' },
-      images: [
-        {
-          thumbnailUrl:
-            'https://www.leafstudios.in/cdn/shop/files/1_6b54ff34-acdd-40e6-a08a-f2bfa33a1c7a_800x.png?v=1718706988',
-        },
-      ],
-    },
-    {
-      id: 2,
-      title: 'Product 2',
-      salePrice: 200,
-      productPrice: 250,
-      category: { title: 'Category 2' },
-      images: [
-        {
-          thumbnailUrl:
-            'https://rukminim2.flixcart.com/image/850/1000/xif0q/headphone/t/4/p/-original-imagrddw8rpjwfag.jpeg?q=90&crop=false',
-        },
-      ],
-    },
-  ]);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
 
-  const [categories, setCategories] = useState([
-    { _id: 1, title: 'Category 1' },
-    { _id: 2, title: 'Category 2' },
-  ]);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get(`${SERVER_URL}/user/products`);
+        const productsWithImages = await Promise.all(response.data.map(async (product) => {
+          if (product.images && product.images.length > 0) {
+            const imageResponse = await axios.get(`${SERVER_URL}/user/images/${product.images[0]}`);
+            product.imageUrl = imageResponse.data.imageUrl;
+          }
+          return product;
+        }));
+        setProducts(productsWithImages);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
 
-  // Function to handle search input change
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value);
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(`${SERVER_URL}/user/category`);
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  const handleCategoryClick = (category) => {
+    setSelectedCategory(category);
   };
 
-  // Function to handle sort change
-  const handleSortChange = (e) => {
-    setSortBy(e.target.value);
-  };
+  // Filter products based on selected category and search term
+  const filteredProducts = products
+    .filter(product => 
+      (selectedCategory ? product.category === selectedCategory : true) && 
+      product.name.toLowerCase().includes(search.toLowerCase()) // Filter by search term
+    );
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case 'az':
+        return a.name.localeCompare(b.name);
+      case 'za':
+        return b.name.localeCompare(a.name);
+      case 'priceasc':
+        return a.salePrice - b.salePrice;
+      case 'pricedesc':
+        return b.salePrice - a.salePrice;
+      default:
+        return 0;
+    }
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
-      {/* Navbar */}
       <OrginalNavbar />
-
-      {/* Main Content */}
+      <NavbarWithMenu/>
       <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <aside className="hidden lg:block p-4 bg-white shadow-md rounded-lg">
-            {/* Search Box */}
             <div className="mb-6">
               <h3 className="text-xl font-semibold mb-3">Search Products</h3>
-              <div className="relative">
+              <div className="flex items-center border border-gray-300 rounded-lg px-3">
+                <FaSearch className="text-gray-500 mr-2" /> {/* Search icon */}
                 <input
                   type="text"
                   placeholder="Search products..."
                   value={search}
-                  onChange={handleSearchChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none"
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full py-2 focus:outline-none"
                 />
-                <button className="absolute right-2 top-2 text-gray-500">
-                  <i className="ti-search"></i>
-                </button>
               </div>
             </div>
 
-            {/* Categories */}
             <div className="mb-6">
               <h3 className="text-xl font-semibold mb-3">Categories</h3>
               <ul>
+                <button
+                  onClick={() => setSelectedCategory('')}
+                  className="text-gray-700 mb-2"
+                >
+                  Show All
+                </button>
                 {categories.map((category) => (
                   <li key={category._id} className="mb-2">
-                    <a
-                      href="#"
-                      className="text-gray-700 hover:text-blue-600 transition"
+                    <button
+                      onClick={() => handleCategoryClick(category.name)}
+                      className={`text-gray-700 hover:text-blue-600 transition ${selectedCategory === category.name ? 'font-bold' : ''}`}
                     >
-                      {category.title}
-                    </a>
+                      {category.name}
+                    </button>
                   </li>
                 ))}
               </ul>
             </div>
           </aside>
 
-          {/* Products Section */}
           <section className="lg:col-span-3">
-            {/* Sorting Options */}
             <div className="flex justify-between items-center mb-6">
               <div>
                 <label className="mr-2 font-medium">Sort By:</label>
                 <select
                   value={sortBy}
-                  onChange={handleSortChange}
+                  onChange={(e) => setSortBy(e.target.value)}
                   className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none"
                 >
                   <option value="default">Default</option>
@@ -115,31 +131,29 @@ const Shop = () => {
               </div>
             </div>
 
-            {/* Product Listings */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {products.map((product) => (
+              {sortedProducts.map((product) => (
                 <div
                   key={product.id}
                   className="relative bg-white p-6 rounded-lg shadow-lg"
                 >
-                  {/* Heart Icon */}
                   <button className="absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full text-gray-500 hover:text-red-500">
                     <FaHeart />
                   </button>
 
                   <a href={`/product/${product.id}`}>
                     <img
-                      src={product.images[0].thumbnailUrl}
+                      src={product.imageUrl}
                       alt={product.title}
                       className="h-56 object-cover rounded-lg mb-4"
                     />
                   </a>
                   <div>
                     <h4 className="text-lg font-semibold mb-2 truncate">
-                      {product.title}
+                      {product.name}
                     </h4>
                     <p className="text-gray-500 mb-4">
-                      Category: {product.category.title}
+                      Category: {product.category}
                     </p>
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-blue-600">
@@ -156,7 +170,6 @@ const Shop = () => {
               ))}
             </div>
 
-            {/* Pagination */}
             <div className="mt-8 flex justify-center">
               <ul className="inline-flex items-center">
                 <li>
@@ -196,8 +209,6 @@ const Shop = () => {
           </section>
         </div>
       </div>
-
-      {/* Footer */}
       <Footer />
     </div>
   );

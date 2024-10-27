@@ -74,6 +74,14 @@ const Cart = () => {
     }
   };
   
+  const addToWishlist = async (productId) => {
+    try {
+        await axios.post(`${SERVER_URL}/user/wishlist/${userId}`, { productId });
+        alert("Product added to wishlist");
+    } catch (error) {
+        console.error("Error adding item to wishlist:", error);
+    }
+};
 
   // Navigate to checkout on "Buy Now" click
   const handleBuyNow = () => {
@@ -102,7 +110,9 @@ const Cart = () => {
                   <p className="text-gray-600">{item.productId.description}</p>
                   <p className="text-gray-800 font-bold mt-2">₹{item.productId.salePrice}</p>
                   <div className="flex items-center mt-4 space-x-4">
-                    <button className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-700">
+                    <button
+                    onClick={() => addToWishlist(item.productId._id)} 
+                     className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-700">
                       Add to Wishlist <FontAwesomeIcon icon={faHeart} className="ml-2" />
                     </button>
                     <button 
