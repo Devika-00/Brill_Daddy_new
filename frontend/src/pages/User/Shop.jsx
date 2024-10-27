@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
-import { FaHeart, FaSearch } from 'react-icons/fa'; // Import FaSearch icon
+import { FaHeart, FaSearch } from 'react-icons/fa';
 import axios from 'axios';
 import { SERVER_URL } from "../../Constants/index";
+import { useLocation } from 'react-router-dom';
 
 const Shop = () => {
   const [search, setSearch] = useState('');
@@ -12,6 +13,16 @@ const Shop = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  const location = useLocation();
+
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    const searchQuery = query.get('search') || '';
+    setSearch(searchQuery);
+  }, [location.search]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -45,14 +56,13 @@ const Shop = () => {
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
+    setCurrentPage(1);
   };
 
-  // Filter products based on selected category and search term
-  const filteredProducts = products
-    .filter(product => 
-      (selectedCategory ? product.category === selectedCategory : true) && 
-      product.name.toLowerCase().includes(search.toLowerCase()) // Filter by search term
-    );
+  const filteredProducts = products.filter(product =>
+    (selectedCategory ? product.category === selectedCategory : true) &&
+    product.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
@@ -69,17 +79,24 @@ const Shop = () => {
     }
   });
 
+  const displayedProducts = sortedProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
       <OrginalNavbar />
-      <NavbarWithMenu/>
+      <NavbarWithMenu />
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <aside className="hidden lg:block p-4 bg-white shadow-md rounded-lg">
             <div className="mb-6">
               <h3 className="text-xl font-semibold mb-3">Search Products</h3>
               <div className="flex items-center border border-gray-300 rounded-lg px-3">
-                <FaSearch className="text-gray-500 mr-2" /> {/* Search icon */}
+                <FaSearch className="text-gray-500 mr-2" />
                 <input
                   type="text"
                   placeholder="Search products..."
@@ -94,8 +111,8 @@ const Shop = () => {
               <h3 className="text-xl font-semibold mb-3">Categories</h3>
               <ul>
                 <button
-                  onClick={() => setSelectedCategory('')}
-                  className="text-gray-700 mb-2"
+                  onClick={() => handleCategoryClick('')}
+                  className={`text-gray-700 mb-2 ${!selectedCategory && 'font-bold'}`}
                 >
                   Show All
                 </button>
@@ -132,7 +149,7 @@ const Shop = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {sortedProducts.map((product) => (
+              {displayedProducts.map((product) => (
                 <div
                   key={product.id}
                   className="relative bg-white p-6 rounded-lg shadow-lg"
@@ -173,36 +190,32 @@ const Shop = () => {
             <div className="mt-8 flex justify-center">
               <ul className="inline-flex items-center">
                 <li>
-                  <a
-                    href="#"
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
                     className="px-4 py-2 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-200"
                   >
                     Previous
-                  </a>
+                  </button>
                 </li>
+                {[...Array(totalPages).keys()].map((page) => (
+                  <li key={page + 1}>
+                    <button
+                      onClick={() => setCurrentPage(page + 1)}
+                      className={`px-4 py-2 bg-white border border-gray-300 ${currentPage === page + 1 ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'}`}
+                    >
+                      {page + 1}
+                    </button>
+                  </li>
+                ))}
                 <li>
-                  <a
-                    href="#"
-                    className="px-4 py-2 bg-white border border-gray-300 hover:bg-gray-200"
-                  >
-                    1
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="px-4 py-2 bg-white border border-gray-300 hover:bg-gray-200"
-                  >
-                    2
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(currentPage + 1)}
                     className="px-4 py-2 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-200"
                   >
                     Next
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
