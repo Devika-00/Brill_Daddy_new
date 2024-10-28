@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken');
 const Cart = require("../Models/cartModel");
 const mongoose = require('mongoose');
 const Wishlist = require("../Models/wishlistModel");
+const Address = require("../Models/addressModel");
 
 const getProducts = async (req,res) =>{
     try {
@@ -272,7 +273,71 @@ const removeWishlist = async (req, res) => {
 };
 
 
+const addAddress = async (req, res) => {
+  const { userId, userName, addressLine, pincode, street, state, flatNumber, phoneNumber, addressType } = req.body;
+
+  try {
+    // Create a new address document
+    const newAddress = new Address({
+      userId,
+      userName,
+      addressLine,
+      pincode,
+      street,
+      state,
+      flatNumber,
+      phoneNumber,
+      addressType
+    });
+
+    // Save address to the database
+    await newAddress.save();
+
+    res.status(200).json({ message: 'Address saved successfully', address: newAddress });
+  } catch (error) {
+    console.error('Error saving address:', error);
+    res.status(500).json({ message: 'Failed to save address' });
+  }
+};
+
+const getAddress = async (req, res) => {
+  try {
+    const addresses = await Address.find({ userId: req.params.userId });
+    res.status(200).json(addresses);
+  } catch (error) {
+    console.error('Error fetching addresses:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const deleteAddress = async (req, res) => {
+  const addressId = req.params.id; // Get the address ID from the URL
+  const { userId } = req.body; // Get userId from the request body
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID not provided' });
+  }
+
+  try {
+    // Find the address by ID and ensure it belongs to the user
+    const address = await Address.findOneAndDelete({ 
+      _id: addressId,
+      userId: userId 
+    });
+
+    if (!address) {
+      return res.status(404).json({ message: 'Address not found or does not belong to the user' });
+    }
+
+    res.status(200).json({ message: 'Address deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting address:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem,addWishlist,
-  getWishlist, removeWishlist
+  getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,
 }

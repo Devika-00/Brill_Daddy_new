@@ -2,7 +2,9 @@ const Router = require("express")
 const userRoute = Router();
 
 
-const { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem, addWishlist,getWishlist,removeWishlist } = require("../Controller/userController");
+const { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem, addWishlist,getWishlist,removeWishlist,addAddress
+    ,getAddress,deleteAddress
+ } = require("../Controller/userController");
 
 userRoute.get("/products",getProducts);
 userRoute.get("/images/:id",fetchimages);
@@ -20,6 +22,10 @@ userRoute.delete("/cart/:userId/:productId",removeCartItem);
 userRoute.post("/wishlist/:userId",addWishlist);
 userRoute.get("/wishlist/:userId",getWishlist);
 userRoute.delete("/wishlist/:userId/:itemId",removeWishlist);
+
+userRoute.post("/addAddress", addAddress);
+userRoute.get("/addresses/:userId",getAddress);
+userRoute.delete('/deleteAddress/:id',deleteAddress);
 
 
 

@@ -83,10 +83,9 @@ const Cart = () => {
     }
 };
 
-  // Navigate to checkout on "Buy Now" click
-  const handleBuyNow = () => {
-    navigate("/checkout"); // Replace with your checkout page route
-  };
+const handleBuyNow = () => {
+  navigate("/checkout", { state: { total, cartItems } }); // Pass total and cart items to checkout
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">

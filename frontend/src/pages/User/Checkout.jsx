@@ -1,67 +1,113 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
+import axios from 'axios';
+import { useAppSelector } from '../../Redux/Store/store';
+import { SERVER_URL } from "../../Constants";
 
 const Checkout = () => {
+  const location = useLocation();
+  const { total, cartItems } = location.state; // Access passed cart data
   const [showModal, setShowModal] = useState(false);
   const [addresses, setAddresses] = useState([]);
-  const [newAddress, setNewAddress] = useState({
-    name: '',
-    pinCode: '',
-    location: '',
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("COD");
+  
+  const [addressData, setAddressData] = useState({
+    userName: '',
+    addressLine: '',
     street: '',
+    pincode: '',
     state: '',
     flatNumber: '',
-    phoneNumber: '',
-    addressType: 'home'
+    addressType: 'Home',
+    phoneNumber: ''
   });
 
-  // Set a dummy address when the component mounts
+  const user = useAppSelector((state) => state.user);
+  const userId = user.id;
+
   useEffect(() => {
-    const dummyAddress = {
-      name: 'John Doe',
-      pinCode: '123456',
-      location: 'City Center',
-      street: '123 Main St',
-      state: 'State Name',
-      flatNumber: 'Flat 1A',
-      phoneNumber: '1234567890',
-      addressType: 'home'
+    const fetchAddresses = async () => {
+      try {
+        const response = await axios.get(`${SERVER_URL}/user/addresses/${userId}`); 
+        console.log(response.data);
+        setAddresses(response.data); // Assuming the API returns an array of addresses
+      } catch (error) {
+        console.error('Error fetching addresses:', error);
+        alert('Failed to load addresses');
+      }
     };
-    setAddresses([dummyAddress]);
+    fetchAddresses();
   }, []);
 
-  const handleAddAddress = () => {
-    setAddresses([...addresses, newAddress]);
-    setShowModal(false);
-    setNewAddress({
-      name: '',
-      pinCode: '',
-      location: '',
-      street: '',
-      state: '',
-      flatNumber: '',
-      phoneNumber: '',
-      addressType: 'home'
-    });
+  const handleAddAddress = async () => {
+    try {
+      const response = await axios.post(`${SERVER_URL}/user/addAddress`, { 
+        ...addressData, 
+        userId 
+      });
+
+      if (response.status === 200) {
+        // Fetch updated addresses after saving
+        const updatedAddresses = await axios.get(`${SERVER_URL}/user/addresses/${userId}`);
+        setAddresses(updatedAddresses.data);
+        setShowModal(false);
+        // Reset address data
+        setAddressData({
+          userName: '',
+          addressLine: '',
+          street: '',
+          pincode: '',
+          state: '',
+          flatNumber: '',
+          addressType: 'Home',
+          phoneNumber: ''
+        });
+      } else {
+        console.error('Failed to save address');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    try {
+      // Send order data to the server, including cart items, total, and selected address
+      const orderData = {
+        total,
+        cartItems,
+        address: selectedAddress,
+        paymentMethod
+      };
+      await axios.post('/checkout/place-order', orderData);
+      alert('Order placed successfully!');
+    } catch (error) {
+      console.error('Error placing order:', error);
+      alert('Failed to place order');
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setAddressData({ ...addressData, [name]: value });
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
       <OrginalNavbar />
       <NavbarWithMenu />
-      
+
       <div className="checkout-area mt-5 ml-5 mr-5">
         <div className="container mx-auto">
-
-          {/* Checkout Heading */}
           <h1 className="text-2xl font-bold mb-6">Checkout</h1>
 
-          <form action="/checkout/place-order" method="post">
+          <form onSubmit={(e) => { e.preventDefault(); handlePlaceOrder(); }}>
             <div className="grid md:grid-cols-2 gap-6">
               
-              {/* Address Section */}
               <div className="bg-white p-4 shadow-md rounded">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold">ADDRESS</h3>
@@ -74,7 +120,6 @@ const Checkout = () => {
                   </button>
                 </div>
 
-                {/* Addresses List */}
                 <div className="different-address">
                   <div className="grid gap-4">
                     {addresses.map((address, index) => (
@@ -87,10 +132,11 @@ const Checkout = () => {
                               name="addressId"
                               id={`address${index}`}
                               required
+                              onChange={() => setSelectedAddress(address)}
                             />
                             <label htmlFor={`address${index}`} className="form-check-label">
-                              <h5 className="font-semibold">{address.name}</h5>
-                              <p>{`${address.street}, ${address.location}, ${address.state}, ${address.pinCode}`}</p>
+                              <h5 className="font-semibold">{address.userName}</h5>
+                              <p>{`${address.addressLine}, ${address.street}, ${address.state}, ${address.pincode}`}</p>
                               <p>Mobile: {address.phoneNumber}</p>
                               <p>Type: {address.addressType}</p>
                             </label>
@@ -102,168 +148,174 @@ const Checkout = () => {
                 </div>
               </div>
 
-              {/* Order Summary Section */}
               <div className="bg-white p-4 shadow-md rounded">
                 <h3 className="text-lg font-semibold mb-4">Your Order</h3>
                 <div className="table-responsive">
                   <table className="min-w-full bg-white">
                     <tbody>
-                      {/* Example product item */}
-                      <tr className="border-b">
-                        <td className="py-2 px-4">
-                          <p>Product Title <strong className="ml-2">× 2</strong></p>
-                        </td>
-                        <td className="py-2 px-4 text-right">
-                          ₹ 500.00
-                        </td>
-                      </tr>
+                      {cartItems.map((item, index) => (
+                        <tr className="border-b" key={index}>
+                          <td className="py-2 px-4">
+                            <p>{item.productId.name} <strong className="ml-2">× {item.quantity}</strong></p>
+                          </td>
+                          <td className="py-2 px-4 text-right">
+                            ₹{item.productId.salePrice * item.quantity}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                     <tfoot>
                       <tr>
-                        <th className="py-2 px-4 text-left">Cart Subtotal</th>
-                        <td className="py-2 px-4 text-right">₹ 1000.00</td>
-                      </tr>
-                      <tr>
-                        <th className="py-2 px-4 text-left">Discount</th>
-                        <td className="py-2 px-4 text-right">₹ 100.00</td>
-                      </tr>
-                      <tr>
                         <th className="py-2 px-4 text-left">Order Total</th>
-                        <td className="py-2 px-4 text-right">₹ 900.00</td>
+                        <td className="py-2 px-4 text-right">₹{total}</td>
                       </tr>
                     </tfoot>
                   </table>
                 </div>
 
-                {/* Payment Methods */}
                 <div className="mt-4">
-                  <label htmlFor="payment-method-select" className="block text-sm font-medium text-gray-700">
-                    Select Payment Method:
-                  </label>
-                  <div className="flex flex-col gap-2 mt-2">
-                    <button className="btn bg-black text-white px-4 py-2 rounded">CASH ON DELIVERY</button>
-                    <button className="btn bg-blue-500 text-white px-4 py-2 rounded">Pay with Razorpay</button>
-                    <button className="btn bg-green-500 text-white px-4 py-2 rounded" style={{ display: 'none' }}>Pay With Wallet</button>
+                  <h3 className="font-semibold">Payment Options</h3>
+                  <div className="mt-2">
+                    <label>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="COD"
+                        checked={paymentMethod === "COD"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      <span className="ml-2">Cash on Delivery</span>
+                    </label>
                   </div>
+                  <div className="mt-2">
+                    <label>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="Razorpay"
+                        checked={paymentMethod === "Razorpay"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      <span className="ml-2">Razorpay</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Place Order Button */}
+                <div className="mt-4 flex justify-end">
+                  <button
+                    onClick={handlePlaceOrder}
+                    className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-300"
+                  >
+                    Place Order
+                  </button>
                 </div>
               </div>
             </div>
           </form>
+
+          {/* Address Modal */}
+          {showModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                <h2 className="text-xl font-semibold mb-4">Add New Address</h2>
+                <form onSubmit={(e) => { e.preventDefault(); handleAddAddress(); }}>
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      name="userName"
+                      placeholder="Name"
+                      value={addressData.userName}
+                      onChange={handleInputChange}
+                      className="border rounded-lg p-2 w-full"
+                      required
+                    />
+                    <input
+                      type="text"
+                      name="addressLine"
+                      placeholder="Address Line"
+                      value={addressData.addressLine}
+                      onChange={handleInputChange}
+                      className="border rounded-lg p-2 w-full"
+                      required
+                    />
+                    <input
+                      type="text"
+                      name="street"
+                      placeholder="Street"
+                      value={addressData.street}
+                      onChange={handleInputChange}
+                      className="border rounded-lg p-2 w-full"
+                      required
+                    />
+                    <input
+                      type="text"
+                      name="state"
+                      placeholder="State"
+                      value={addressData.state}
+                      onChange={handleInputChange}
+                      className="border rounded-lg p-2 w-full"
+                      required
+                    />
+                    <input
+                      type="text"
+                      name="pincode"
+                      placeholder="Pincode"
+                      value={addressData.pincode}
+                      onChange={handleInputChange}
+                      className="border rounded-lg p-2 w-full"
+                      required
+                    />
+                    <input
+                      type="text"
+                      name="flatNumber"
+                      placeholder="Flat Number"
+                      value={addressData.flatNumber}
+                      onChange={handleInputChange}
+                      className="border rounded-lg p-2 w-full"
+                    />
+                    <input
+                      type="text"
+                      name="phoneNumber"
+                      placeholder="Phone Number"
+                      value={addressData.phoneNumber}
+                      onChange={handleInputChange}
+                      className="border rounded-lg p-2 w-full"
+                      required
+                    />
+                    <select
+                      name="addressType"
+                      value={addressData.addressType}
+                      onChange={handleInputChange}
+                      className="border rounded-lg p-2 w-full"
+                    >
+                      <option value="Home">Home</option>
+                      <option value="Work">Work</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setShowModal(false)}
+                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 mr-2"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                      >
+                        Save Address
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Address Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg">
-            <h2 className="text-lg font-semibold mb-4">Add New Address</h2>
-            <form>
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  className="p-2 border rounded"
-                  placeholder="Name"
-                  value={newAddress.name}
-                  onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })}
-                />
-                <input
-                  type="text"
-                  className="p-2 border rounded"
-                  placeholder="Pin Code"
-                  value={newAddress.pinCode}
-                  onChange={(e) => setNewAddress({ ...newAddress, pinCode: e.target.value })}
-                />
-                <input
-                  type="text"
-                  className="p-2 border rounded"
-                  placeholder="Location"
-                  value={newAddress.location}
-                  onChange={(e) => setNewAddress({ ...newAddress, location: e.target.value })}
-                />
-                <input
-                  type="text"
-                  className="p-2 border rounded"
-                  placeholder="Street"
-                  value={newAddress.street}
-                  onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
-                />
-                <input
-                  type="text"
-                  className="p-2 border rounded"
-                  placeholder="State"
-                  value={newAddress.state}
-                  onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
-                />
-                <input
-                  type="text"
-                  className="p-2 border rounded"
-                  placeholder="Flat Number"
-                  value={newAddress.flatNumber}
-                  onChange={(e) => setNewAddress({ ...newAddress, flatNumber: e.target.value })}
-                />
-                <input
-                  type="text"
-                  className="p-2 border rounded"
-                  placeholder="Phone Number"
-                  value={newAddress.phoneNumber}
-                  onChange={(e) => setNewAddress({ ...newAddress, phoneNumber: e.target.value })}
-                />
-              </div>
-              <div className="mt-4">
-                <h3 className="font-semibold mb-2">Address Type</h3>
-                <div className="flex gap-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="addressType"
-                      value="home"
-                      checked={newAddress.addressType === 'home'}
-                      onChange={(e) => setNewAddress({ ...newAddress, addressType: e.target.value })}
-                    />
-                    <span className="ml-2">Home</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="addressType"
-                      value="work"
-                      checked={newAddress.addressType === 'work'}
-                      onChange={(e) => setNewAddress({ ...newAddress, addressType: e.target.value })}
-                    />
-                    <span className="ml-2">Work</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="addressType"
-                      value="other"
-                      checked={newAddress.addressType === 'other'}
-                      onChange={(e) => setNewAddress({ ...newAddress, addressType: e.target.value })}
-                    />
-                    <span className="ml-2">Other</span>
-                  </label>
-                </div>
-              </div>
-              <div className="flex justify-end mt-4">
-                <button
-                  type="button"
-                  className="btn bg-blue-500 text-white px-4 py-2 rounded"
-                  onClick={handleAddAddress}
-                >
-                  Save Address
-                </button>
-                <button
-                  type="button"
-                  className="btn bg-red-500 text-white px-4 py-2 rounded ml-2"
-                  onClick={() => setShowModal(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
       <Footer />
     </div>
   );
