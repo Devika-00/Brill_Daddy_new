@@ -11,6 +11,7 @@ const Cart = require("../Models/cartModel");
 const mongoose = require('mongoose');
 const Wishlist = require("../Models/wishlistModel");
 const Address = require("../Models/addressModel");
+const Order = require("../Models/orderModel");
 
 const getProducts = async (req,res) =>{
     try {
@@ -338,6 +339,81 @@ const deleteAddress = async (req, res) => {
 
 
 
+const placeOrder = async (req, res) => {
+  try {
+    const { userId, cartItems, selectedAddressId, paymentMethod, paid } = req.body;
+
+
+    // Ensure each item has a salePrice, else default to 0
+    const formattedCartItems = cartItems.map(item => ({
+      productId: item.productId,
+      quantity: item.quantity,
+      price: item.productId.salePrice  
+    }));
+
+    // Calculate total using the validated prices
+    let total = formattedCartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+    // Check if total is NaN and handle error if so
+    if (isNaN(total)) {
+      return res.status(400).json({ error: 'Invalid sale price in cart items.' });
+    }
+
+    // Create a new order
+    const newOrder = new Order({
+      userId,
+      total,
+      cartItems: formattedCartItems,
+      selectedAddressId,
+      paymentMethod,
+      paid,
+      orderStatus: 'Pending'  // Initial status as 'Pending'
+    });
+
+    await newOrder.save();
+    res.status(201).json({ message: 'Order placed successfully', order: newOrder });
+  } catch (error) {
+    console.error("Error placing order:", error);
+    res.status(500).json({ error: 'Failed to place order' });
+  }
+};
+
+const getOrders = async (req, res) => {
+  const { userId } = req.query; // Get userId from query params
+
+  try {
+    const orders = await Order.find({ userId }) // Find orders by userId
+      .populate('cartItems.productId') // Populate product details
+      .lean(); // Use lean for better performance
+
+    res.status(200).json(orders); // Send orders back to frontend
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ message: 'Failed to fetch orders' });
+  }
+};
+
+const getOrderDetail = async (req, res) => {
+  console.log(req.params.orderId);
+  try {
+    const order = await Order.findById(req.params.orderId)
+      .populate("cartItems.productId", "name description productPrice salePrice images") // Populate product details
+      .populate("selectedAddressId"); // Populate address details
+
+      console.log(order,"enthaaa")
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem,addWishlist,
-  getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,
+  getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail
 }

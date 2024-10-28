@@ -3,7 +3,7 @@ const userRoute = Router();
 
 
 const { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem, addWishlist,getWishlist,removeWishlist,addAddress
-    ,getAddress,deleteAddress
+    ,getAddress,deleteAddress, placeOrder, getOrders, getOrderDetail
  } = require("../Controller/userController");
 
 userRoute.get("/products",getProducts);
@@ -26,6 +26,10 @@ userRoute.delete("/wishlist/:userId/:itemId",removeWishlist);
 userRoute.post("/addAddress", addAddress);
 userRoute.get("/addresses/:userId",getAddress);
 userRoute.delete('/deleteAddress/:id',deleteAddress);
+
+userRoute.post("/checkout/placeorder",placeOrder);
+userRoute.get("/orders",getOrders);
+userRoute.get("/orders/:orderId",getOrderDetail)
 
 
 

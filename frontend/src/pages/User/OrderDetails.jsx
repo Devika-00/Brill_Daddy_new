@@ -1,9 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
+import { SERVER_URL } from "../../Constants";
 
 const OrderDetails = () => {
+  const { id, productId } = useParams();
+  const [order, setOrder] = useState(null);
+  const [imageUrls, setImageUrls] = useState({});
+
+  useEffect(() => {
+    const fetchOrderDetails = async () => {
+      try {
+        const response = await axios.get(`${SERVER_URL}/user/orders/${id}`);
+        
+        // Filter to find the specific item in cartItems with the matching productId
+        const filteredOrder = {
+          ...response.data,
+          cartItems: response.data.cartItems.filter((item) => item.productId._id === productId),
+        };
+        setOrder(filteredOrder);
+
+        const imageUrlsMap = {};
+        for (const item of filteredOrder.cartItems) {
+          const imageId = item.productId.images[0];
+          const imageResponse = await axios.get(`${SERVER_URL}/user/images/${imageId}`);
+          imageUrlsMap[imageId] = imageResponse.data.imageUrl;
+        }
+        setImageUrls(imageUrlsMap);
+      } catch (error) {
+        console.error("Error fetching order details:", error);
+      }
+    };
+
+    if (id && productId) fetchOrderDetails();
+  }, [id, productId]);
+
+  if (!order) return <p>Loading...</p>;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white py-4">
       <OrginalNavbar />
@@ -14,11 +50,12 @@ const OrderDetails = () => {
         {/* Left Side: Address and More Actions */}
         <div className="bg-white p-6 rounded-lg shadow-lg">
           <h3 className="text-xl font-semibold mb-4">Shipping Address</h3>
-          <p className="text-gray-700">John Doe</p>
-          <p className="text-gray-700">123 Main Street</p>
-          <p className="text-gray-700">City, State, ZIP</p>
-          <p className="text-gray-700">Country</p>
-          <p className="text-gray-700">Phone: +1234567890</p>
+          <p className="text-gray-700">{order.selectedAddressId.userName}</p>
+          <p className="text-gray-700">{order.selectedAddressId.addressLine}</p>
+          <p className="text-gray-700">{order.selectedAddressId.street}, {order.selectedAddressId.state}, {order.selectedAddressId.pincode}</p>
+          <p className="text-gray-700">{order.selectedAddressId.flatNumber}</p>
+          <p className="text-gray-700">Phone: {order.selectedAddressId.phoneNumber}</p>
+          <p className="text-gray-700">Type: {order.selectedAddressId.addressType}</p>
 
           <hr className="my-6 border-gray-300" />
 
@@ -31,32 +68,26 @@ const OrderDetails = () => {
 
         {/* Right Side: Product Details and Progress Bar */}
         <div className="bg-white p-6 rounded-lg shadow-lg">
-          <div className="flex flex-col items-center md:items-start md:flex-row">
-            {/* Product Image */}
-            <img
-              src="https://via.placeholder.com/150"
-              alt="Product"
-              className="w-32 h-32 object-cover rounded-lg mb-4 md:mb-0 md:mr-6"
-            />
-            
-            {/* Product Details */}
-            <div>
-              <h3 className="text-xl font-semibold">Product Name</h3>
-              <p className="text-gray-600">Product description goes here.</p>
-              <p className="text-gray-800 font-semibold mt-2">$49.99</p>
+          {order.cartItems.map((item) => (
+            <div key={item.productId._id} className="flex flex-col items-center md:items-start md:flex-row mb-4">
+              <img
+                src={imageUrls[item.productId.images[0]]}
+                alt={item.productId.name}
+                className="w-32 h-32 object-cover rounded-lg mb-4 md:mb-0 md:mr-6"
+              />
+              
+              <div>
+                <h3 className="text-xl font-semibold">{item.productId.name}</h3>
+                <p className="text-gray-600">{item.productId.description}</p>
+                <p className="text-gray-800 font-semibold mt-2">${item.price} x {item.quantity}</p>
+              </div>
             </div>
-          </div>
-
-          {/* Progress Bar */}
+          ))}
+          
+          {/* Order Status */}
           <div className="mt-6">
             <div className="flex items-center justify-between">
-              <div className="w-2.5 h-2.5 rounded-full bg-green-600"></div>
-              <div className="flex-1 h-0.5 bg-green-600"></div>
-              <div className="w-2.5 h-2.5 rounded-full bg-green-600"></div>
-              <div className="flex-1 h-0.5 bg-green-600"></div>
-              <div className="w-2.5 h-2.5 rounded-full bg-green-600"></div>
-              <div className="flex-1 h-0.5 bg-gray-300"></div>
-              <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
+              <div className={`w-2.5 h-2.5 rounded-full ${order.orderStatus === 'Pending' ? 'bg-green-600' : 'bg-gray-300'}`}></div>
             </div>
             <div className="flex justify-between mt-2 text-sm text-gray-600">
               <span>Order Confirmed</span>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
@@ -15,6 +15,8 @@ const Checkout = () => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("COD");
   
+  const navigate = useNavigate();
+
   const [addressData, setAddressData] = useState({
     userName: '',
     addressLine: '',
@@ -25,6 +27,8 @@ const Checkout = () => {
     addressType: 'Home',
     phoneNumber: ''
   });
+  
+  console.log(cartItems,"pppppppppppppppp")
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
@@ -75,21 +79,29 @@ const Checkout = () => {
   };
 
   const handlePlaceOrder = async () => {
+    if (!selectedAddress || !paymentMethod) {
+      alert("Please select both an address and a payment method before placing the order.");
+      return;
+    }
+  
     try {
-      // Send order data to the server, including cart items, total, and selected address
       const orderData = {
+        userId,
         total,
         cartItems,
-        address: selectedAddress,
-        paymentMethod
+        selectedAddressId: selectedAddress._id,
+        paymentMethod,
+        paid: paymentMethod === "COD" ? false : true,
+        orderStatus: "Pending"  
       };
-      await axios.post('/checkout/place-order', orderData);
-      alert('Order placed successfully!');
+      await axios.post(`${SERVER_URL}/user/checkout/placeorder`, orderData);
+      navigate('/orderSuccessful');
     } catch (error) {
       console.error('Error placing order:', error);
       alert('Failed to place order');
     }
   };
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -105,7 +117,7 @@ const Checkout = () => {
         <div className="container mx-auto">
           <h1 className="text-2xl font-bold mb-6">Checkout</h1>
 
-          <form onSubmit={(e) => { e.preventDefault(); handlePlaceOrder(); }}>
+          <form onSubmit={(e) => { e.preventDefault(); }}>
             <div className="grid md:grid-cols-2 gap-6">
               
               <div className="bg-white p-4 shadow-md rounded">
