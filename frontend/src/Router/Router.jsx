@@ -21,6 +21,7 @@ import Brand from "../pages/Admin/brand";
 import Profile from "../pages/User/Profile";
 import OrdersList from "../pages/User/OrdersList";
 import OrderDetails from "../pages/User/OrderDetails";
+import ShopCategory from "../pages/User/shopCategory";
 
 
 const MainRouter = () => {
@@ -49,6 +50,7 @@ const MainRouter = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/orderList" element={<OrdersList />} />
         <Route path="/orderDetails/:id" element={<OrderDetails />} />
+        <Route path="/shopCategory" element={<ShopCategory />} />
 
       </Routes>
     </Router>

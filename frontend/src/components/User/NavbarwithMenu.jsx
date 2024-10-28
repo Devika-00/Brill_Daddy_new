@@ -1,11 +1,13 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { SERVER_URL } from "../../Constants";
 import axios from "axios";
+import { useNavigate } from 'react-router-dom';
 
 const NavbarWithMenu = () => {
     const [showCategories, setShowCategories] = useState(false);
     const [categories, setCategories] = useState([]);
+    const navigate = useNavigate();
 
     const toggleCategories = () => {
         setShowCategories(!showCategories);
@@ -15,7 +17,6 @@ const NavbarWithMenu = () => {
         const fetchCategories = async () => {
             try {
                 const response = await axios(`${SERVER_URL}/user/category`);
-                console.log(response.data)
                 setCategories(response.data);
             } catch (error) {
                 console.error("Error fetching categories:", error);
@@ -24,9 +25,13 @@ const NavbarWithMenu = () => {
         fetchCategories();
     }, []);
 
+    const handleCategoryClick = (category) => {
+        setShowCategories(false); // Close the dropdown menu
+        navigate(`/shopCategory?category=${encodeURIComponent(category.name)}`); // Redirect with category as query
+    };
+
     return (
         <>
-            {/* Dark Blue Bar */}
             <div className="bg-blue-900 text-white font-bold flex justify-between items-center p-2">
                 <div className="flex items-center">
                     <button
@@ -44,7 +49,6 @@ const NavbarWithMenu = () => {
                 </div>
             </div>
 
-            {/* Dropdown menu for categories (slide in from left) */}
             {showCategories && (
                 <div className="absolute top-24 left-0 bg-white w-64 h-full shadow-lg z-50">
                     <div className="p-4">
@@ -58,7 +62,11 @@ const NavbarWithMenu = () => {
                         <h2 className="text-xl font-bold mb-4">Categories</h2>
                         <ul>
                             {categories.map((category, index) => (
-                                <li key={index} className="p-2 hover:bg-gray-100 cursor-pointer">
+                                <li
+                                    key={index}
+                                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => handleCategoryClick(category)}
+                                >
                                     {category.name}
                                 </li>
                             ))}

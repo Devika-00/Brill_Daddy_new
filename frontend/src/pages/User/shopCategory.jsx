@@ -2,26 +2,27 @@ import React, { useState, useEffect } from 'react';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
-import { FaHeart, FaSearch } from 'react-icons/fa';
+import { FaHeart } from 'react-icons/fa';
 import axios from 'axios';
 import { SERVER_URL } from "../../Constants/index";
 import { useLocation } from 'react-router-dom';
 
-const Shop = () => {
+const ShopCategory = () => {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 8;
 
   const location = useLocation();
 
   useEffect(() => {
     const query = new URLSearchParams(location.search);
-    const searchQuery = query.get('search') || '';
-    setSearch(searchQuery);
+    const categoryQuery = query.get('category') || '';
+    setSelectedCategory(categoryQuery);
+    setSearch(''); // Reset search input if necessary
   }, [location.search]);
 
   useEffect(() => {
@@ -54,17 +55,12 @@ const Shop = () => {
     fetchCategories();
   }, []);
 
-  const handleCategoryClick = (category) => {
-    setSelectedCategory(category);
-    setCurrentPage(1);
-  };
-
   const filteredProducts = products.filter(product =>
     (selectedCategory ? product.category === selectedCategory : true) &&
     product.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
       case 'az':
         return a.name.localeCompare(b.name);
@@ -77,7 +73,7 @@ const Shop = () => {
       default:
         return 0;
     }
-  });
+    });
 
   const displayedProducts = sortedProducts.slice(
     (currentPage - 1) * itemsPerPage,
@@ -86,74 +82,28 @@ const Shop = () => {
 
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
 
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
       <OrginalNavbar />
       <NavbarWithMenu />
-      <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <aside className="hidden lg:block p-4 bg-white shadow-md rounded-lg">
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold mb-3">Search Products</h3>
-              <div className="flex items-center border border-gray-300 rounded-lg px-3">
-                <FaSearch className="text-gray-500 mr-2" />
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full py-2 focus:outline-none"
-                />
-              </div>
-            </div>
+      
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
 
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold mb-3">Categories</h3>
-              <ul>
-                <button
-                  onClick={() => handleCategoryClick('')}
-                  className={`text-gray-700 mb-2 ${!selectedCategory && 'font-bold'}`}
-                >
-                  Show All
-                </button>
-                {categories.map((category) => (
-                  <li key={category._id} className="mb-2">
-                    <button
-                      onClick={() => handleCategoryClick(category.name)}
-                      className={`text-gray-700 hover:text-blue-600 transition ${selectedCategory === category.name ? 'font-bold' : ''}`}
-                    >
-                      {category.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
+            {/* Display selected category heading */}
+          {selectedCategory && (
+            <h2 className="text-2xl font-bold text-center col-span-4 mb-3 text-blue-900">
+              {selectedCategory} Products
+            </h2>
+          )}
 
-          <section className="lg:col-span-3">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <label className="mr-2 font-medium">Sort By:</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none"
-                >
-                  <option value="default">Default</option>
-                  <option value="az">A to Z</option>
-                  <option value="za">Z to A</option>
-                  <option value="priceasc">Price: Low to High</option>
-                  <option value="pricedesc">Price: High to Low</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {/* Sidebar for categories, search, and sorting */}
+          <section className="col-span-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 ml-10 mr-10">
               {displayedProducts.map((product) => (
                 <div
                   key={product._id}
-                  className="relative bg-white p-6 rounded-lg shadow-lg"
+                  className="relative bg-white p-4 rounded-lg shadow-lg"
                 >
                   <button className="absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full text-gray-500 hover:text-red-500">
                     <FaHeart />
@@ -163,7 +113,7 @@ const Shop = () => {
                     <img
                       src={product.imageUrl}
                       alt={product.title}
-                      className="h-56 object-cover rounded-lg mb-4"
+                      className="h-56 w-full object-cover rounded-lg mb-4"
                     />
                   </a>
                   <div>
@@ -228,4 +178,4 @@ const Shop = () => {
   );
 };
 
-export default Shop;
+export default ShopCategory;

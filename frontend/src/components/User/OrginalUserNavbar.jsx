@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaSearch, FaWallet, FaShoppingCart, FaUser, FaTimes } from 'react-icons/fa';
 import logo from '../../assets/logo.png';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const OrginalNavbar = () => {
     const [showAddressModal, setShowAddressModal] = useState(false);
@@ -34,15 +34,41 @@ const OrginalNavbar = () => {
     };
 
     const handleOptionSelect = (option) => {
-        console.log(option);
         setShowModal(false);
+        switch (option) {
+            case 'Your Account':
+                navigate('/profile');
+                break;
+            case 'Your Orders':
+                navigate('/orderList');
+                break;
+            case 'Your Wishlist':
+                navigate('/wishlist');
+                break;
+            case 'Keep Shopping':
+                navigate('/shop');
+                break;
+            case 'Shopping List':
+                navigate('/orderList');
+                break;
+            case 'Home':
+                navigate('/');
+                break;    
+            case 'Sign Out':
+                navigate('/logout');
+                break;
+            default:
+                break;
+        }
     };
 
     return (
         <>
             <nav className="flex flex-col md:flex-row justify-between items-center bg-white p-4 shadow h-24">
                 <div className="flex items-center justify-between w-full md:w-auto">
-                <img src={logo} alt="Logo" className="h-16  ml-3" />
+                <Link to="/"> {/* Update the path to your logo page */}
+                        <img src={logo} alt="Logo" className="h-16 ml-3" />
+                    </Link>
                     <div className="flex items-center">
                         <span 
                             id="user-address" 
@@ -72,16 +98,16 @@ const OrginalNavbar = () => {
                     </div>
                 </div>
                 <div className="flex items-center mx-auto mt-2 ml-3 md:mt-0">
-                <form onSubmit={handleSearchSubmit} className="relative w-full md:w-[800px]">
-                    <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
-                    <input
-                        type="text"
-                        placeholder="Search products..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="border border-gray-300 rounded pl-10 pr-4 py-2 w-full"
-                    />
-                </form>
+                    <form onSubmit={handleSearchSubmit} className="relative w-full md:w-[800px]">
+                        <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
+                        <input
+                            type="text"
+                            placeholder="Search products..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="border border-gray-300 rounded pl-10 pr-4 py-2 w-full"
+                        />
+                    </form>
                 </div>
                 <div className="flex items-center ml-4 mr-5 mt-2 md:mt-0 relative">
                     <div className="relative flex items-center">
@@ -126,11 +152,18 @@ const OrginalNavbar = () => {
                                     Shopping List
                                 </a>
                                 <a 
+                                    onClick={() => handleOptionSelect('Home')} 
+                                    className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                >
+                                    Home
+                                </a>
+                                <a 
                                     onClick={() => handleOptionSelect('Sign Out')} 
                                     className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
                                 >
                                     Sign Out
                                 </a>
+
                             </div>
                         )}
                     </div>
@@ -139,7 +172,7 @@ const OrginalNavbar = () => {
                         <span className="text-gray-700 ml-1"></span>
                     </div>
                     <div className="flex items-center ml-10 cursor-pointer hover:bg-gray-100 p-1 rounded"
-                    onClick={() => navigate('/cart')}>
+                        onClick={() => navigate('/cart')}>
                         <FaShoppingCart className="h-6 w-6 text-blue-500" />
                         <span className="text-gray-700 ml-1"></span>
                     </div>
