@@ -13,7 +13,7 @@ const addressSchema = new mongoose.Schema({
   street: { type: String, required: true },
   state: { type: String, required: true },
   flatNumber: { type: String, required: true },
-  phoneNumber:{type:Number, requires:true},
+  phoneNumber:{type:Number, required:true},
   addressType: { type: String, enum: ['Home', 'Work', 'Others'], required: true }
 });
 

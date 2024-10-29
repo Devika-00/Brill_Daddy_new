@@ -412,8 +412,22 @@ const getOrderDetail = async (req, res) => {
   }
 };
 
+const getProductSuggestions = async (req, res) => {
+  try {
+      // Fetch product words from the database
+      const products = await Product.find({}, 'word'); // Fetch only the 'word' field
+      const suggestions = products.map(product => product.word); // Map to an array of words
+
+      // Respond with the suggestions
+      res.status(200).json({ suggestions });
+  } catch (error) {
+      console.error("Error fetching product suggestions:", error);
+      res.status(500).json({ message: "Error fetching product suggestions" });
+  }
+};
+
 
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem,addWishlist,
-  getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail
+  getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions,
 }

@@ -140,7 +140,7 @@ const Shop = () => {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none"
                 >
-                  <option value="default">Default</option>
+                  <option value="default">Relevent</option>
                   <option value="az">A to Z</option>
                   <option value="za">Z to A</option>
                   <option value="priceasc">Price: Low to High</option>

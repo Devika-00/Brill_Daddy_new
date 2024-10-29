@@ -28,7 +28,7 @@ const OrderSuccessful = () => {
               Home
             </button>
             <button
-              onClick={() => navigate('/user/orders')}
+              onClick={() => navigate('/orderList')}
               className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-300"
             >
               View Order

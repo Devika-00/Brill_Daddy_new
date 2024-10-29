@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from 'react';
-import { Link } from 'react-router-dom'; 
+import { Link, useNavigate } from 'react-router-dom'; 
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
@@ -8,7 +8,7 @@ import { SERVER_URL } from "../../Constants";
 import axios from "axios";
 import ImageOne from "../../assets/one.jpg"
 import ImageTwo from "../../assets/two.jpg"
-import ImageThree from "../../assets/three.jpg"
+
 
 const HomePage = () => {
 
@@ -18,6 +18,8 @@ const HomePage = () => {
 
   const [products, setProducts] = useState([]);
   const [electronicProducts, setElectronicProducts] = useState([]);
+
+  const navigate = useNavigate();
   
   // Fetch products from the backend
   useEffect(() => {
@@ -57,7 +59,10 @@ const HomePage = () => {
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, []);
 
-  console.log(electronicProducts,"pppppppppppppppppppppp")
+  const handleCategoryClick = (categoryName) => {
+    navigate(`/shopCategory?category=${encodeURIComponent(categoryName)}`);
+  };
+
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const productsPerPage = 5;
@@ -94,13 +99,16 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Container for featured categories */}
+      {/* Category Cards */}
       <div className="p-6 grid gap-8 md:grid-cols-4 sm:grid-cols-2 lg:gap-12 mx-auto max-w-7xl">
-        {/* Category Cards */}
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300">
+        {/* Card 1 - Home Appliances */}
+        <div 
+          onClick={() => handleCategoryClick("Home appliances")} 
+          className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
+        >
           <img
             src="https://static-assets.business.amazon.com/assets/in/24th-jan/705_Website_Blog_Appliances_1450x664.jpg.transform/1450x664/image.jpg"
-            alt="Electronics"
+            alt="Home Appliances"
             className="w-full h-48 object-cover"
           />
           <div className="p-4">
@@ -110,7 +118,10 @@ const HomePage = () => {
         </div>
 
         {/* Card 2 - Fashion */}
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300">
+        <div 
+          onClick={() => handleCategoryClick("fashion")} 
+          className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
+        >
           <img
             src="https://st3.depositphotos.com/3591429/14866/i/450/depositphotos_148668333-stock-photo-credit-card-and-fashion-graphic.jpg"
             alt="Fashion"
@@ -122,11 +133,14 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* Card 3 - Sports */}
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300">
+        {/* Card 3 - Electronics */}
+        <div 
+          onClick={() => handleCategoryClick("electronics")} 
+          className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
+        >
           <img
             src="https://assets.architecturaldigest.in/photos/60084fc951daf9662c149bb9/16:9/w_2560%2Cc_limit/how-to-clean-gadgets-1366x768.jpg"
-            alt="Sports"
+            alt="Electronics"
             className="w-full h-48 object-cover"
           />
           <div className="p-4">
@@ -135,11 +149,10 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* Card 4 - Events */}
+        {/* Events Card */}
         <div className="bg-blue-200 shadow-lg rounded-lg p-4 hover:shadow-2xl transition duration-300">
           <h2 className="text-xl font-bold text-gray-700 mb-2 text-center">Events</h2>
           <div className="grid gap-3 grid-cols-1 md:grid-row-2">
-            {/* Event 1 */}
             <div className="bg-gray-100 border border-gray-200 rounded-lg p-2 transition-transform transform hover:scale-105 duration-300">
               <img
                 src="https://png.pngtree.com/png-clipart/20230809/original/pngtree-design-of-eid-mubarak-gift-coupon-or-voucher-with-blue-background-png-image_10209640.png"
@@ -165,6 +178,7 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+
 
       {/* Products Section */}
       <div className="p-6">

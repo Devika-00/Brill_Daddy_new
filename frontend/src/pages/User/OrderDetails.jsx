@@ -40,6 +40,8 @@ const OrderDetails = () => {
 
   if (!order) return <p>Loading...</p>;
 
+  console.log(order,"llllllllllllllllllllllll");
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white py-4">
       <OrginalNavbar />
