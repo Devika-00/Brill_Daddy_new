@@ -78,6 +78,8 @@ const Checkout = () => {
     }
   };
 
+  console.log(selectedAddress,"llllllllllllll")
+
   const handlePlaceOrder = async () => {
     if (!selectedAddress || !paymentMethod) {
       alert("Please select both an address and a payment method before placing the order.");

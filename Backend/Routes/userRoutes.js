@@ -2,7 +2,7 @@ const Router = require("express")
 const userRoute = Router();
 
 
-const { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem, addWishlist,getWishlist,removeWishlist,addAddress
+const { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems,clearCart, addWishlist,getWishlist,removeWishlist,addAddress
     ,getAddress,deleteAddress, placeOrder, getOrders, getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
  } = require("../Controller/userController");
 
@@ -18,7 +18,7 @@ userRoute.post("/verify-otp",verifyOtp);
 
 userRoute.post("/cart/add",addItemToCart);
 userRoute.get("/cart/:userId",getCartItems);
-userRoute.delete("/cart/:userId/:productId",removeCartItem);
+userRoute.delete("/clearCart/:userId",clearCart);
 
 userRoute.post("/wishlist/:userId",addWishlist);
 userRoute.get("/wishlist/:userId",getWishlist);

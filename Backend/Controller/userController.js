@@ -207,36 +207,25 @@ const getCartItems = async (req, res) => {
   }
 };
 
-const removeCartItem = async (req, res) => {
-  const { userId, productId } = req.params;
+const clearCart = async (req, res) => {
+  const { userId } = req.params;
 
   try {
+    // Find the user's cart and clear the items array
+    const result = await Cart.findOneAndUpdate(
+      { userId: userId }, // Find the cart for the specific user
+      { $set: { items: [] } }, // Clear the items array
+      { new: true } // Return the updated cart
+    );
 
-    if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).json({ message: 'Invalid productId format' });
-    }
-    // Find the cart for the user
-    const cart = await Cart.findOne({ userId });
-
-    if (!cart) {
+    if (result) {
+      return res.status(200).json({ message: 'Cart cleared successfully' });
+    } else {
       return res.status(404).json({ message: 'Cart not found' });
     }
-
-    // Convert productId from string to ObjectId
-    const productObjectId = new mongoose.Types.ObjectId(productId);
-
-    // Filter out the item with the specified productId
-    cart.items = cart.items.filter(item => !item.productId.equals(productObjectId));
-
-    console.log(cart.items, "Updated items after removal"); // Log the updated items array
-
-    // Save the updated cart
-    await cart.save();
-
-    res.status(200).json({ message: 'Item removed from cart', cart });
   } catch (error) {
-    console.error("Error removing item from cart:", error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Error clearing cart:", error);
+    return res.status(500).json({ message: 'Server error while clearing cart' });
   }
 };
 
@@ -342,6 +331,11 @@ const placeOrder = async (req, res) => {
     const { userId, cartItems, selectedAddressId, paymentMethod, paid } = req.body;
 
 
+    const address = await Address.findById(selectedAddressId);
+    if (!address) {
+      return res.status(404).send('Address not found');
+    }
+
     // Ensure each item has a salePrice, else default to 0
     const formattedCartItems = cartItems.map(item => ({
       productId: item.productId,
@@ -362,7 +356,7 @@ const placeOrder = async (req, res) => {
       userId,
       total,
       cartItems: formattedCartItems,
-      selectedAddressId,
+      selectedAddressId:address,
       paymentMethod,
       paid,
       orderStatus: 'Pending'  // Initial status as 'Pending'
@@ -472,6 +466,6 @@ const updateQuantityOfProduct = async (req, res) => {
 
 
 
-module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem,addWishlist,
+module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
 }

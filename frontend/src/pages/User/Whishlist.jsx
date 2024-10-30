@@ -63,10 +63,10 @@ const handleAddToCart = async (productId) => {
 };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white">
       <OrginalNavbar />
       <NavbarWithMenu />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container flex-grow mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-center text-blue-900 mb-8">Wishlist</h1>
         <div className="flex justify-center">
           <div className="w-full lg:w-3/4 space-y-6">

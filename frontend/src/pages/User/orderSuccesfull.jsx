@@ -12,15 +12,14 @@ const OrderSuccessful = () => {
   const { orderedItems, userId } = location.state || {};
   const navigate = useNavigate();
 
-  console.log(orderedItems,"aaaaaaaaaaaaaaaaa");
-
   useEffect(() => {
     // Function to update quantity in the backend
     const updateQuantities = async () => {
       console.log("loggingggg");
       try {
+        // Update the quantities of the ordered items
         await Promise.all(
-          orderedItems.map(item => 
+          orderedItems.map(item =>
             axios.post(`${SERVER_URL}/user/updateQuantity`, {
               productId: item.productId,
               quantity: item.quantity,
@@ -28,8 +27,13 @@ const OrderSuccessful = () => {
           )
         );
         console.log("Quantity updated successfully");
+
+        // Clear the cart items for the user after successful quantity update
+        await axios.delete(`${SERVER_URL}/user/clearCart/${userId}`);
+        console.log("Cart cleared successfully");
+
       } catch (error) {
-        console.error("Error updating quantity:", error);
+        console.error("Error updating quantity or clearing cart:", error);
       }
     };
 
@@ -37,7 +41,7 @@ const OrderSuccessful = () => {
     if (orderedItems && orderedItems.length > 0) {
       updateQuantities();
     }
-  }, [orderedItems]);
+  }, [orderedItems, userId]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-300 to-white">

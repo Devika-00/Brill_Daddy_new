@@ -85,20 +85,18 @@ const ShopCategory = () => {
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white">
       <OrginalNavbar />
       <NavbarWithMenu />
-      
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
 
+      <div className="container mx-auto flex-grow px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           {selectedCategory && (
             <h2 className="text-2xl font-bold text-center col-span-4 mb-3 text-blue-900">
               {selectedCategory} Products
             </h2>
           )}
 
-          {/* Sort By Options: Only show if there are products */}
           {hasProducts && (
             <div className="mb-4">
               <label htmlFor="sortBy" className="mb-2 text-lg font-semibold mr-2">Sort By:</label>
@@ -108,7 +106,7 @@ const ShopCategory = () => {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-md"
               >
-                <option value="default">Relevent</option>
+                <option value="default">Relevant</option>
                 <option value="az">Name: A-Z</option>
                 <option value="za">Name: Z-A</option>
                 <option value="priceasc">Price: Low to High</option>
@@ -116,19 +114,15 @@ const ShopCategory = () => {
               </select>
             </div>
           )}
-          
+
           <section className="col-span-4 flex flex-col md:flex-row justify-between">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 ml-10 mr-10 flex-1">
               {hasProducts ? (
                 displayedProducts.map((product) => (
-                  <div
-                    key={product._id}
-                    className="relative bg-white p-4 rounded-lg shadow-lg"
-                  >
+                  <div key={product._id} className="relative bg-white p-4 rounded-lg shadow-lg">
                     <button className="absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full text-gray-500 hover:text-red-500">
                       <FaHeart />
                     </button>
-
                     <a href={`/singleProduct/${product._id}`}>
                       <img
                         src={product.imageUrl}
@@ -137,20 +131,12 @@ const ShopCategory = () => {
                       />
                     </a>
                     <div>
-                      <h4 className="text-lg font-semibold mb-2 truncate">
-                        {product.name}
-                      </h4>
-                      <p className="text-gray-500 mb-4">
-                        Category: {product.category}
-                      </p>
+                      <h4 className="text-lg font-semibold mb-2 truncate">{product.name}</h4>
+                      <p className="text-gray-500 mb-4">Category: {product.category}</p>
                       <div className="flex justify-between items-center">
-                        <span className="text-lg font-bold text-blue-600">
-                          ₹ {product.salePrice}
-                        </span>
+                        <span className="text-lg font-bold text-blue-600">₹ {product.salePrice}</span>
                         {product.salePrice !== product.productPrice && (
-                          <span className="line-through text-gray-400">
-                            ₹ {product.productPrice}
-                          </span>
+                          <span className="line-through text-gray-400">₹ {product.productPrice}</span>
                         )}
                       </div>
                     </div>

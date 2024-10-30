@@ -113,18 +113,24 @@ const SingleProduct = () => {
 
 
               {/* Add to Cart and Buy Now Buttons */}
-              <div className="mt-6 flex space-x-4">
-                <button 
-                 onClick={handleAddToCart}
-                className="px-6 py-3 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-700 transition-colors duration-300 flex items-center">
-                  <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
-                  Add to Cart
-                </button>
-                <button className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors duration-300 flex items-center">
-                  <FontAwesomeIcon icon={faMoneyBillWave} className="mr-2" />
-                  Buy Now
-                </button>
-              </div>
+               {/* Out of Stock Message */}
+               {product.quantity <= 0 ? (
+                <div className="text-red-500 font-bold text-2xl">Product Out Of Stock</div>
+              ) : (
+                // Add to Cart and Buy Now Buttons
+                <div className="mt-6 flex space-x-4">
+                  <button 
+                    onClick={handleAddToCart}
+                    className="px-6 py-3 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-700 transition-colors duration-300 flex items-center">
+                    <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
+                    Add to Cart
+                  </button>
+                  <button className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors duration-300 flex items-center">
+                    <FontAwesomeIcon icon={faMoneyBillWave} className="mr-2" />
+                    Buy Now
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
