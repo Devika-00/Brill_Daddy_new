@@ -1,5 +1,9 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+
+
+
 import User from "../pages/Admin/User";
 import Product from "../pages/Admin/Products";
 import Dashboard from "../pages/Admin/Dashboard";
@@ -23,36 +27,47 @@ import OrdersList from "../pages/User/OrdersList";
 import OrderDetails from "../pages/User/OrderDetails";
 import ShopCategory from "../pages/User/shopCategory";
 import OrderSuccessful from "../pages/User/orderSuccesfull";
+import { PublicRoute,ProtectedRoute } from "./PrivateRoute";
 
 
 const MainRouter = () => {
   return (
     <Router>
       <Routes>
-        {/*Admin Routes */}
-        <Route path="/admin" element={<Dashboard />} />
-        <Route path="/users" element={<User />} />
-        <Route path="/products" element={<Product />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/vouchers" element={<Voucher />} />
-        <Route path="/adminlogin" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<UserLogin />} />
+        {/*User Routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/singleProduct/:id" element={<SingleProduct />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
         <Route path="/shop" element={<Shop />} />
+        
+        <Route element={<PublicRoute />}>
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<UserLogin />} />
+        </Route>
+        <Route element={<ProtectedRoute />}>
+       
+        <Route path="/singleProduct/:id" element={<SingleProduct />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/checkout" element={<Checkout />} />
         <Route path="/event" element={<Event />} />
         <Route path="/eventDetail" element={<EventDetail />} />
-        <Route path="/category" element={<Category />} />
-        <Route path="/brand" element={<Brand />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/orderList" element={<OrdersList />} />
         <Route path="/orderDetails/:id/:productId" element={<OrderDetails />} />
         <Route path="/shopCategory" element={<ShopCategory />} />
         <Route path="/orderSuccessful" element={<OrderSuccessful />} />
+        </Route>
+
+
+
+
+        <Route path="/admin" element={<Dashboard />} />
+        <Route path="/users" element={<User />} />
+        <Route path="/category" element={<Category />} />
+        <Route path="/brand" element={<Brand />} />
+        <Route path="/products" element={<Product />} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/vouchers" element={<Voucher />} />
+        <Route path="/adminlogin" element={<Login />} />
 
       </Routes>
     </Router>

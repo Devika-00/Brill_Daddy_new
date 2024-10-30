@@ -1,11 +1,21 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaFacebook, FaInstagram, FaPinterest } from 'react-icons/fa';
 import { SiGoogleplay, SiAppstore } from 'react-icons/si';
-
-
+import { useAppSelector } from "../../Redux/Store/store";
 
 const Footer = () => {
+  const navigate = useNavigate();
+  const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+
+  const handleNavigation = (path) => {
+    if (!isAuthenticated && (path === '/events' || path === '/orders')) {
+      navigate('/login');
+    } else {
+      navigate(path);
+    }
+  };
+
   return (
     <footer className="bg-blue-900 text-white py-8 mt-20">
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
@@ -14,8 +24,18 @@ const Footer = () => {
         <div className="mb-6 md:mb-0">
           <div className="flex flex-col space-y-3 text-left ml-24">
             <Link to="/about" className="hover:underline">About BrillDaddy</Link>
-            <Link to="/events" className="hover:underline">Events</Link>
-            <Link to="/orders" className="hover:underline">Orders</Link>
+            <span 
+              onClick={() => handleNavigation('/event')}
+              className="hover:underline cursor-pointer"
+            >
+              Events
+            </span>
+            <span 
+              onClick={() => handleNavigation('/orderList')}
+              className="hover:underline cursor-pointer"
+            >
+              Orders
+            </span>
             <Link to="/terms" className="hover:underline">Terms & Conditions</Link>
             <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
             <Link to="/faqs" className="hover:underline">FAQs</Link>
@@ -44,14 +64,9 @@ const Footer = () => {
         <div className='mr-20'>
           <h4 className="mb-4">Payment</h4>
           <div className="flex flex-wrap space-x-4">
-            {/* <img src={razorpayLogo} alt="Razorpay" className="h-10" />
-             <img src={billdeskLogo} alt="Billdesk" className="h-10" /> */}
-            {/*<img src={paytmLogo} alt="Paytm" className="h-10" />
-            <img src={mastercardLogo} alt="Mastercard" className="h-10" /> */}
             {/* Add other payment logos here */}
           </div>
         </div>
-
       </div>
     </footer>
   );

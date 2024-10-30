@@ -2,12 +2,15 @@ import React, { useState, useEffect } from "react";
 import {
   FaSearch,
   FaUser,
+  FaWallet, FaShoppingCart
 } from "react-icons/fa";
 import logo from "../../assets/logo.png";
 import { useNavigate, Link } from "react-router-dom";
 import { SERVER_URL } from "../../Constants";
 import axios from "axios";
 import { useAppSelector } from "../../Redux/Store/store";
+import { clearUser } from '../../Redux/Slice/userSlice';
+import { useSelector, useDispatch } from "react-redux";
 
 const OrginalNavbar = () => {
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -21,6 +24,8 @@ const OrginalNavbar = () => {
   const [currentAddress, setCurrentAddress] = useState(null);
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.user);
+  const dispatch = useDispatch();
+  
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -106,6 +111,14 @@ const OrginalNavbar = () => {
     }
   };
 
+  const handleWalletClick = () => {
+    navigate("/wallet"); // Navigate to wallet page
+  };
+
+  const handleCartClick = () => {
+    navigate("/cart");// Navigate to cart page
+  };
+
 
   const handleOptionSelect = (option) => {
     setShowModal(false);
@@ -128,9 +141,10 @@ const OrginalNavbar = () => {
       case "Home":
         navigate("/");
         break;
-      case "Sign Out":
-        navigate("/logout");
-        break;
+        case "Sign Out":
+            dispatch(clearUser()); // clear the user data in Redux
+            navigate("/login"); // navigate to login page
+            break;
       default:
         break;
     }
@@ -223,10 +237,14 @@ const OrginalNavbar = () => {
                 <FaUser className="text-gray-700 mr-1" />
                 <span
                   onClick={handleModalToggle}
-                  className="cursor-pointer text-gray-700 hover:text-blue-500 hover:border hover:border-blue-500 p-1 rounded"
+                  className="cursor-pointer text-gray-700 hover:text-blue-500 hover:border hover:border-blue-500 p-1 rounded mr-8"
                 >
                   Account
                 </span>
+                
+                <FaWallet onClick={handleWalletClick} className="text-yellow-700 ml-4 cursor-pointer hover:text-yellow-500 text-2xl mr-8" />
+                <FaShoppingCart onClick={handleCartClick} className="text-green-700 ml-4 cursor-pointer hover:text-green-500 text-2xl mr-4" />
+             
                 {showModal && (
                   <div className="absolute bg-white border border-gray-300 rounded shadow-md w-48 mt-96 z-20">
                     <div className="px-4 py-2 font-bold">Your Account</div>
@@ -270,16 +288,23 @@ const OrginalNavbar = () => {
                       onClick={() => handleOptionSelect("Sign Out")}
                       className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
                     >
-                      Sign Out
+                      Logout 
                     </a>
                   </div>
                 )}
               </div>
             </>
           ) : (
-            <Link to="/login" className="text-gray-700 hover:text-blue-500">
-              Sign In
-            </Link>
+            <>
+      <Link to="/login" className="flex items-center text-blue-900 hover:text-blue-500 mr-10">
+        <FaUser className="text-blue-900  hover:text-blue-500 mr-1" />
+        Sign In
+      </Link>
+      <FaShoppingCart 
+        className="text-green-700 ml-4 cursor-pointer hover:text-green-500 text-2xl mr-4" 
+        onClick={() => navigate('/login')} 
+      />
+    </>
           )}
         </div>
       </nav>

@@ -2,6 +2,7 @@ const Category = require("../Models/categoryModel");
 const Brand = require("../Models/brandModel");
 const Images = require("../Models/imageModel");
 const Product = require("../Models/productModel");
+const Order = require("../Models/orderModel")
 
 const addCategory = async (req,res) =>{
     try {
@@ -212,9 +213,6 @@ const editProduct = async (req, res) => {
             color,
             images:images
         };
-        console.log(updateData.images,"000000000000")
-        // Log incoming images data for debugging
-        console.log('Incoming Images:', images);
 
         if (images) {
             const newImageIds = []; // Array to hold new image IDs
@@ -250,9 +248,54 @@ const editProduct = async (req, res) => {
     }
 };
 
+const getOrders = async (req, res) => {
+    try {
+        const orders = await Order.find()
+          .populate('userId', 'name email') // Populate user's name and email
+          .populate('cartItems.productId', 'name images price') // Populate product name, image, and price
+          .populate('selectedAddressId', 'street city postalCode') // Populate address details
+          .exec();
+    
+        res.status(200).json(orders);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+        res.status(500).json({ message: 'Error fetching orders' });
+      }
+  };
+
+  const updateOrderStatus = async (req, res) => {
+    const { orderStatus } = req.body;
+  const { orderId } = req.params;
+
+  try {
+    // Validate orderStatus against the enum values defined in the model
+    const validStatuses = ['Pending', 'Processing', 'Shipped','Out for Delivery', 'Delivered', 'Cancelled'];
+    if (!validStatuses.includes(orderStatus)) {
+      return res.status(400).json({ message: 'Invalid order status' });
+    }
+
+    // Find the order by ID and update the status
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { orderStatus },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    return res.status(200).json(updatedOrder);
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+  };
+
+
 
 
 
 module.exports = {addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
-    deleteProducts,editProduct,
+    deleteProducts,editProduct, getOrders, updateOrderStatus,
 }

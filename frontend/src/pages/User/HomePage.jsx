@@ -6,8 +6,9 @@ import Footer from '../../components/User/Footer';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { SERVER_URL } from "../../Constants";
 import axios from "axios";
-import ImageOne from "../../assets/one.jpg"
-import ImageTwo from "../../assets/two.jpg"
+import ImageOne from "../../assets/one.jpg";
+import ImageTwo from "../../assets/two.jpg";
+
 
 
 const HomePage = () => {
@@ -20,6 +21,7 @@ const HomePage = () => {
   const [electronicProducts, setElectronicProducts] = useState([]);
 
   const navigate = useNavigate();
+
   
   // Fetch products from the backend
   useEffect(() => {

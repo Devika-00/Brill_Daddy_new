@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import jsPDF from 'jspdf';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
@@ -10,6 +11,7 @@ const OrderDetails = () => {
   const { id, productId } = useParams();
   const [order, setOrder] = useState(null);
   const [imageUrls, setImageUrls] = useState({});
+  const invoiceRef = useRef();
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -38,10 +40,71 @@ const OrderDetails = () => {
     if (id && productId) fetchOrderDetails();
   }, [id, productId]);
 
+  const handleDownloadInvoice = () => {
+    const doc = new jsPDF();
+    const element = invoiceRef.current;
+
+    // Set up table column widths
+    // const colWidths = [60, 60, 30, 30, 30]; 
+    // const startY = 40;
+
+    // Add header
+    doc.setFontSize(18);
+    doc.text("Invoice", 105, 20, null, null, 'center');
+
+    // Add shipping address
+    doc.setFontSize(12);
+    doc.text(`Order ID: ${id}`, 10, 30);
+    doc.text(`Shipping Address:`, 10, 35);
+    doc.text(`${order.selectedAddressId.userName}`, 10, 40);
+    doc.text(`${order.selectedAddressId.addressLine}`, 10, 45);
+    doc.text(`${order.selectedAddressId.street}, ${order.selectedAddressId.state}, ${order.selectedAddressId.pincode}`, 10, 50);
+    doc.text(`${order.selectedAddressId.flatNumber}`, 10, 55);
+    doc.text(`Phone: ${order.selectedAddressId.phoneNumber}`, 10, 60);
+
+    const spaceBeforeTable = 20; // Adjust space before the table
+    doc.text("", 10, 70 + spaceBeforeTable); // Add a blank line for spacing
+
+    // Add table header
+    doc.setFontSize(12);
+    const startY = 70 + spaceBeforeTable + 10;
+    doc.text("Product Name", 10, startY);
+    doc.text("Description", 70, startY);
+    doc.text("Price", 130, startY);
+    doc.text("Quantity", 160, startY);
+    doc.text("Total", 190, startY);
+    
+    // Draw line below header
+    doc.setLineWidth(0.5);
+    doc.line(10, startY + 2, 200, startY + 2);
+    
+    // Add product details to table
+    let rowIndex = startY + 10;
+    order.cartItems.forEach(item => {
+      doc.text(item.productId.name, 10, rowIndex);
+      doc.text(item.productId.description, 70, rowIndex);
+      doc.text(`$${item.price.toFixed(2)}`, 130, rowIndex);
+      doc.text(`${item.quantity}`, 160, rowIndex);
+      doc.text(`$${(item.price * item.quantity).toFixed(2)}`, 190, rowIndex);
+      rowIndex += 10;
+    });
+
+    // Total amount
+    const totalAmount = order.cartItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+    doc.text(`Total Amount: $${totalAmount}`, 10, rowIndex + 10);
+
+    // Save the PDF
+    doc.save(`Order_${id}_Invoice.pdf`);
+  };
+
   if (!order) return <p>Loading...</p>;
 
-  console.log(order,"llllllllllllllllllllllll");
+  // Calculate total amount
+  const totalAmount = order.cartItems.reduce((total, item) => {
+    return total + (item.price * item.quantity);
+  }, 0).toFixed(2);
 
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white py-4">
       <OrginalNavbar />
@@ -62,9 +125,11 @@ const OrderDetails = () => {
           <hr className="my-6 border-gray-300" />
 
           <h4 className="text-lg font-semibold mb-2">More Actions</h4>
-          <p className="text-blue-600 mb-4 cursor-pointer">Download Invoice</p>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-            Download
+          <button
+            onClick={handleDownloadInvoice}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Download Invoice
           </button>
         </div>
 
@@ -81,7 +146,7 @@ const OrderDetails = () => {
               <div>
                 <h3 className="text-xl font-semibold">{item.productId.name}</h3>
                 <p className="text-gray-600">{item.productId.description}</p>
-                <p className="text-gray-800 font-semibold mt-2">${item.price} x {item.quantity}</p>
+                <p className="text-gray-800 font-semibold mt-2">${item.price} x {item.quantity} = ${item.price * item.quantity}</p>
               </div>
             </div>
           ))}
@@ -98,6 +163,45 @@ const OrderDetails = () => {
               <span>Delivered</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Hidden Invoice Section for PDF Generation */}
+      <div ref={invoiceRef} style={{ visibility: 'hidden', position: 'absolute', top: '-9999px' }}>
+        <div style={{ padding: '20px' }}>
+          <h1 style={{ textAlign: 'center' }}>Invoice</h1>
+          <p><strong>Order ID:</strong> {id}</p>
+          <h3>Shipping Address:</h3>
+          <p>{order.selectedAddressId.userName}</p>
+          <p>{order.selectedAddressId.addressLine}</p>
+          <p>{order.selectedAddressId.street}, {order.selectedAddressId.state}, {order.selectedAddressId.pincode}</p>
+          <p>{order.selectedAddressId.flatNumber}</p>
+          <p>Phone: {order.selectedAddressId.phoneNumber}</p>
+
+          <h3>Order Details:</h3>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+            <thead>
+              <tr>
+                <th style={{ border: '1px solid black', padding: '8px' }}>Product Name</th>
+                <th style={{ border: '1px solid black', padding: '8px' }}>Description</th>
+                <th style={{ border: '1px solid black', padding: '8px' }}>Price</th>
+                <th style={{ border: '1px solid black', padding: '8px' }}>Quantity</th>
+                <th style={{ border: '1px solid black', padding: '8px' }}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.cartItems.map((item) => (
+                <tr key={item.productId._id}>
+                  <td style={{ border: '1px solid black', padding: '8px' }}>{item.productId.name}</td>
+                  <td style={{ border: '1px solid black', padding: '8px' }}>{item.productId.description}</td>
+                  <td style={{ border: '1px solid black', padding: '8px' }}>${item.price.toFixed(2)}</td>
+                  <td style={{ border: '1px solid black', padding: '8px' }}>{item.quantity}</td>
+                  <td style={{ border: '1px solid black', padding: '8px' }}>${(item.price * item.quantity).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p style={{ marginTop: '20px' }}><strong>Total Amount: </strong>${totalAmount}</p>
         </div>
       </div>
 

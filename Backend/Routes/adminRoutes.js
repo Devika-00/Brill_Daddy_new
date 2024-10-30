@@ -2,7 +2,7 @@ const Router = require("express")
 const adminRoute = Router();
 
 const {addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
-    deleteProducts,editProduct,
+    deleteProducts,editProduct, getOrders, updateOrderStatus,
 } = require("../Controller/adminController")
 
 adminRoute.post("/addcategory",addCategory);
@@ -20,5 +20,8 @@ adminRoute.get("/products",fetchProduct);
 adminRoute.get('/products/:id',fetchimages);
 adminRoute.delete("/deleteProducts/:id",deleteProducts);
 adminRoute.put('/updateProducts/:id', editProduct);
+
+adminRoute.get("/orders",getOrders);
+adminRoute.put("/orders/:orderId",updateOrderStatus);
 
 module.exports = adminRoute;
