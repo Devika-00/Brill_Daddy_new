@@ -15,10 +15,11 @@ const OrdersList = () => {
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
 
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/user/orders`, { params: { userId } });
+        const response = await axios.get(`${SERVER_URL}/user/orders/${userId}`);
         setOrders(response.data);
 
         const imageUrlsMap = {};
@@ -81,7 +82,7 @@ const OrdersList = () => {
 
                   {/* Price and Quantity */}
                   <div className="w-1/6 text-center">
-                    <p className="text-xl font-semibold">${item.price}</p>
+                    <p className="text-xl font-semibold">₹{item.price}</p>
                     <p className="text-gray-500 italic">Quantity: {item.quantity}</p>
                   </div>
 

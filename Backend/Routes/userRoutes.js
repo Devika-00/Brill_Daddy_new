@@ -3,13 +3,14 @@ const userRoute = Router();
 
 
 const { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem, addWishlist,getWishlist,removeWishlist,addAddress
-    ,getAddress,deleteAddress, placeOrder, getOrders, getOrderDetail, getProductSuggestions,
+    ,getAddress,deleteAddress, placeOrder, getOrders, getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
  } = require("../Controller/userController");
 
 userRoute.get("/products",getProducts);
 userRoute.get("/images/:id",fetchimages);
 userRoute.get("/category",fetchCategory);
 userRoute.get("/products/:id",fetchSingleProduct);
+userRoute.get("/:id",getUserDetails);
 
 userRoute.post("/register",registerUser);
 userRoute.post("/sendOtp",sendOtp);
@@ -28,9 +29,11 @@ userRoute.get("/addresses/:userId",getAddress);
 userRoute.delete('/deleteAddress/:id',deleteAddress);
 
 userRoute.post("/checkout/placeorder",placeOrder);
-userRoute.get("/orders",getOrders);
-userRoute.get("/orders/:orderId",getOrderDetail);
-userRoute.get("/product-suggestions",getProductSuggestions)
+userRoute.get("/orders/:userId",getOrders);
+userRoute.get("/order/:orderId",getOrderDetail);
+userRoute.get("/product-suggestions",getProductSuggestions);
+
+userRoute.post("/updateQuantity",updateQuantityOfProduct);
 
 
 

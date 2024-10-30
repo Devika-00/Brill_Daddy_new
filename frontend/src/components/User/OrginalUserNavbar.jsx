@@ -43,8 +43,6 @@ const OrginalNavbar = () => {
           const response = await axios.get(
             `${SERVER_URL}/user/addresses/${user.id}`
           );
-
-          console.log(response.data, "Fetched addresses");
           setUserAddresses(response.data);
 
           // Set the first address as selected if available

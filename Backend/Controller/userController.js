@@ -64,7 +64,7 @@ const fetchSingleProduct = async (req, res) =>{
 
 const registerUser = async (req, res) => {
     try {
-        console.log(req.body);
+       
       const { username, email, phone } = req.body;
   
       if (!username || !email || !phone) {
@@ -211,8 +211,6 @@ const removeCartItem = async (req, res) => {
   const { userId, productId } = req.params;
 
   try {
-    console.log(productId);
-    console.log(userId);
 
     if (!mongoose.Types.ObjectId.isValid(productId)) {
       return res.status(400).json({ message: 'Invalid productId format' });
@@ -379,7 +377,10 @@ const placeOrder = async (req, res) => {
 };
 
 const getOrders = async (req, res) => {
-  const { userId } = req.query; // Get userId from query params
+  
+
+  const  userId  = req.params.userId // Get userId from query params
+
 
   try {
     const orders = await Order.find({ userId }) // Find orders by userId
@@ -394,13 +395,11 @@ const getOrders = async (req, res) => {
 };
 
 const getOrderDetail = async (req, res) => {
-  console.log(req.params.orderId);
+
   try {
     const order = await Order.findById(req.params.orderId)
       .populate("cartItems.productId", "name description productPrice salePrice images") // Populate product details
       .populate("selectedAddressId"); // Populate address details
-
-      console.log(order,"enthaaa")
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
@@ -426,8 +425,53 @@ const getProductSuggestions = async (req, res) => {
   }
 };
 
+const getUserDetails = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const user = await User.findById(id) 
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user);
+} catch (error) {
+    console.error('Error fetching user info:', error);
+    res.status(500).json({ message: 'Server error' });
+}
+};
+
+const updateQuantityOfProduct = async (req, res) => {
+  const { productId, quantity } = req.body;
+  console.log(productId,"PRoDUCT iD");
+  console.log(quantity,"QUANTYIIII");
+
+  try {
+    // Validate that productId and quantity are provided
+    if (!productId || !quantity) {  
+      return res.status(400).json({ error: 'Product ID and quantity are required' });
+    }
+
+    // Update the product's stock in the database
+    const updatedProduct = await Product.findByIdAndUpdate( 
+      productId,
+      { $inc: { quantity: -quantity } }, // Decrease stock by the ordered quantity
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    res.status(200).json({ message: 'Quantity updated successfully', product: updatedProduct });
+  } catch (error) {
+    console.error('Error updating quantity:', error);
+    res.status(500).json({ error: 'Server error updating quantity' });
+  }
+};
+
 
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, removeCartItem,addWishlist,
-  getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions,
+  getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
 }

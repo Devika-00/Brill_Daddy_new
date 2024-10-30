@@ -28,7 +28,7 @@ const Checkout = () => {
     phoneNumber: ''
   });
   
-  console.log(cartItems,"pppppppppppppppp")
+
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
@@ -95,7 +95,7 @@ const Checkout = () => {
         orderStatus: "Pending"  
       };
       await axios.post(`${SERVER_URL}/user/checkout/placeorder`, orderData);
-      navigate('/orderSuccessful');
+      navigate('/orderSuccessful', { state: { orderedItems: cartItems, userId } });
     } catch (error) {
       console.error('Error placing order:', error);
       alert('Failed to place order');

@@ -86,7 +86,6 @@ const Shop = () => {
 
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
 
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
       <OrginalNavbar />
@@ -140,7 +139,7 @@ const Shop = () => {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none"
                 >
-                  <option value="default">Relevent</option>
+                  <option value="default">Relevant</option>
                   <option value="az">A to Z</option>
                   <option value="za">Z to A</option>
                   <option value="priceasc">Price: Low to High</option>
@@ -149,77 +148,87 @@ const Shop = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {displayedProducts.map((product) => (
-                <div
-                  key={product._id}
-                  className="relative bg-white p-6 rounded-lg shadow-lg"
-                >
-                  <button className="absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full text-gray-500 hover:text-red-500">
-                    <FaHeart />
-                  </button>
-
-                  <a href={`/singleProduct/${product._id}`}>
-                    <img
-                      src={product.imageUrl}
-                      alt={product.title}
-                      className="h-56 object-cover rounded-lg mb-4"
-                    />
-                  </a>
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2 truncate">
-                      {product.name}
-                    </h4>
-                    <p className="text-gray-500 mb-4">
-                      Category: {product.category}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-bold text-blue-600">
-                        ₹ {product.salePrice}
-                      </span>
-                      {product.salePrice !== product.productPrice && (
-                        <span className="line-through text-gray-400">
-                          ₹ {product.productPrice}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8 flex justify-center">
-              <ul className="inline-flex items-center">
-                <li>
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    className="px-4 py-2 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-200"
-                  >
-                    Previous
-                  </button>
-                </li>
-                {[...Array(totalPages).keys()].map((page) => (
-                  <li key={page + 1}>
-                    <button
-                      onClick={() => setCurrentPage(page + 1)}
-                      className={`px-4 py-2 bg-white border border-gray-300 ${currentPage === page + 1 ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'}`}
+            {displayedProducts.length === 0 ? (
+              <div className="text-center text-lg font-semibold text-gray-500 mt-10">
+                No Products Available
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  {displayedProducts.map((product) => (
+                    <div
+                      key={product._id}
+                      className="relative bg-white p-6 rounded-lg shadow-lg"
                     >
-                      {page + 1}
-                    </button>
-                  </li>
-                ))}
-                <li>
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    className="px-4 py-2 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-200"
-                  >
-                    Next
-                  </button>
-                </li>
-              </ul>
-            </div>
+                      <button className="absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full text-gray-500 hover:text-red-500">
+                        <FaHeart />
+                      </button>
+
+                      <a href={`/singleProduct/${product._id}`}>
+                        <img
+                          src={product.imageUrl}
+                          alt={product.title}
+                          className="h-56 object-cover rounded-lg mb-4"
+                        />
+                      </a>
+                      <div>
+                        <h4 className="text-lg font-semibold mb-2 truncate">
+                          {product.name}
+                        </h4>
+                        <p className="text-gray-500 mb-4">
+                          Category: {product.category}
+                        </p>
+                        <div className="flex justify-between items-center">
+                          <span className="text-lg font-bold text-blue-600">
+                            ₹ {product.salePrice}
+                          </span>
+                          {product.salePrice !== product.productPrice && (
+                            <span className="line-through text-gray-400">
+                              ₹ {product.productPrice}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {displayedProducts.length > 0 && totalPages > 1 && (
+                  <div className="mt-8 flex justify-center">
+                    <ul className="inline-flex items-center">
+                      <li>
+                        <button
+                          disabled={currentPage === 1}
+                          onClick={() => setCurrentPage(currentPage - 1)}
+                          className="px-4 py-2 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-200"
+                        >
+                          Previous
+                        </button>
+                      </li>
+                      {[...Array(totalPages).keys()].map((page) => (
+                        <li key={page + 1}>
+                          <button
+                            onClick={() => setCurrentPage(page + 1)}
+                            className={`px-4 py-2 bg-white border border-gray-300 ${currentPage === page + 1 ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'}`}
+                          >
+                            {page + 1}
+                          </button>
+                        </li>
+                      ))}
+                      <li>
+                        <button
+                          disabled={currentPage === totalPages}
+                          onClick={() => setCurrentPage(currentPage + 1)}
+                          className="px-4 py-2 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-200"
+                        >
+                          Next
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </>
+            )}
           </section>
         </div>
       </div>

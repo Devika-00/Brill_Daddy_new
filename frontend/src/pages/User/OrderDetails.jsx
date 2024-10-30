@@ -13,10 +13,12 @@ const OrderDetails = () => {
   const [imageUrls, setImageUrls] = useState({});
   const invoiceRef = useRef();
 
+
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/user/orders/${id}`);
+        const response = await axios.get(`${SERVER_URL}/user/order/${id}`);
+        console.log(response.data,"qqqqqqqqqqqqqqqqqqqqq");
         
         // Filter to find the specific item in cartItems with the matching productId
         const filteredOrder = {
@@ -146,7 +148,7 @@ const OrderDetails = () => {
               <div>
                 <h3 className="text-xl font-semibold">{item.productId.name}</h3>
                 <p className="text-gray-600">{item.productId.description}</p>
-                <p className="text-gray-800 font-semibold mt-2">${item.price} x {item.quantity} = ${item.price * item.quantity}</p>
+                <p className="text-gray-800 font-semibold mt-2">₹{item.price} x {item.quantity} = ₹{item.price * item.quantity}</p>
               </div>
             </div>
           ))}

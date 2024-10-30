@@ -1,11 +1,43 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
+import axios from 'axios';
+import { SERVER_URL } from "../../Constants";
+import { useLocation } from 'react-router-dom';
 
 const OrderSuccessful = () => {
+  const location = useLocation();
+  const { orderedItems, userId } = location.state || {};
   const navigate = useNavigate();
+
+  console.log(orderedItems,"aaaaaaaaaaaaaaaaa");
+
+  useEffect(() => {
+    // Function to update quantity in the backend
+    const updateQuantities = async () => {
+      console.log("loggingggg");
+      try {
+        await Promise.all(
+          orderedItems.map(item => 
+            axios.post(`${SERVER_URL}/user/updateQuantity`, {
+              productId: item.productId,
+              quantity: item.quantity,
+            })
+          )
+        );
+        console.log("Quantity updated successfully");
+      } catch (error) {
+        console.error("Error updating quantity:", error);
+      }
+    };
+
+    // Call the update function when the component mounts
+    if (orderedItems && orderedItems.length > 0) {
+      updateQuantities();
+    }
+  }, [orderedItems]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-300 to-white">
@@ -24,12 +56,14 @@ const OrderSuccessful = () => {
             <button
               onClick={() => navigate('/')}
               className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-300"
+              aria-label="Return to Home Page"
             >
               Home
             </button>
             <button
               onClick={() => navigate('/orderList')}
               className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-300"
+              aria-label="View Your Orders"
             >
               View Order
             </button>

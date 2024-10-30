@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { PublicRoute,ProtectedRoute } from "./PrivateRoute";
 
 
 
@@ -27,7 +28,7 @@ import OrdersList from "../pages/User/OrdersList";
 import OrderDetails from "../pages/User/OrderDetails";
 import ShopCategory from "../pages/User/shopCategory";
 import OrderSuccessful from "../pages/User/orderSuccesfull";
-import { PublicRoute,ProtectedRoute } from "./PrivateRoute";
+import NotFoundPage from "../pages/User/NotFoundPage";
 
 
 const MainRouter = () => {
@@ -46,6 +47,7 @@ const MainRouter = () => {
         <Route element={<ProtectedRoute />}>
        
         <Route path="/singleProduct/:id" element={<SingleProduct />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/event" element={<Event />} />
@@ -68,6 +70,8 @@ const MainRouter = () => {
         <Route path="/orders" element={<Orders />} />
         <Route path="/vouchers" element={<Voucher />} />
         <Route path="/adminlogin" element={<Login />} />
+
+        <Route path="*" element={<NotFoundPage />} />
 
       </Routes>
     </Router>

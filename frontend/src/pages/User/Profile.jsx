@@ -22,6 +22,7 @@ const Profile = () => {
   });
   const [addresses, setAddresses] = useState([]); // State for storing fetched addresses
   const [selectedAddressId, setSelectedAddressId] = useState(null); // State for selected address
+  const [userInfo, setUserInfo] = useState([]);
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
@@ -66,6 +67,20 @@ const Profile = () => {
     }
   };
 
+  const fetchUserInfo = async () => {
+    try {
+      
+      const response = await axios.get(`${SERVER_URL}/user/${userId}`);
+      if (response.status === 200) {
+        setUserInfo(response.data);
+      } else {
+        console.error('Failed to fetch user info');
+      }
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+    }
+  };
+
    // Delete address handler
    const handleAddressDelete = async (addressId) => {
     try {
@@ -86,7 +101,10 @@ const Profile = () => {
     if (activeTab === 'manageAddress') {
       fetchAddresses();
     }
+    fetchUserInfo();
   }, [activeTab]);
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
@@ -150,28 +168,15 @@ const Profile = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-gray-700">Name</label>
-                  <input type="text" className="w-full border p-2 rounded-lg" placeholder="Your name" />
-                </div>
-                <div>
-                  <label className="block text-gray-700">Gender</label>
-                  <div className="flex space-x-4">
-                    <label className="flex items-center space-x-2">
-                      <input type="radio" name="gender" className="form-radio" />
-                      <span>Male</span>
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <input type="radio" name="gender" className="form-radio" />
-                      <span>Female</span>
-                    </label>
-                  </div>
+                  <input type="text" className="w-full border p-2 rounded-lg" placeholder="Your name" value={userInfo.username} />
                 </div>
                 <div>
                   <label className="block text-gray-700">Email Address</label>
-                  <input type="email" className="w-full border p-2 rounded-lg" placeholder="Email" />
+                  <input type="email" className="w-full border p-2 rounded-lg" placeholder="Email" value={userInfo.email} />
                 </div>
                 <div>
                   <label className="block text-gray-700">Mobile Number</label>
-                  <input type="text" className="w-full border p-2 rounded-lg" placeholder="Mobile number" />
+                  <input type="text" className="w-full border p-2 rounded-lg" placeholder="Mobile number" value={userInfo.phone}/>
                 </div>
               </div>
             </div>
