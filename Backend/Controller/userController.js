@@ -298,6 +298,24 @@ const getAddress = async (req, res) => {
   }
 };
 
+const getUserAddress = async (req, res) => {
+  console.log("reaching")
+  const { addressId } = req.params; // Get address ID from request parameters
+
+    try {
+        const address = await Address.findById(addressId); // Find the address by ID
+
+        if (!address) {
+            return res.status(404).json({ message: 'Address not found' }); // Handle not found
+        }
+
+        res.status(200).json(address); // Respond with the address
+    } catch (error) {
+        console.error("Error fetching address:", error);
+        res.status(500).json({ message: 'Server error' }); // Handle server error
+    }
+};
+
 const deleteAddress = async (req, res) => {
   const addressId = req.params.id; // Get the address ID from the URL
   const { userId } = req.body; // Get userId from the request body
@@ -464,8 +482,37 @@ const updateQuantityOfProduct = async (req, res) => {
   }
 };
 
+const updateAddressUser = async (req, res) => {
+  console.log("reaching")
+  const { userId } = req.params;
+  const { addressId } = req.body;
+
+  try {
+    // Find the user by userId and update the address ID
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { currentAddress: addressId }, // Assuming currentAddress stores the selected address ID
+      { new: true } // Returns the updated document
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Success response with the updated user
+    res.status(200).json({
+      message: 'Address updated successfully',
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error('Error updating address:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
+  updateAddressUser, getUserAddress,
 }

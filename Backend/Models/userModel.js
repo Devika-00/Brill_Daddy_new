@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -19,6 +19,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  currentAddress: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Address',
+  }, 
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

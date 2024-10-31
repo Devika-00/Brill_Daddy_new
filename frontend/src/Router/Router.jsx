@@ -48,6 +48,7 @@ const MainRouter = () => {
        
         <Route path="/singleProduct/:id" element={<SingleProduct />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/event" element={<Event />} />

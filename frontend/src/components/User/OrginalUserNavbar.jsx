@@ -15,13 +15,13 @@ import { useSelector, useDispatch } from "react-redux";
 const OrginalNavbar = () => {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [productNames, setProductNames] = useState([]);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [userAddresses, setUserAddresses] = useState([]);
   const [currentAddress, setCurrentAddress] = useState(null);
+  const [selectedAddress, setSelectedAddress] = useState("");
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -44,20 +44,35 @@ const OrginalNavbar = () => {
             `${SERVER_URL}/user/addresses/${user.id}`
           );
           setUserAddresses(response.data);
-
-          // Set the first address as selected if available
-          if (response.data.length > 0) {
-            setSelectedAddress(response.data[0]); // Store the whole address object
-          }
         } catch (error) {
           console.error("Error fetching user addresses:", error);
         }
       }
     };
 
+    const fetchUserDetails = async () => {
+      if (user.isAuthenticated) {
+        try {
+          const userDetailsResponse = await axios.get(
+            `${SERVER_URL}/user/${user.id}`
+          );
+          
+        const addressId = userDetailsResponse.data.currentAddress; // Assuming this returns the address ID
+
+        const addressResponse = await axios.get(`${SERVER_URL}/user/address/${addressId}`);
+        
+        setSelectedAddress(addressResponse.data); 
+        } catch (error) {
+          console.error("Error fetching user details:", error);
+        }
+      }
+    };
+
     fetchProducts();
     fetchUserAddresses();
+    fetchUserDetails();
   }, [user]);
+
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -100,12 +115,22 @@ const OrginalNavbar = () => {
 
   const handleAddressSelect = (address) => {
     setCurrentAddress(address);
+    setSelectedAddress(address); // Update selectedAddress when a new address is selected
   };
-
-  const handleSaveAddress = () => {
+  
+  const handleSaveAddress = async () => {
     if (currentAddress) {
-      setSelectedAddress(currentAddress);
-      setShowAddressModal(false);
+      try {
+        const response = await axios.put(`${SERVER_URL}/user/updateAddress/${user.id}`, {
+          addressId: currentAddress._id, // Send only the address ID to the backend
+        });
+        if (response.status === 200) {
+          setSelectedAddress(currentAddress); // Update the UI with the new address
+          setShowAddressModal(false); // Close the modal
+        }
+      } catch (error) {
+        console.error("Error updating address:", error);
+      }
     }
   };
 
@@ -148,6 +173,7 @@ const OrginalNavbar = () => {
     }
   };
 
+
   return (
     <>
       <nav className="flex flex-col md:flex-row justify-between items-center bg-white p-4 shadow h-24">
@@ -156,22 +182,23 @@ const OrginalNavbar = () => {
             <img src={logo} alt="Logo" className="h-16 ml-3" />
           </Link>
           <div className="flex items-center">
-            {user.isAuthenticated && (
-              <span
-                id="user-address"
-                className="ml-10 cursor-pointer text-gray-700 hover:text-blue-500 hover:border hover:border-blue-500 p-1 rounded"
-                onClick={handleAddressModalToggle}
-              >
-                {selectedAddress.userName && (
-                  <>
-                    <div>{selectedAddress.userName}</div>
-                    <div>{selectedAddress.addressLine}</div>
-                    <div>{selectedAddress.state}</div>
-                  </>
-                )}
-                {!selectedAddress.userName && "Select Address"}
-              </span>
-            )}
+          {user.isAuthenticated && (
+  <span
+    id="user-address"
+    className="ml-10 cursor-pointer text-gray-700 hover:text-blue-500 hover:border hover:border-blue-500 p-1 rounded"
+    onClick={handleAddressModalToggle}
+  >
+    {selectedAddress.userName ? (
+      <>
+        <div>{selectedAddress.userName}</div>
+        <div>{selectedAddress.addressLine}</div>
+        <div>{selectedAddress.state}</div>
+      </>
+    ) : (
+      "Select Address"
+    )}
+  </span>
+)}
             <img
               src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrIJbX-6MVfN4u1_xWs8A7eADfLg1lU9k7oA&s"
               alt="India Flag"
@@ -312,22 +339,29 @@ const OrginalNavbar = () => {
           <div className="bg-white rounded shadow-lg p-6 w-96">
             <h3 className="font-bold text-lg mb-4">Select Address</h3>
             <ul className="space-y-4 max-h-60 overflow-y-auto">
-              {userAddresses.map((address, index) => (
-                <li key={index} className="border rounded-lg p-4 flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    name="address"
-                    value={address.addressLine}
-                    checked={currentAddress?.addressLine === address.addressLine}
-                    onChange={() => handleAddressSelect(address)}
-                  />
-                  <div>
-                    <div className="font-semibold">{address.userName}</div>
-                    <div>{address.addressLine}</div>
-                    <div>{address.state}</div>
-                  </div>
-                </li>
-              ))}
+            {userAddresses.length === 0 ? (
+        // Display message when no addresses are available
+        <p className="text-gray-600">No address available. Create an address from your account.</p>
+      ) : (
+        <ul className="space-y-4 max-h-60 overflow-y-auto">
+          {userAddresses.map((address, index) => (
+            <li key={index} className="border rounded-lg p-4 flex items-center space-x-2">
+              <input
+                type="radio"
+                name="address"
+                value={address.addressLine}
+                checked={currentAddress?.addressLine === address.addressLine}
+                onChange={() => handleAddressSelect(address)}
+              />
+              <div>
+                <div className="font-semibold">{address.userName}</div>
+                <div>{address.addressLine}</div>
+                <div>{address.state}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
             </ul>
             <div className="flex justify-end mt-4">
               <button
