@@ -35,7 +35,7 @@ const OrdersList = () => {
       } finally {
         setLoading(false);
       }
-    };
+    }; 
 
     if (userId) {
       fetchOrders();
@@ -46,16 +46,31 @@ const OrdersList = () => {
     navigate(`/orderDetails/${orderId}/${productId}`);
   };
 
+  const getStatusClassName = (status) => {
+    switch (status) {
+      case 'Pending':
+        return 'text-yellow-500';
+      case 'Shipped':
+        return 'text-orange-500';
+      case 'Delivered':
+        return 'text-green-600';
+      case 'Cancelled':
+        return 'text-red-500';
+      default:
+        return 'text-gray-500';
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white py-0">
       <OrginalNavbar />
       <NavbarWithMenu />
       <div className="max-w-6xl flex-grow mx-auto p-4 w-full">
-        <h2 className="text-2xl font-semibold text-center mb-6 ">Order History</h2>
+        <h2 className="text-2xl font-semibold text-center mb-6">Order History</h2>
 
         {loading ? (
           <p className="text-center">Loading orders...</p>
-        ) : orders.length === 0 ? ( // Check if orders array is empty
+        ) : orders.length === 0 ? (
           <p className="text-center">No Orders</p>
         ) : (
           <div className="space-y-4">
@@ -64,7 +79,7 @@ const OrdersList = () => {
                 <div
                   key={item._id}
                   onClick={() => handleProductClick(order._id, item.productId._id)}
-                  className="flex items-center justify-between bg-white shadow-md p-4 rounded-lg cursor-pointer hover:shadow-lg transition ml-2 "
+                  className="flex items-center justify-between bg-white shadow-md p-4 rounded-lg cursor-pointer hover:shadow-lg transition ml-2"
                 >
                   {/* Product Image */}
                   <div className="w-1/6">
@@ -89,8 +104,14 @@ const OrdersList = () => {
 
                   {/* Delivery Info */}
                   <div className="w-1/4 text-right mr-5">
-                    <p className="text-green-600 font-semibold">Delivered on {new Date(order.deliveryDate).toLocaleDateString()}</p>
-                    <p className="text-gray-500 italic">Your item is delivered</p>
+                    <p className={`${getStatusClassName(item.status)} font-semibold`}>
+                      {item.status === 'Delivered'
+                        ? `Delivered on ${new Date(order.deliveryDate).toLocaleDateString()}`
+                        : `${item.status}`}
+                    </p>
+                    <p className="text-gray-500 italic">
+                      {item.status === 'Delivered' ? 'Your item is delivered' : `Your Order is  ${item.status}`}
+                    </p>
                   </div>
                 </div>
               ))

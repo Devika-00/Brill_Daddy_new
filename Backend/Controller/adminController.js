@@ -224,7 +224,6 @@ const editProduct = async (req, res) => {
                 });
 
                 const savedImage = await newImages.save(); // Save each new image
-                console.log('Saved Image:', savedImage); // Log saved image details
                 newImageIds.push(savedImage._id); // Store the saved image ID
             }
 
@@ -264,32 +263,38 @@ const getOrders = async (req, res) => {
   };
 
   const updateOrderStatus = async (req, res) => {
-    const { orderStatus } = req.body;
-  const { orderId } = req.params;
-
-  try {
-    // Validate orderStatus against the enum values defined in the model
-    const validStatuses = ['Pending', 'Processing', 'Shipped','Out for Delivery', 'Delivered', 'Cancelled'];
-    if (!validStatuses.includes(orderStatus)) {
-      return res.status(400).json({ message: 'Invalid order status' });
+    const { orderStatus, productId } = req.body;
+    const { orderId } = req.params;
+  
+    try {
+      // Validate orderStatus against the enum values defined in the model
+      const validStatuses = ['Pending', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
+      if (!validStatuses.includes(orderStatus)) {
+        return res.status(400).json({ message: 'Invalid order status' });
+      }
+  
+      // Find the order by ID
+      const order = await Order.findById(orderId);
+      if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+  
+      // Find the product in cartItems and update its status
+      const itemToUpdate = order.cartItems.find(item => item.productId.toString() === productId);
+      if (!itemToUpdate) {
+        return res.status(404).json({ message: 'Product not found in the order' });
+      }
+  
+      itemToUpdate.status = orderStatus;
+  
+      // Save the updated order
+      await order.save();
+  
+      return res.status(200).json({ message: 'Product status updated successfully', order });
+    } catch (error) {
+      console.error('Error updating product status:', error);
+      return res.status(500).json({ message: 'Server error' });
     }
-
-    // Find the order by ID and update the status
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      { orderStatus },
-      { new: true } // Return the updated document
-    );
-
-    if (!updatedOrder) {
-      return res.status(404).json({ message: 'Order not found' });
-    }
-
-    return res.status(200).json(updatedOrder);
-  } catch (error) {
-    console.error('Error updating order status:', error);
-    return res.status(500).json({ message: 'Server error' });
-  }
   };
 
 

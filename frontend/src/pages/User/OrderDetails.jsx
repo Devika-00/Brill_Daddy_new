@@ -13,14 +13,11 @@ const OrderDetails = () => {
   const [imageUrls, setImageUrls] = useState({});
   const invoiceRef = useRef();
 
-
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
         const response = await axios.get(`${SERVER_URL}/user/order/${id}`);
-        console.log(response.data,"qqqqqqqqqqqqqqqqqqqqq");
         
-        // Filter to find the specific item in cartItems with the matching productId
         const filteredOrder = {
           ...response.data,
           cartItems: response.data.cartItems.filter((item) => item.productId._id === productId),
@@ -46,15 +43,9 @@ const OrderDetails = () => {
     const doc = new jsPDF();
     const element = invoiceRef.current;
 
-    // Set up table column widths
-    // const colWidths = [60, 60, 30, 30, 30]; 
-    // const startY = 40;
-
-    // Add header
     doc.setFontSize(18);
     doc.text("Invoice", 105, 20, null, null, 'center');
 
-    // Add shipping address
     doc.setFontSize(12);
     doc.text(`Order ID: ${id}`, 10, 30);
     doc.text(`Shipping Address:`, 10, 35);
@@ -64,23 +55,13 @@ const OrderDetails = () => {
     doc.text(`${order.selectedAddressId.flatNumber}`, 10, 55);
     doc.text(`Phone: ${order.selectedAddressId.phoneNumber}`, 10, 60);
 
-    const spaceBeforeTable = 20; // Adjust space before the table
-    doc.text("", 10, 70 + spaceBeforeTable); // Add a blank line for spacing
-
-    // Add table header
-    doc.setFontSize(12);
-    const startY = 70 + spaceBeforeTable + 10;
+    const startY = 90;
     doc.text("Product Name", 10, startY);
     doc.text("Description", 70, startY);
     doc.text("Price", 130, startY);
     doc.text("Quantity", 160, startY);
     doc.text("Total", 190, startY);
-    
-    // Draw line below header
-    doc.setLineWidth(0.5);
-    doc.line(10, startY + 2, 200, startY + 2);
-    
-    // Add product details to table
+
     let rowIndex = startY + 10;
     order.cartItems.forEach(item => {
       doc.text(item.productId.name, 10, rowIndex);
@@ -91,22 +72,31 @@ const OrderDetails = () => {
       rowIndex += 10;
     });
 
-    // Total amount
     const totalAmount = order.cartItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
     doc.text(`Total Amount: $${totalAmount}`, 10, rowIndex + 10);
 
-    // Save the PDF
     doc.save(`Order_${id}_Invoice.pdf`);
   };
 
   if (!order) return <p>Loading...</p>;
 
-  // Calculate total amount
   const totalAmount = order.cartItems.reduce((total, item) => {
     return total + (item.price * item.quantity);
   }, 0).toFixed(2);
 
-  
+  // Order status mapping
+  const statusMapping = {
+    "Pending": 25,
+    "Shipped": 50,
+    "Out for Delivery": 75,
+    "Delivered": 100,
+  };
+
+  // Calculate the average progress percentage based on each product's status
+  const progressPercentage = order.cartItems.reduce((totalProgress, item) => {
+    return totalProgress + (statusMapping[item.status] || 0);
+  }, 0) / order.cartItems.length;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white py-4">
       <OrginalNavbar />
@@ -153,10 +143,10 @@ const OrderDetails = () => {
             </div>
           ))}
           
-          {/* Order Status */}
+          {/* Order Status Progress Bar */}
           <div className="mt-6">
-            <div className="flex items-center justify-between">
-              <div className={`w-2.5 h-2.5 rounded-full ${order.orderStatus === 'Pending' ? 'bg-green-600' : 'bg-gray-300'}`}></div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div className="bg-green-600 h-2.5 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
             </div>
             <div className="flex justify-between mt-2 text-sm text-gray-600">
               <span>Order Confirmed</span>
@@ -165,45 +155,6 @@ const OrderDetails = () => {
               <span>Delivered</span>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Hidden Invoice Section for PDF Generation */}
-      <div ref={invoiceRef} style={{ visibility: 'hidden', position: 'absolute', top: '-9999px' }}>
-        <div style={{ padding: '20px' }}>
-          <h1 style={{ textAlign: 'center' }}>Invoice</h1>
-          <p><strong>Order ID:</strong> {id}</p>
-          <h3>Shipping Address:</h3>
-          <p>{order.selectedAddressId.userName}</p>
-          <p>{order.selectedAddressId.addressLine}</p>
-          <p>{order.selectedAddressId.street}, {order.selectedAddressId.state}, {order.selectedAddressId.pincode}</p>
-          <p>{order.selectedAddressId.flatNumber}</p>
-          <p>Phone: {order.selectedAddressId.phoneNumber}</p>
-
-          <h3>Order Details:</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-            <thead>
-              <tr>
-                <th style={{ border: '1px solid black', padding: '8px' }}>Product Name</th>
-                <th style={{ border: '1px solid black', padding: '8px' }}>Description</th>
-                <th style={{ border: '1px solid black', padding: '8px' }}>Price</th>
-                <th style={{ border: '1px solid black', padding: '8px' }}>Quantity</th>
-                <th style={{ border: '1px solid black', padding: '8px' }}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.cartItems.map((item) => (
-                <tr key={item.productId._id}>
-                  <td style={{ border: '1px solid black', padding: '8px' }}>{item.productId.name}</td>
-                  <td style={{ border: '1px solid black', padding: '8px' }}>{item.productId.description}</td>
-                  <td style={{ border: '1px solid black', padding: '8px' }}>${item.price.toFixed(2)}</td>
-                  <td style={{ border: '1px solid black', padding: '8px' }}>{item.quantity}</td>
-                  <td style={{ border: '1px solid black', padding: '8px' }}>${(item.price * item.quantity).toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p style={{ marginTop: '20px' }}><strong>Total Amount: </strong>${totalAmount}</p>
         </div>
       </div>
 

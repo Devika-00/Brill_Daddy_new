@@ -19,10 +19,10 @@ const Orders = () => {
         const imageUrlsMap = {};
         for (const order of response.data) {
           for (const item of order.cartItems) {
-            const imageId = item.productId.images[0]; // Assuming images is an array and you want the first image
+            const imageId = item.productId.images[0];
             if (imageId) {
               const imageResponse = await axios.get(`${SERVER_URL}/user/images/${imageId}`);
-              imageUrlsMap[imageId] = imageResponse.data.imageUrl; // Store the image URL
+              imageUrlsMap[imageId] = imageResponse.data.imageUrl;
             }
           }
         }
@@ -37,7 +37,7 @@ const Orders = () => {
 
   const openModal = (order, item) => {
     setSelectedOrder({ ...order, selectedItem: item });
-    setNewStatus(order.orderStatus); // Set current status as default in modal
+    setNewStatus(item.status); // Use the product's specific status
   };
 
   const closeModal = () => {
@@ -52,17 +52,26 @@ const Orders = () => {
     Delivered: 'bg-green-200 text-green-800',
   };
 
-  
-
   const handleStatusChange = async () => {
     if (selectedOrder) {
       try {
         await axios.put(`${SERVER_URL}/admin/orders/${selectedOrder._id}`, {
           orderStatus: newStatus,
+          productId: selectedOrder.selectedItem.productId._id,
         });
-        setOrders((prevOrders) => 
-          prevOrders.map((order) => 
-            order._id === selectedOrder._id ? { ...order, orderStatus: newStatus } : order
+
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order._id === selectedOrder._id
+              ? {
+                  ...order,
+                  cartItems: order.cartItems.map((item) =>
+                    item.productId._id === selectedOrder.selectedItem.productId._id
+                      ? { ...item, status: newStatus }
+                      : item
+                  ),
+                }
+              : order
           )
         );
         closeModal();
@@ -89,17 +98,14 @@ const Orders = () => {
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Quantity</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Price</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Order Date</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Product Status</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Details and Status</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((order) =>
                   order.cartItems.map((item) => (
-                    <tr
-                      key={item._id}
-                      className="border-t cursor-pointer transition-transform duration-150"
-                    >
+                    <tr key={item._id} className="border-t cursor-pointer transition-transform duration-150">
                       <td className="px-4 py-2 text-sm text-gray-600">{order._id}</td>
                       <td className="px-4 py-2 text-sm text-gray-600">{item.productId?.name}</td>
                       <td className="px-4 py-2">
@@ -115,8 +121,8 @@ const Orders = () => {
                         {new Date(order.orderDate).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-2">
-                        <span className={`${statusColors[order.orderStatus]} px-2 py-1 rounded-md`}>
-                          {order.orderStatus}
+                        <span className={`${statusColors[item.status]} px-2 py-1 rounded-md`}>
+                          {item.status}
                         </span>
                       </td>
                       <td className="px-4 py-2">
@@ -156,7 +162,7 @@ const Orders = () => {
                   onChange={(e) => setNewStatus(e.target.value)}
                   className="border border-gray-300 rounded-md p-2 mb-4"
                 >
-                  <option value="Pending" >Pending</option>
+                  <option value="Pending">Pending</option>
                   <option value="Shipped">Shipped</option>
                   <option value="Out for Delivery">Out for Delivery</option>
                   <option value="Delivered">Delivered</option>
@@ -165,7 +171,6 @@ const Orders = () => {
                 <button
                   onClick={handleStatusChange}
                   className="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600 ml-3"
-                 
                 >
                   Update Status
                 </button>

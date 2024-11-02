@@ -299,7 +299,6 @@ const getAddress = async (req, res) => {
 };
 
 const getUserAddress = async (req, res) => {
-  console.log("reaching")
   const { addressId } = req.params; // Get address ID from request parameters
 
     try {
@@ -455,8 +454,6 @@ const getUserDetails = async (req, res) => {
 
 const updateQuantityOfProduct = async (req, res) => {
   const { productId, quantity } = req.body;
-  console.log(productId,"PRoDUCT iD");
-  console.log(quantity,"QUANTYIIII");
 
   try {
     // Validate that productId and quantity are provided
@@ -483,7 +480,6 @@ const updateQuantityOfProduct = async (req, res) => {
 };
 
 const updateAddressUser = async (req, res) => {
-  console.log("reaching")
   const { userId } = req.params;
   const { addressId } = req.body;
 
