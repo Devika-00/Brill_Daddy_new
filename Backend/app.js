@@ -10,6 +10,7 @@ const userRoute = require("./Routes/userRoutes");
 const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: true,

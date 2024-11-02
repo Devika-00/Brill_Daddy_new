@@ -2,7 +2,8 @@ const Category = require("../Models/categoryModel");
 const Brand = require("../Models/brandModel");
 const Images = require("../Models/imageModel");
 const Product = require("../Models/productModel");
-const Order = require("../Models/orderModel")
+const Order = require("../Models/orderModel");
+const Voucher = require("../Models/voucherModel");
 
 const addCategory = async (req,res) =>{
     try {
@@ -297,6 +298,86 @@ const getOrders = async (req, res) => {
     }
   };
 
+  const addVouchers = async (req, res) => {
+    try {
+        console.log(req.body, "Request Body"); // Log incoming request body
+        const { voucher_name, details, product_name, price } = req.body;
+
+        // Log the parsed fields
+        console.log("Voucher Name:", voucher_name);
+        console.log("Details:", details);
+        console.log("Product Name:", product_name);
+        console.log("Price:", price);
+
+        // Create a new voucher instance
+        const voucher = new Voucher({
+            voucher_name,
+            details,
+            product_name,
+            price
+        });
+
+        // Save the voucher to the database
+        const savedVoucher = await voucher.save();
+        console.log("Saved Voucher:", savedVoucher); // Log saved voucher
+        res.status(201).json(savedVoucher);
+    } catch (error) {
+        console.error("Error creating voucher:", error.message); // Log the error message
+        res.status(500).json({ message: "Error creating voucher" });
+    }
+};
+
+const getAllVoucher = async (req, res) => {
+    try {
+        const vouchers = await Voucher.find(); // Fetch all vouchers from the database
+        res.status(200).json(vouchers); // Send the vouchers as JSON response
+        } catch (error) {
+        console.error('Error fetching vouchers:', error);
+        res.status(500).json({ message: 'Failed to retrieve vouchers' }); // Error handling
+    }
+};
+
+const deletevoucher = async (req, res) => {
+    try {
+        const { id } = req.params; // Get voucher ID from request parameters
+        const deletedVoucher = await Voucher.findByIdAndDelete(id); // Find and delete the voucher by ID
+    
+        if (!deletedVoucher) {
+          return res.status(404).json({ message: 'Voucher not found' }); // If voucher not found, respond with 404
+        }
+    
+        res.status(200).json({ message: 'Voucher deleted successfully' }); // Success response
+      } catch (error) {
+        console.error('Error deleting voucher:', error);
+        res.status(500).json({ message: 'Failed to delete voucher' }); // Error handling
+      }
+};
+
+const editVoucher = async (req, res) => {
+    const { id } = req.params;
+  const { voucher_name, details, product_name, price } = req.body;
+
+  try {
+    // Find the voucher by ID and update its fields
+    const updatedVoucher = await Voucher.findByIdAndUpdate(
+      id,
+      { voucher_name, details, product_name, price },
+      { new: true } // Return the updated document
+    );
+
+    // Check if the voucher was found and updated
+    if (!updatedVoucher) {
+      return res.status(404).json({ message: 'Voucher not found' });
+    }
+
+    // Send the updated voucher as a response
+    res.status(200).json(updatedVoucher);
+  } catch (error) {
+    console.error('Error updating voucher:', error);
+    res.status(500).json({ message: 'Error updating voucher' });
+  }
+};
+
 
   
 
@@ -305,5 +386,5 @@ const getOrders = async (req, res) => {
 
 
 module.exports = {addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
-    deleteProducts,editProduct, getOrders, updateOrderStatus,
+    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher
 }

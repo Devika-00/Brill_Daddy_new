@@ -81,7 +81,7 @@ const WishlistPage = () => {
                   <div className="flex-grow px-4 mt-4 lg:mt-0">
                     <h3 className="text-lg font-semibold">{item.productId.name}</h3>
                     <p className="text-gray-600">{item.productId.description}</p>
-                    <p className="text-red-600 text-bold">${item.productId.salePrice}</p>
+                    <p className="text-red-600 text-bold">₹{item.productId.salePrice}</p>
                     <div className="flex items-center mt-4 space-x-4">
                       <button
                         onClick={() => handleAddToCart(item.productId._id)}
