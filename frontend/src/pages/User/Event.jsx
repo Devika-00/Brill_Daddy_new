@@ -1,73 +1,107 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Gift, Award, Sparkles, Clock, ChevronRight } from 'lucide-react';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
+import { SERVER_URL } from '../../Constants';
+import axios from 'axios';
 
 const EventPage = () => {
-  const winners = ['W001', 'W002', 'W003', 'W004', 'W005'];
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const [vouchers, setVouchers] = useState([]);
 
-  const vouchers = [
-    {
-      id: 'V001',
-      image: 'https://img.freepik.com/premium-vector/professional-gift-voucher-coupon-design_771884-3.jpg',
-      description: '10% Off on Electronics',
-    },
-    {
-      id: 'V002',
-      image: 'https://img.freepik.com/premium-vector/professional-gift-voucher-coupon-design_771884-3.jpg',
-      description: 'Buy 1 Get 1 Free on Apparel',
-    },
-    {
-      id: 'V003',
-      image: 'https://img.freepik.com/premium-vector/professional-gift-voucher-coupon-design_771884-3.jpg',
-      description: '20% Discount on Groceries',
-    },
-    {
-      id: 'V004',
-      image: 'https://img.freepik.com/premium-vector/professional-gift-voucher-coupon-design_771884-3.jpg',
-      description: 'Flat ₹500 Off on Furniture',
-    },
-    {
-      id: 'V005',
-      image: 'https://img.freepik.com/premium-vector/professional-gift-voucher-coupon-design_771884-3.jpg',
-      description: 'Free Shipping on Orders Above ₹1000',
-    },
+  useEffect(() => {
+    const fetchVouchers = async () => {
+      try {
+        const response = await axios.get(`${SERVER_URL}/voucher/getVouchers`);
+        setVouchers(response.data); // Assuming response.data contains the array of vouchers
+      } catch (error) {
+        console.error('Failed to fetch vouchers:', error);
+        // Display a message to the user or set a state to show an error message
+      }
+    };
+    fetchVouchers();
+  }, []);
+
+  const winners = [
+    { id: 'W001', prize: 'Gold Winner', date: '2024-03-01' },
+    { id: 'W002', prize: 'Silver Winner', date: '2024-03-01' },
+    { id: 'W003', prize: 'Bronze Winner', date: '2024-03-01' },
+    { id: 'W004', prize: 'Lucky Draw', date: '2024-03-01' },
+    { id: 'W005', prize: 'Special Prize', date: '2024-03-01' },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white py-0"> {/* Removed extra padding */}
+    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
       <OrginalNavbar />
       <NavbarWithMenu />
-      <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-8 mt-5">Event Page</h1>
-        <div className="grid grid-cols-1 lg:grid-cols-2"> {/* Decreased gap from 8 to 4 */}
-          {/* Winners List */}
-          <div className="bg-white shadow-md rounded-lg p-4 w-full max-w-sm mx-auto h-96 sticky top-8">
-            <h2 className="text-xl font-semibold mb-4 text-center">Winners</h2>
-            <ul className="space-y-2">
-              {winners.map((winnerId, index) => (
-                <li key={index} className="border border-gray-300 p-2 rounded-lg text-center font-medium">
-                  Winner ID: {winnerId}
-                </li>
-              ))}
-            </ul>
+
+      <div className="container mx-auto px-4 mt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Winners Section */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-8">
+              <div className="flex items-center mb-6">
+                <Award className="w-6 h-6 text-yellow-500 mr-2" />
+                <h2 className="text-2xl font-bold">Winners</h2>
+              </div>
+              <div className="space-y-4">
+                {winners.map((winner) => (
+                  <div
+                    key={winner.id}
+                    className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-100 transition-transform hover:scale-105"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-semibold text-gray-800">{winner.prize}</p>
+                        <p className="text-sm text-gray-500">ID: {winner.id}</p>
+                      </div>
+                      <Sparkles className="w-5 h-5 text-yellow-500" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Event Vouchers */}
-          <div className="bg-white shadow-md rounded-lg p-4 w-full mx-auto ">
-            <h2 className="text-xl font-semibold mb-4 text-center">Event Vouchers</h2>
-            <ul className="space-y-4">
+          {/* Vouchers Section */}
+          <div className="lg:col-span-2">
+            {/* Vouchers Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {vouchers.map((voucher) => (
-                <li key={voucher.id} className="border border-gray-300 p-2 rounded-lg flex flex-col items-center">
-                  <img
-                    src={voucher.image}
-                    alt={`Voucher ${voucher.id}`}
-                    className="w-full h-48 mb-2 object-cover"
-                  />
-                  <p className="text-gray-600 text-center">{voucher.description}</p>
-                </li>
+                <div
+                  key={voucher._id}
+                  className="relative group"
+                  onMouseEnter={() => setHoveredCard(voucher._id)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                >
+                  <div
+                    className={`bg-blue-500 rounded-xl p-6 transform transition-all duration-300 
+                    ${hoveredCard === voucher._id ? 'scale-105' : 'scale-100'} shadow-lg`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <img src="https://via.placeholder.com/150" alt="Voucher" className="mb-4 rounded-md" />
+                        <h3 className="text-xl font-bold text-white mt-4">{voucher.voucher_name}</h3>
+                        <p className="text-white text-opacity-90 mt-2">{voucher.details}</p>
+                      </div>
+                      <div className="text-3xl font-bold text-white">{voucher.price}</div>
+                    </div>
+                    
+                    <div className="mt-6 flex items-center justify-between">
+                      <div className="flex items-center text-white text-opacity-90">
+                        <Clock className="w-4 h-4 mr-1" />
+                        <span className="text-sm">Valid until {new Date(voucher.end_time).toLocaleDateString()}</span>
+                      </div>
+                      <button className="flex items-center text-white hover:text-opacity-75 transition-colors">
+                        <span className="mr-1">Claim</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
       </div>

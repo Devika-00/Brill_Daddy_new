@@ -12,6 +12,7 @@ const mongoose = require('mongoose');
 const Wishlist = require("../Models/wishlistModel");
 const Address = require("../Models/addressModel");
 const Order = require("../Models/orderModel");
+const Voucher = require("../Models/voucherModel");
 
 const getProducts = async (req,res) =>{
     try {
@@ -506,9 +507,20 @@ const updateAddressUser = async (req, res) => {
   }
 };
 
+const getVouchersUserSide = async (req, res) => {
+  console.log("Fetching all vouchers");
+  try {
+      const vouchers = await Voucher.find({});
+      res.status(200).json(vouchers);
+  } catch (error) {
+      console.error("Error fetching vouchers:", error);
+      res.status(500).json({ error: "Failed to fetch vouchers" });
+  }
+};
+
 
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
-  updateAddressUser, getUserAddress,
+  updateAddressUser, getUserAddress, getVouchersUserSide
 }

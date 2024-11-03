@@ -6,6 +6,7 @@ const ENV = require("./Config/ENV");
 const connectDb = require("./Config/Connection");
 const adminRoute = require("./Routes/adminRoutes");
 const userRoute = require("./Routes/userRoutes");
+const voucherRoute = require("./Routes/voucherRoutes");
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(
 
 app.use("/api/admin",adminRoute);
 app.use("/api/user",userRoute);
+app.use("/api/voucher",voucherRoute);
 
 const port = ENV.PORT || 5000;
 
