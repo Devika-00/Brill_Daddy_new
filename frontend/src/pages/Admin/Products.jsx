@@ -255,7 +255,7 @@ const Product = () => {
     }
   };
 
-  console.log(newProduct,"oopopopopo")
+
   
 
   return (

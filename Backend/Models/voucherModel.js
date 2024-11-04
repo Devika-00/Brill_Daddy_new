@@ -13,7 +13,7 @@ const voucherSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  product_image: {
+  imageUrl: {
     type: String,
   },
   price: {

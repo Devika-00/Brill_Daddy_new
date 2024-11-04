@@ -301,7 +301,7 @@ const getOrders = async (req, res) => {
   const addVouchers = async (req, res) => {
     try {
         console.log(req.body, "Request Body"); // Log incoming request body
-        const { voucher_name, details, product_name, price } = req.body;
+        const { voucher_name, details, product_name, price, imageUrl } = req.body;
 
         // Log the parsed fields
         console.log("Voucher Name:", voucher_name);
@@ -314,7 +314,8 @@ const getOrders = async (req, res) => {
             voucher_name,
             details,
             product_name,
-            price
+            price,
+            imageUrl
         });
 
         // Save the voucher to the database

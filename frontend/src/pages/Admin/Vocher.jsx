@@ -3,6 +3,7 @@ import Navbar from "../../components/Admin/Navbar";
 import Sidebar from '../../components/Admin/Sidebar';
 import axios from 'axios';
 import { SERVER_URL } from "../../Constants";
+import { uploadImagesToCloudinary } from "../../Api/uploadImage";
 
 // Modal Component for Add Voucher
 const AddModal = ({ isOpen, onClose, onSubmit }) => {
@@ -10,18 +11,23 @@ const AddModal = ({ isOpen, onClose, onSubmit }) => {
     voucher_name: '',
     details: '',
     product_name: '',
-    price: ''
+    price: '',
+    image: null, // For storing image file
   });
 
   useEffect(() => {
     if (!isOpen) {
-      setFormData({ voucher_name: '', details: '', product_name: '', price: '' });
+      setFormData({ voucher_name: '', details: '', product_name: '', price: '', image: null });
     }
   }, [isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+  };
+
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, image: e.target.files[0] });
   };
 
   const handleSubmit = (e) => {
@@ -81,6 +87,10 @@ const AddModal = ({ isOpen, onClose, onSubmit }) => {
               required
             />
           </div>
+          <div className="mb-4">
+            <label className="block text-sm mb-1">Image</label>
+            <input type="file" name="image" onChange={handleFileChange} className="border border-gray-300 rounded-md w-full p-2" />
+          </div>
           <button type="submit" className="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600">
             Add Voucher
           </button>
@@ -123,6 +133,11 @@ const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, image: e.target.files[0] });
+  };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -180,6 +195,10 @@ const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
               className="border border-gray-300 rounded-md w-full p-2"
               required
             />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm mb-1">Image</label>
+            <input type="file" name="image" onChange={handleFileChange} className="border border-gray-300 rounded-md w-full p-2" />
           </div>
           <button type="submit" className="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600">
             Edit Voucher
@@ -248,8 +267,16 @@ const Voucher = () => {
 
   const handleAddVoucher = async (voucherData) => {
     try {
+      // Upload to Cloudinary if image file is present
+      if (voucherData.image) {
+        const imageUrl = await uploadImagesToCloudinary(voucherData.image);
+        console.log(imageUrl,"lllllllllllllllllllllllll");
+        voucherData.imageUrl = imageUrl; // Add Cloudinary URL to voucher data
+      }
+
+      // Send voucher data to backend
       await axios.post(`${SERVER_URL}/admin/addvoucher`, voucherData);
-      fetchVouchers();
+      fetchVouchers(); // Refresh vouchers list
     } catch (error) {
       console.error('Error adding voucher:', error);
     }
@@ -257,12 +284,19 @@ const Voucher = () => {
 
   const handleEditVoucher = async (voucherData) => {
     try {
+      if (voucherData.image) {
+        const imageUrl = await uploadImagesToCloudinary(voucherData.image);
+        voucherData.imageUrl = imageUrl;
+      }
+
+      // Update voucher
       await axios.put(`${SERVER_URL}/admin/voucher/${currentVoucher._id}`, voucherData);
-      fetchVouchers();
+      fetchVouchers(); // Refresh vouchers list
     } catch (error) {
       console.error('Error editing voucher:', error);
     }
   };
+
 
   const handleDeleteVoucher = async () => {
     try {
@@ -273,6 +307,8 @@ const Voucher = () => {
       console.error('Error deleting voucher:', error);
     }
   };
+
+  console.log(vouchers,"uiuiuiuiuiuiu");
 
   return (
     <div className="flex">
@@ -295,6 +331,7 @@ const Voucher = () => {
                   <th className="px-4 py-2 border-b">Details</th>
                   <th className="px-4 py-2 border-b">Product Name</th>
                   <th className="px-4 py-2 border-b">Price</th>
+                  <th className="px-4 py-2 border-b">Image</th>
                   <th className="px-4 py-2 border-b">Actions</th>
                 </tr>
               </thead>
@@ -305,6 +342,12 @@ const Voucher = () => {
                     <td className="px-4 py-2 border-b">{voucher.details}</td>
                     <td className="px-4 py-2 border-b">{voucher.product_name}</td>
                     <td className="px-4 py-2 border-b">{voucher.price}</td>
+                    <td> <img
+                  src={voucher.imageUrl} // Display the image URL
+                  alt={voucher.product_name}
+                  className="w-20 h-14 rounded-md mt-2"
+                /></td>
+
                     <td className="px-4 py-2 border-b">
                       <button
                         onClick={() => {

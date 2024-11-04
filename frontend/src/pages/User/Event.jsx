@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Gift, Award, Sparkles, Clock, ChevronRight, Tag } from 'lucide-react';
-import OrginalNavbar from '../../components/User/OrginalUserNavbar';
-import NavbarWithMenu from '../../components/User/NavbarwithMenu';
-import Footer from '../../components/User/Footer';
-import { SERVER_URL } from '../../Constants';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { Gift, Award, Sparkles, Clock, ChevronRight, Tag } from "lucide-react";
+import OrginalNavbar from "../../components/User/OrginalUserNavbar";
+import NavbarWithMenu from "../../components/User/NavbarwithMenu";
+import Footer from "../../components/User/Footer";
+import { SERVER_URL } from "../../Constants";
+import axios from "axios";
 
 const EventPage = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [vouchers, setVouchers] = useState([]);
 
   const gradients = [
-    'bg-gradient-to-r from-purple-500 to-indigo-600',
-    'bg-gradient-to-r from-pink-500 to-rose-500',
-    'bg-gradient-to-r from-green-500 to-emerald-500',
-    'bg-gradient-to-r from-amber-500 to-orange-500',
-    'bg-gradient-to-r from-blue-500 to-cyan-500'
+    "bg-gradient-to-r from-purple-500 to-indigo-600",
+    "bg-gradient-to-r from-pink-500 to-rose-500",
+    "bg-gradient-to-r from-green-500 to-emerald-500",
+    "bg-gradient-to-r from-amber-500 to-orange-500",
+    "bg-gradient-to-r from-blue-500 to-cyan-500",
   ];
 
   useEffect(() => {
@@ -24,18 +24,18 @@ const EventPage = () => {
         const response = await axios.get(`${SERVER_URL}/voucher/getVouchers`);
         setVouchers(response.data);
       } catch (error) {
-        console.error('Failed to fetch vouchers:', error);
+        console.error("Failed to fetch vouchers:", error);
       }
     };
     fetchVouchers();
   }, []);
 
   const winners = [
-    { id: 'W001', prize: 'Gold Winner', date: '2024-03-01' },
-    { id: 'W002', prize: 'Silver Winner', date: '2024-03-01' },
-    { id: 'W003', prize: 'Bronze Winner', date: '2024-03-01' },
-    { id: 'W004', prize: 'Lucky Draw', date: '2024-03-01' },
-    { id: 'W005', prize: 'Special Prize', date: '2024-03-01' },
+    { id: "W001", prize: "Gold Winner", date: "2024-03-01" },
+    { id: "W002", prize: "Silver Winner", date: "2024-03-01" },
+    { id: "W003", prize: "Bronze Winner", date: "2024-03-01" },
+    { id: "W004", prize: "Lucky Draw", date: "2024-03-01" },
+    { id: "W005", prize: "Special Prize", date: "2024-03-01" },
   ];
 
   return (
@@ -60,7 +60,9 @@ const EventPage = () => {
                   >
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="font-semibold text-gray-800">{winner.prize}</p>
+                        <p className="font-semibold text-gray-800">
+                          {winner.prize}
+                        </p>
                         <p className="text-sm text-gray-500">ID: {winner.id}</p>
                       </div>
                       <Sparkles className="w-5 h-5 text-yellow-500" />
@@ -82,8 +84,14 @@ const EventPage = () => {
                   onMouseLeave={() => setHoveredCard(null)}
                 >
                   <div
-                    className={`${gradients[index % gradients.length]} rounded-xl p-6 transform transition-all duration-300
-                    ${hoveredCard === voucher._id ? 'scale-105 shadow-2xl' : 'scale-100 shadow-lg'}
+                    className={`${
+                      gradients[index % gradients.length]
+                    } rounded-xl p-6 transform transition-all duration-300
+                    ${
+                      hoveredCard === voucher._id
+                        ? "scale-105 shadow-2xl"
+                        : "scale-100 shadow-lg"
+                    }
                     relative overflow-hidden`}
                   >
                     {/* Decorative circles */}
@@ -100,22 +108,30 @@ const EventPage = () => {
 
                     <div className="flex flex-col h-full">
                       <div className="flex-grow">
-                        <div className="relative w-full h-40 mb-2 overflow-hidden rounded-lg">
-                          <img 
-                            src="https://via.placeholder.com/150" 
+                        <div className="relative w-full h-40 mb-2 flex items-center justify-center overflow-hidden rounded-lg">
+                          <img
+                            src={voucher.imageUrl}
                             alt="Voucher"
-                            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
+                            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300 mb-2"
+                            style={{ width: "200px", height: "150px" }} // Ensuring square dimensions
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mt-4">{voucher.voucher_name}</h3>
-                        <p className="text-white text-opacity-90 mt-2">{voucher.details}</p>
+                        <h3 className="text-xl font-bold text-white mt-4">
+                          {voucher.voucher_name}
+                        </h3>
+                        <p className="text-white text-opacity-90 mt-2">
+                          {voucher.details}
+                        </p>
                       </div>
 
                       <div className="mt-6 flex items-center justify-between">
                         <div className="flex items-center text-white text-opacity-90">
                           <Clock className="w-4 h-4 mr-1" />
-                          <span className="text-sm">Valid until {new Date(voucher.end_time).toLocaleDateString()}</span>
+                          <span className="text-sm">
+                            Valid until{" "}
+                            {new Date(voucher.end_time).toLocaleDateString()}
+                          </span>
                         </div>
                         <button className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-300">
                           <span className="mr-1">Claim Now</span>
