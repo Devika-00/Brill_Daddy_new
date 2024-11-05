@@ -22,7 +22,7 @@ const voucherSchema = new mongoose.Schema({
   },
   start_time: {
     type: Date,
-    default: Date.now
+    required: true
   },
   end_time: {
     type: Date,

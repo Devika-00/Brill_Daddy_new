@@ -1,23 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import Navbar from "../../components/Admin/Navbar";
-import Sidebar from '../../components/Admin/Sidebar';
-import axios from 'axios';
+import Sidebar from "../../components/Admin/Sidebar";
+import axios from "axios";
 import { SERVER_URL } from "../../Constants";
 import { uploadImagesToCloudinary } from "../../Api/uploadImage";
 
 // Modal Component for Add Voucher
 const AddModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
-    voucher_name: '',
-    details: '',
-    product_name: '',
-    price: '',
-    image: null, // For storing image file
+    voucher_name: "",
+    details: "",
+    product_name: "",
+    price: "",
+    date: "", // New field for date
+    time: "", // New field for time
+    image: null,
   });
 
   useEffect(() => {
     if (!isOpen) {
-      setFormData({ voucher_name: '', details: '', product_name: '', price: '', image: null });
+      setFormData({
+        voucher_name: "",
+        details: "",
+        product_name: "",
+        price: "",
+        date: "",
+        time: "",
+        image: null,
+      });
     }
   }, [isOpen]);
 
@@ -89,9 +99,40 @@ const AddModal = ({ isOpen, onClose, onSubmit }) => {
           </div>
           <div className="mb-4">
             <label className="block text-sm mb-1">Image</label>
-            <input type="file" name="image" onChange={handleFileChange} className="border border-gray-300 rounded-md w-full p-2" />
+            <input
+              type="file"
+              name="image"
+              onChange={handleFileChange}
+              className="border border-gray-300 rounded-md w-full p-2"
+            />
           </div>
-          <button type="submit" className="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600">
+          <div className="mb-4">
+            <label className="block text-sm mb-1">Date</label>
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md w-full p-2"
+              min={new Date().toISOString().split("T")[0]}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm mb-1">Time</label>
+            <input
+              type="time"
+              name="time"
+              value={formData.time}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md w-full p-2"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600"
+          >
             Add Voucher
           </button>
           <button
@@ -110,10 +151,12 @@ const AddModal = ({ isOpen, onClose, onSubmit }) => {
 // Modal Component for Edit Voucher
 const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
   const [formData, setFormData] = useState({
-    voucher_name: '',
-    details: '',
-    product_name: '',
-    price: ''
+    voucher_name: "",
+    details: "",
+    product_name: "",
+    price: "",
+    date: "",
+    time: "",
   });
 
   useEffect(() => {
@@ -122,10 +165,19 @@ const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
         voucher_name: voucher.voucher_name,
         details: voucher.details,
         product_name: voucher.product_name,
-        price: voucher.price
+        price: voucher.price,
+        date: voucher.date,
+        time: voucher.time,
       });
     } else {
-      setFormData({ voucher_name: '', details: '', product_name: '', price: '' });
+      setFormData({
+        voucher_name: "",
+        details: "",
+        product_name: "",
+        price: "",
+        date: "",
+        time: "",
+      });
     }
   }, [voucher]);
 
@@ -137,7 +189,6 @@ const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
   const handleFileChange = (e) => {
     setFormData({ ...formData, image: e.target.files[0] });
   };
-
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -198,9 +249,40 @@ const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
           </div>
           <div className="mb-4">
             <label className="block text-sm mb-1">Image</label>
-            <input type="file" name="image" onChange={handleFileChange} className="border border-gray-300 rounded-md w-full p-2" />
+            <input
+              type="file"
+              name="image"
+              onChange={handleFileChange}
+              className="border border-gray-300 rounded-md w-full p-2"
+            />
           </div>
-          <button type="submit" className="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600">
+          <div className="mb-4">
+            <label className="block text-sm mb-1">Date</label>
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md w-full p-2"
+              min={new Date().toISOString().split("T")[0]}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm mb-1">Time</label>
+            <input
+              type="time"
+              name="time"
+              value={formData.time}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md w-full p-2"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600"
+          >
             Edit Voucher
           </button>
           <button
@@ -261,7 +343,7 @@ const Voucher = () => {
       const response = await axios.get(`${SERVER_URL}/admin/voucher`);
       setVouchers(response.data);
     } catch (error) {
-      console.error('Error fetching vouchers:', error);
+      console.error("Error fetching vouchers:", error);
     }
   };
 
@@ -277,7 +359,7 @@ const Voucher = () => {
       await axios.post(`${SERVER_URL}/admin/addvoucher`, voucherData);
       fetchVouchers(); // Refresh vouchers list
     } catch (error) {
-      console.error('Error adding voucher:', error);
+      console.error("Error adding voucher:", error);
     }
   };
 
@@ -289,13 +371,15 @@ const Voucher = () => {
       }
 
       // Update voucher
-      await axios.put(`${SERVER_URL}/admin/voucher/${currentVoucher._id}`, voucherData);
+      await axios.put(
+        `${SERVER_URL}/admin/voucher/${currentVoucher._id}`,
+        voucherData
+      );
       fetchVouchers(); // Refresh vouchers list
     } catch (error) {
-      console.error('Error editing voucher:', error);
+      console.error("Error editing voucher:", error);
     }
   };
-
 
   const handleDeleteVoucher = async () => {
     try {
@@ -303,11 +387,11 @@ const Voucher = () => {
       fetchVouchers();
       setDeleteModalOpen(false);
     } catch (error) {
-      console.error('Error deleting voucher:', error);
+      console.error("Error deleting voucher:", error);
     }
   };
 
-  console.log(vouchers,"uiuiuiuiuiuiu");
+  console.log(vouchers, "uiuiuiuiuiuiu");
 
   return (
     <div className="flex">
@@ -331,21 +415,32 @@ const Voucher = () => {
                   <th className="px-4 py-2 border-b">Product Name</th>
                   <th className="px-4 py-2 border-b">Price</th>
                   <th className="px-4 py-2 border-b">Image</th>
+                  <th className="border px-4 py-2">Date</th>
                   <th className="px-4 py-2 border-b">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {vouchers.map((voucher) => (
                   <tr key={voucher._id}>
-                    <td className="px-4 py-2 border-b">{voucher.voucher_name}</td>
+                    <td className="px-4 py-2 border-b">
+                      {voucher.voucher_name}
+                    </td>
                     <td className="px-4 py-2 border-b">{voucher.details}</td>
-                    <td className="px-4 py-2 border-b">{voucher.product_name}</td>
+                    <td className="px-4 py-2 border-b">
+                      {voucher.product_name}
+                    </td>
                     <td className="px-4 py-2 border-b">{voucher.price}</td>
-                    <td> <img
-                  src={voucher.imageUrl} // Display the image URL
-                  alt={voucher.product_name}
-                  className="w-20 h-14 rounded-md mt-2"
-                /></td>
+                    <td>
+                      {" "}
+                      <img
+                        src={voucher.imageUrl} // Display the image URL
+                        alt={voucher.product_name}
+                        className="w-20 h-14 rounded-md mt-2"
+                      />
+                    </td>
+                    <td className="border px-4 py-2">
+                      {new Date(voucher.start_time).toISOString().split("T")[0]}
+                    </td>
 
                     <td className="px-4 py-2 border-b">
                       <button
@@ -374,7 +469,11 @@ const Voucher = () => {
           </div>
         </div>
       </div>
-      <AddModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} onSubmit={handleAddVoucher} />
+      <AddModal
+        isOpen={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        onSubmit={handleAddVoucher}
+      />
       <EditModal
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}

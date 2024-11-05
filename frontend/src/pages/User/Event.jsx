@@ -31,8 +31,11 @@ const EventPage = () => {
         const response = await axios.get(`${SERVER_URL}/voucher/getVouchers`);
         const currentTime = new Date().getTime(); 
 
-        // Filter out expired vouchers
-        const validVouchers = response.data.filter(voucher => new Date(voucher.end_time).getTime() > currentTime);
+        // Filter vouchers that have started and are not expired
+        const validVouchers = response.data.filter(voucher => 
+          new Date(voucher.start_time).getTime() <= currentTime &&
+          new Date(voucher.end_time).getTime() > currentTime
+        );
         setVouchers(validVouchers);
 
         // Fetch winners

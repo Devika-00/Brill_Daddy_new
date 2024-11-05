@@ -301,7 +301,7 @@ const getOrders = async (req, res) => {
   const addVouchers = async (req, res) => {
     try {
         console.log(req.body, "Request Body"); // Log incoming request body
-        const { voucher_name, details, product_name, price, imageUrl } = req.body;
+        const { voucher_name, details, product_name, price, imageUrl, date, time } = req.body;
 
         // Log the parsed fields
         console.log("Voucher Name:", voucher_name);
@@ -309,13 +309,17 @@ const getOrders = async (req, res) => {
         console.log("Product Name:", product_name);
         console.log("Price:", price);
 
+        // Combine date and time into a single Date object for start_time
+        const start_time = new Date(`${date}T${time}`);
+
         // Create a new voucher instance
         const voucher = new Voucher({
             voucher_name,
             details,
             product_name,
             price,
-            imageUrl
+            imageUrl,
+            start_time
         });
 
         // Save the voucher to the database
@@ -327,6 +331,7 @@ const getOrders = async (req, res) => {
         res.status(500).json({ message: "Error creating voucher" });
     }
 };
+
 
 const getAllVoucher = async (req, res) => {
     try {
