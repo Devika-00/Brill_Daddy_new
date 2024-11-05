@@ -29,6 +29,7 @@ import OrderDetails from "../pages/User/OrderDetails";
 import ShopCategory from "../pages/User/shopCategory";
 import OrderSuccessful from "../pages/User/orderSuccesfull";
 import NotFoundPage from "../pages/User/NotFoundPage";
+import PaymentPage from "../pages/User/Payment";
 
 
 const MainRouter = () => {
@@ -58,6 +59,7 @@ const MainRouter = () => {
         <Route path="/orderDetails/:id/:productId" element={<OrderDetails />} />
         <Route path="/shopCategory" element={<ShopCategory />} />
         <Route path="/orderSuccessful" element={<OrderSuccessful />} />
+        <Route path="/payment/:voucherId" element={<PaymentPage />} />
         </Route>
 
 

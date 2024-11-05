@@ -270,7 +270,6 @@ const Voucher = () => {
       // Upload to Cloudinary if image file is present
       if (voucherData.image) {
         const imageUrl = await uploadImagesToCloudinary(voucherData.image);
-        console.log(imageUrl,"lllllllllllllllllllllllll");
         voucherData.imageUrl = imageUrl; // Add Cloudinary URL to voucher data
       }
 

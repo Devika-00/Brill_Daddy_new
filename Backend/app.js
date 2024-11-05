@@ -7,6 +7,9 @@ const connectDb = require("./Config/Connection");
 const adminRoute = require("./Routes/adminRoutes");
 const userRoute = require("./Routes/userRoutes");
 const voucherRoute = require("./Routes/voucherRoutes");
+const bidRoute = require("./Routes/bidRoutes");
+
+require("./jobs/winnerSelction");
 
 const app = express();
 
@@ -22,6 +25,7 @@ app.use(
 app.use("/api/admin",adminRoute);
 app.use("/api/user",userRoute);
 app.use("/api/voucher",voucherRoute);
+app.use("/api/bid",bidRoute);
 
 const port = ENV.PORT || 5000;
 
