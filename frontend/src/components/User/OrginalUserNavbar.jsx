@@ -57,8 +57,7 @@ const OrginalNavbar = () => {
             `${SERVER_URL}/user/${user.id}`
           );
           
-        const addressId = userDetailsResponse.data.currentAddress; // Assuming this returns the address ID
-
+        const addressId = userDetailsResponse.data.currentAddress; 
         const addressResponse = await axios.get(`${SERVER_URL}/user/address/${addressId}`);
         
         setSelectedAddress(addressResponse.data); 

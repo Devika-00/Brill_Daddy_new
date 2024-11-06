@@ -523,10 +523,12 @@ const getWallet = async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    const wallet = await Wallet.findOne({ userId });
+    let wallet = await Wallet.findOne({ userId });
 
+    // If no wallet is found, create a new one with default values
     if (!wallet) {
-      return res.status(404).json({ message: 'Wallet not found for this user' });
+      wallet = new Wallet({ userId, balance: 0, transactions: [] });
+      await wallet.save();
     }
 
     res.json({
