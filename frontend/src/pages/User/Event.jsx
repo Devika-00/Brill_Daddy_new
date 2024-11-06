@@ -40,7 +40,10 @@ const EventPage = () => {
 
         // Fetch winners
         const winnersResponse = await axios.get(`${SERVER_URL}/voucher/getWinners`);
-        setWinners(winnersResponse.data);
+        const validWinners = winnersResponse.data.filter(winner => 
+          new Date(winner.endTime).getTime() > currentTime
+        );
+        setWinners(validWinners);
       } catch (error) {
         console.error("Failed to fetch vouchers or winners:", error);
       }

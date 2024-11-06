@@ -12,8 +12,8 @@ const AddModal = ({ isOpen, onClose, onSubmit }) => {
     details: "",
     product_name: "",
     price: "",
-    date: "", // New field for date
-    time: "", // New field for time
+    date: "", 
+    time: "", 
     image: null,
   });
 

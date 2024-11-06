@@ -29,6 +29,12 @@ const winnerSchema = new mongoose.Schema(
     wonAt: {
       type: Date,
       default: Date.now
+    },
+    endTime: {
+      type: Date,
+      default: function() {
+        return new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from `wonAt`
+      }
     }
   },
   { timestamps: true }  // Automatically adds `createdAt` and `updatedAt` fields

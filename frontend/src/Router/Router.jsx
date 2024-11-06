@@ -30,6 +30,7 @@ import ShopCategory from "../pages/User/shopCategory";
 import OrderSuccessful from "../pages/User/orderSuccesfull";
 import NotFoundPage from "../pages/User/NotFoundPage";
 import PaymentPage from "../pages/User/Payment";
+import Wallet from "../pages/User/Wallet";
 
 
 const MainRouter = () => {
@@ -50,6 +51,7 @@ const MainRouter = () => {
         <Route path="/singleProduct/:id" element={<SingleProduct />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/wallet" element={<Wallet />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/event" element={<Event />} />
