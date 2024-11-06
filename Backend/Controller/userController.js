@@ -13,6 +13,7 @@ const Wishlist = require("../Models/wishlistModel");
 const Address = require("../Models/addressModel");
 const Order = require("../Models/orderModel");
 const Voucher = require("../Models/voucherModel");
+const Wallet = require("../Models/walletModel");
 
 const getProducts = async (req,res) =>{
     try {
@@ -518,9 +519,29 @@ const getVouchersUserSide = async (req, res) => {
   }
 };
 
+const getWallet = async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const wallet = await Wallet.findOne({ userId });
+
+    if (!wallet) {
+      return res.status(404).json({ message: 'Wallet not found for this user' });
+    }
+
+    res.json({
+      balance: wallet.balance,
+      transactions: wallet.transactions,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
-  updateAddressUser, getUserAddress, getVouchersUserSide
+  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet,
 }

@@ -3,7 +3,8 @@ const userRoute = Router();
 
 
 const { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems,clearCart, addWishlist,getWishlist,removeWishlist,addAddress
-    ,getAddress,deleteAddress, placeOrder, getOrders, getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct, updateAddressUser, getUserAddress, getVouchersUserSide
+    ,getAddress,deleteAddress, placeOrder, getOrders, getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct, updateAddressUser, getUserAddress, getVouchersUserSide,
+    getWallet,
  } = require("../Controller/userController");
 
 userRoute.get("/products",getProducts);
@@ -39,6 +40,8 @@ userRoute.get("/product-suggestions",getProductSuggestions);
 userRoute.post("/updateQuantity",updateQuantityOfProduct);
 
 userRoute.get("/getVoucher", getVouchersUserSide);
+
+userRoute.get("/wallet/:userId",getWallet);
 
 
 

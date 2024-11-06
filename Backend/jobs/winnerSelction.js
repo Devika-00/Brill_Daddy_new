@@ -1,55 +1,74 @@
-// cronJob.js
-const cron = require("node-cron");
+const Wallet = require("../Models/walletModel");
 const Voucher = require("../Models/voucherModel");
 const Bid = require("../Models/bidModel");
-const Winner = require("../Models/winnerModel"); // Import your Winner model
+const Winner = require("../Models/winnerModel");
+const cron = require("node-cron");
 
-// Schedule a cron job to run every minute
 cron.schedule("* * * * *", async () => {
   try {
     console.log("Running voucher expiration and winner selection job...");
 
-    // Find vouchers that haven't expired and whose end time has passed
+    // Find vouchers that have expired
     const expiredVouchers = await Voucher.find({
       is_expired: false,
-      end_time: { $lte: new Date() }
+      end_time: { $lte: new Date() },
     });
 
-    console.log(expiredVouchers,"eeeeeeeeeeeeeeeeeeeeeeeee");
-
     for (const voucher of expiredVouchers) {
-      // Fetch all bids for this voucher
       const bids = await Bid.find({ voucherId: voucher._id });
       const bidAmounts = bids.map(bid => bid.bidAmount);
 
-      // Identify unique bids
+      // Identify the lowest unique bid
       const uniqueBids = bidAmounts.filter(
         (amount, index, self) =>
           self.indexOf(amount) === index && self.lastIndexOf(amount) === index
       );
 
-      // If there are unique bids, find the lowest one
       if (uniqueBids.length > 0) {
         const lowestUniqueBid = Math.min(...uniqueBids);
-        console.log(lowestUniqueBid,"amamamamamamammam");
-
-        // Find the bid with the lowest unique bid amount
         const winningBid = bids.find(bid => bid.bidAmount === lowestUniqueBid);
-        console.log(winningBid,"wwwwwwwwwwwwwwwwwww");
 
-        // Store the winner in the Winner model
         if (winningBid) {
+          // Store the winner
           const winner = new Winner({
-            userId: winningBid.userId, // Assuming the Bid model has a userId
+            userId: winningBid.userId,
             voucherId: voucher._id,
             winningBidId: winningBid._id,
-            winningAmount: lowestUniqueBid
+            winningAmount: lowestUniqueBid,
           });
           await winner.save();
         }
+
+        // Refund the voucher price (not bid amount) to the wallet of the losing bidders
+        for (const bid of bids) {
+          if (bid.bidAmount !== lowestUniqueBid) {
+            // Check if the bidder has a wallet
+            let wallet = await Wallet.findOne({ userId: bid.userId });
+
+            if (!wallet) {
+              // If no wallet exists, create one for the user
+              wallet = new Wallet({
+                userId: bid.userId,
+                balance: 0, // Initial balance
+              });
+            }
+
+            // Credit the wallet with the voucher price (refund)
+            wallet.balance += voucher.price;
+
+            // Record this as a transaction (credit)
+            wallet.transactions.push({
+              type: "credit",
+              amount: voucher.price,
+              description: `Refund for lost bid on voucher ${voucher.voucher_name}`,
+            });
+
+            await wallet.save();
+          }
+        }
       }
 
-      // Mark voucher as expired
+      // Mark the voucher as expired
       voucher.is_expired = true;
       await voucher.save();
     }
