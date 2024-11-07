@@ -164,24 +164,25 @@ const registerUser = async (req, res) => {
 
 
 const addItemToCart = async (req, res) => {
-  const { userId, productId, quantity } = req.body;
+  const { userId, productId, quantity, price } = req.body; // Receive price from request
 
   try {
     let cart = await Cart.findOne({ userId });
 
     // If cart does not exist, create a new one
     if (!cart) {
-      cart = new Cart({ userId, items: [{ productId, quantity }] });
+      cart = new Cart({ userId, items: [{ productId, quantity, price }] }); // Set initial price
     } else {
       // Check if the product already exists in the cart
       const itemIndex = cart.items.findIndex(item => item.productId.toString() === productId);
 
       if (itemIndex > -1) {
-        // If product exists, update quantity
+        // If product exists, update quantity and price if wallet discount is used
         cart.items[itemIndex].quantity += quantity;
+        cart.items[itemIndex].price = price; // Update price based on discount or not
       } else {
-        // If product does not exist, add as new item
-        cart.items.push({ productId, quantity });
+        // If product does not exist, add as new item with provided price
+        cart.items.push({ productId, quantity, price });
       }
     }
 
@@ -206,6 +207,30 @@ const getCartItems = async (req, res) => {
   } catch (error) {
     console.error('Error fetching cart items:', error);
     res.status(500).json({ message: 'Error fetching cart items', error });
+  }
+};
+
+const removeCartProduct = async (req, res) => {
+  const { userId, productId } = req.params;
+
+  try {
+    // Find the cart for the given user
+    const cart = await Cart.findOne({ userId });
+
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found for user' });
+    }
+
+    // Remove product from cart items
+    cart.items = cart.items.filter(item => item.productId.toString() !== productId);
+
+    // Save the updated cart document
+    await cart.save();
+
+    res.status(200).json({ message: 'Product removed from cart successfully' });
+  } catch (error) {
+    console.error('Error removing product from cart:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -338,7 +363,7 @@ const deleteAddress = async (req, res) => {
 
     res.status(200).json({ message: 'Address deleted successfully' });
   } catch (error) {
-    console.error('Error deleting address:', error);
+    console.error('Error deleting address:', error); 
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -545,5 +570,5 @@ const getWallet = async (req, res) => {
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
-  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet,
+  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct
 }

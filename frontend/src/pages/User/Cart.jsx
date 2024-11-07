@@ -41,7 +41,7 @@ const Cart = () => {
 
   // Function to calculate total
   const calculateTotal = () => {
-    const subTotal = cartItems.reduce((acc, item) => acc + item.productId.salePrice * item.quantity, 0);
+    const subTotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const gst = (subTotal * GST_PERCENT) / 100;
     const total = subTotal + gst;
     return { subTotal, gst, total };
@@ -82,7 +82,7 @@ const Cart = () => {
   };
 
   const handleBuyNow = () => {
-    navigate("/checkout", { state: { total, cartItems } }); // Pass total and cart items to checkout
+    navigate("/checkout", { state: { total, gst, cartItems } }); // Pass total and cart items to checkout
   };
 
   return (
@@ -110,7 +110,7 @@ const Cart = () => {
                   <div className="flex-grow px-4 mt-4 lg:mt-0">
                     <h3 className="text-lg font-semibold">{item.productId.name}</h3>
                     <p className="text-gray-600">{item.productId.description}</p>
-                    <p className="text-gray-800 font-bold mt-2">₹{item.productId.salePrice}</p>
+                    <p className="text-gray-800 font-bold mt-2">₹{item.price}</p>
                     <div className="flex items-center mt-4 space-x-4">
                       <button
                         onClick={() => addToWishlist(item.productId._id)} 

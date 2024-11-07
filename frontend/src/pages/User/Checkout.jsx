@@ -9,7 +9,7 @@ import { SERVER_URL } from "../../Constants";
 
 const Checkout = () => {
   const location = useLocation();
-  const { total, cartItems } = location.state; // Access passed cart data
+  const { total, gst, cartItems } = location.state; // Access passed cart data
   const [showModal, setShowModal] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -173,12 +173,16 @@ const Checkout = () => {
                             <p>{item.productId.name} <strong className="ml-2">× {item.quantity}</strong></p>
                           </td>
                           <td className="py-2 px-4 text-right">
-                            ₹{item.productId.salePrice * item.quantity}
+                            ₹{item.price * item.quantity}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot>
+                    <tr>
+                        <th className="py-2 px-4 text-left">GST</th>
+                        <td className="py-2 px-4 text-right">₹{gst}</td>
+                      </tr>
                       <tr>
                         <th className="py-2 px-4 text-left">Order Total</th>
                         <td className="py-2 px-4 text-right">₹{total}</td>

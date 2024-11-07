@@ -15,6 +15,9 @@ const SingleProduct = () => {
   const [mainImage, setMainImage] = useState('');
   const [selectedThumbnail, setSelectedThumbnail] = useState(0);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [useWalletDiscount, setUseWalletDiscount] = useState(false);
+  const [walletOfferPrice, setWalletOfferPrice] = useState(null);
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
@@ -32,15 +35,36 @@ const SingleProduct = () => {
       }
     };
 
+    const fetchWalletBalance = async () => {
+      try {
+        const response = await axios.get(`${SERVER_URL}/user/wallet/${userId}`);
+        setWalletBalance(response.data.balance);
+      } catch (error) {
+        console.error('Error fetching wallet balance:', error);
+      }
+    };
+
     fetchProduct();
-  }, [id]);
+    fetchWalletBalance();
+  }, [id, userId]);
+
+  useEffect(() => {
+    if (product) {
+      const tenPercentDiscount = product.salePrice * 0.1;
+      const applicableDiscount = Math.min(tenPercentDiscount, walletBalance);
+      const discountedPrice = product.salePrice - applicableDiscount;
+      setWalletOfferPrice(discountedPrice);
+    }
+  }, [product, walletBalance]);
 
   const handleAddToCart = async () => {
     try {
+      const priceToAdd = useWalletDiscount && walletOfferPrice ? walletOfferPrice : product.salePrice; // Calculate the price based on the discount
       const response = await axios.post(`${SERVER_URL}/user/cart/add`, {
         userId,
         productId: product._id,
         quantity: 1,
+        price: priceToAdd // Send the price to be added to cart
       });
       if (response.status === 200) {
         alert('Product added to cart successfully!');
@@ -136,6 +160,21 @@ const SingleProduct = () => {
                       {product.discount}% OFF
                     </span>
                   </div>
+
+                   {/* Wallet Offer Section */}
+                   {walletOfferPrice && (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={useWalletDiscount}
+                        onChange={() => setUseWalletDiscount(!useWalletDiscount)}
+                        className="h-5 w-5"
+                      />
+                      <label className="text-green-700">
+                        Apply With Wallet Discount ₹{walletOfferPrice}
+                      </label>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
                     <div className="flex items-center space-x-2">
