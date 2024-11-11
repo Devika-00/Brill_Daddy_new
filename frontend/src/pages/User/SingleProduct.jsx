@@ -59,13 +59,18 @@ const SingleProduct = () => {
 
   const handleAddToCart = async () => {
     try {
-      const priceToAdd = useWalletDiscount && walletOfferPrice ? walletOfferPrice : product.salePrice; // Calculate the price based on the discount
+      const priceToAdd = useWalletDiscount && walletOfferPrice ? walletOfferPrice : product.salePrice;
+      const walletDiscountAmount = useWalletDiscount ? product.salePrice - walletOfferPrice : 0;
+
       const response = await axios.post(`${SERVER_URL}/user/cart/add`, {
         userId,
         productId: product._id,
         quantity: 1,
-        price: priceToAdd // Send the price to be added to cart
+        price: priceToAdd,
+        walletDiscountApplied: useWalletDiscount,
+        walletDiscountAmount
       });
+      
       if (response.status === 200) {
         alert('Product added to cart successfully!');
       }
@@ -73,7 +78,8 @@ const SingleProduct = () => {
       console.error('Error adding product to cart:', error);
       alert('Could not add product to cart. Please try again.');
     }
-  }
+  };
+
 
   if (!product) {
     return (

@@ -18,12 +18,20 @@ const cartSchema = new mongoose.Schema({
         type: Number,
         default: 1 
       },
-      price: { // Store the applied price per item here
+      price: { 
         type: Number,
-        required: true
+        required: true 
+      },
+      walletDiscountApplied: { 
+        type: Boolean,
+        default: false 
+      },
+      walletDiscountAmount: { 
+        type: Number,
+        default: 0 
       }
     }
-  ],
+  ]
 });
 
 module.exports = mongoose.model('Cart', cartSchema);
