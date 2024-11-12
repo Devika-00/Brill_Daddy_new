@@ -11,6 +11,7 @@ import { useAppSelector } from "../../Redux/Store/store";
 const EventPage = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [vouchers, setVouchers] = useState([]);
+  const [eligibleFreeVouchers, setEligibleFreeVouchers] = useState([]);
   const [winners, setWinners] = useState([]);
   const navigate = useNavigate();
 
@@ -23,6 +24,8 @@ const EventPage = () => {
     "bg-gradient-to-r from-green-500 to-emerald-500",
     "bg-gradient-to-r from-amber-500 to-orange-500",
     "bg-gradient-to-r from-blue-500 to-cyan-500",
+    "bg-gradient-to-r from-purple-500 to-indigo-600",
+    "bg-gradient-to-r from-pink-500 to-rose-500",
   ];
 
   useEffect(() => {
@@ -31,13 +34,20 @@ const EventPage = () => {
         const response = await axios.get(`${SERVER_URL}/voucher/getVouchers`);
         const currentTime = new Date().getTime();
 
-        // Filter vouchers that have started and are not expired
-        const validVouchers = response.data.filter(
-          (voucher) =>
-            new Date(voucher.start_time).getTime() <= currentTime &&
-            new Date(voucher.end_time).getTime() > currentTime
-        );
+        const validVouchers = response.data.filter((voucher) => {
+          const isEligibleUser = voucher.eligible_rebid_users.includes(userId);
+          const isRebidActive = voucher.rebid_active && new Date(voucher.rebid_end_time).getTime() > currentTime;
+          const isActiveVoucher = new Date(voucher.start_time).getTime() <= currentTime && new Date(voucher.end_time).getTime() > currentTime;
+          
+          return (isEligibleUser && isRebidActive) || isActiveVoucher;
+        });
         setVouchers(validVouchers);
+
+        // Fetch eligible free vouchers
+        const freeVoucherResponse = await axios.get(
+          `${SERVER_URL}/voucher/getEligibleFreeVouchers`
+        );
+        setEligibleFreeVouchers(freeVoucherResponse.data.eligibleVouchers);
 
         // Fetch winners
         const winnersResponse = await axios.get(
@@ -61,10 +71,16 @@ const EventPage = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  console.log(winners, "bbbbbbbbbbbbbbbbbbbbbbbbb");
+ 
 
   const handleClaimVoucher = (voucher) => {
-    navigate(`/payment/${voucher._id}`, { state: { voucher } });
+    const isEligibleForFree = voucher.eligible_rebid_users.includes(userId) && voucher.rebid_active;
+
+    if (isEligibleForFree) {
+      navigate(`/eventDetail`, { state: { voucher } });
+    } else {
+      navigate(`/payment/${voucher._id}`, { state: { voucher } });
+    }
   };
 
   return (
@@ -115,69 +131,86 @@ const EventPage = () => {
           <div className="lg:col-span-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {vouchers.length > 0 ? (
-                vouchers.map((voucher, index) => (
-                  <div
-                    key={voucher._id}
-                    className="relative group"
-                    onMouseEnter={() => setHoveredCard(voucher._id)}
-                    onMouseLeave={() => setHoveredCard(null)}
-                  >
+                vouchers.map((voucher, index) => {
+                  // Check if the voucher is eligible for free claiming
+                  const isEligibleForFree = voucher.eligible_rebid_users.includes(userId) && voucher.rebid_active;
+
+                  return (
                     <div
-                      className={`${
-                        gradients[index % gradients.length]
-                      } rounded-xl p-6 transform transition-all duration-300
-            ${
-              hoveredCard === voucher._id
-                ? "scale-105 shadow-2xl"
-                : "scale-100 shadow-lg"
-            }`}
+                      key={voucher._id}
+                      className="relative group"
+                      onMouseEnter={() => setHoveredCard(voucher._id)}
+                      onMouseLeave={() => setHoveredCard(null)}
                     >
-                      {/* Price Tag */}
-                      <div className="absolute -right-2 -top-2 transform rotate-12">
-                        <div className="bg-yellow-400 text-gray-900 font-bold px-8 py-2 rounded-lg shadow-lg relative">
-                          <div className="absolute -bottom-2 right-0 w-0 h-0 border-t-8 border-l-8 border-transparent border-yellow-600" />
-                          ₹{voucher.price}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col h-full">
-                        <div className="flex-grow">
-                          <div className="relative w-full h-40 mb-2 flex items-center justify-center overflow-hidden rounded-lg">
-                            <img
-                              src={voucher.imageUrl}
-                              alt="Voucher"
-                              className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300 mb-2"
-                              style={{ width: "200px", height: "150px" }}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                          </div>
-                          <h3 className="text-xl font-bold text-white mt-4">
-                            {voucher.voucher_name}
-                          </h3>
-                          <p className="text-white text-opacity-90 mt-2">
-                            {voucher.details}
-                          </p>
-                        </div>
-
-                        <div className="mt-6 flex items-center justify-between">
-                          <div className="flex items-center text-white text-opacity-90">
-                            <Clock className="w-4 h-4 mr-1" />
-                            <span className="text-sm">
-                              Valid until{" "}
-                              {new Date(voucher.end_time).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <button
-                            className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-300"
-                            onClick={() => handleClaimVoucher(voucher)}
+                      <div
+                        className={`${
+                          gradients[index % gradients.length]
+                        } rounded-xl p-6 transform transition-all duration-300 ${
+                          hoveredCard === voucher._id
+                            ? "scale-105 shadow-2xl"
+                            : "scale-100 shadow-lg"
+                        }`}
+                      >
+                        {/* Price or Free Tag */}
+                        <div className="absolute -right-2 -top-2 transform rotate-12">
+                          <div
+                            className={`${
+                              isEligibleForFree ? "bg-green-400" : "bg-yellow-400"
+                            } text-gray-900 font-bold px-8 py-2 rounded-lg shadow-lg relative`}
                           >
-                            <span className="mr-1">Claim Now</span>
-                          </button>
+                            <div className="absolute -bottom-2 right-0 w-0 h-0 border-t-8 border-l-8 border-transparent border-yellow-600" />
+                            {isEligibleForFree ? "Free" : `₹${voucher.price}`}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col h-full">
+                          <div className="flex-grow">
+                            {/* Image */}
+                            <div className="relative w-full h-40 mb-2 flex items-center justify-center overflow-hidden rounded-lg">
+                              <img
+                                src={voucher.imageUrl}
+                                alt="Voucher"
+                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300 mb-2"
+                                style={{ width: "200px", height: "150px" }}
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                            </div>
+
+                            {/* Voucher Name and Details */}
+                            <h3 className="text-xl font-bold text-white mt-4">
+                              {voucher.voucher_name}
+                            </h3>
+                            <p className="text-white text-opacity-90 mt-2">
+                              {voucher.details}
+                            </p>
+                          </div>
+
+                          {/* Validity and Claim Button */}
+                          <div className="mt-6 flex items-center justify-between">
+                            <div className="flex items-center text-white text-opacity-90">
+                              <Clock className="w-4 h-4 mr-1" />
+                              <span className="text-sm">
+                                Valid until {new Date(voucher.end_time).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <button
+                              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-300"
+                              onClick={() => handleClaimVoucher(voucher)}
+                            >
+                              <span className="mr-1">{isEligibleForFree ? "Bid Now" : "Claim Now"}</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
+                      {/* Optional: Free Voucher Badge */}
+                      {isEligibleForFree && (
+                        <div className="absolute top-2 left-2 bg-green-600 text-white text-sm px-2 py-1 rounded-md">
+                          Free Voucher!
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="flex items-center justify-center h-40">
                   <p className="text-blue-900 font-bold text-lg">No Vouchers</p>

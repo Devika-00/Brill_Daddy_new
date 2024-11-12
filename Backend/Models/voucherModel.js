@@ -38,6 +38,18 @@ const voucherSchema = new mongoose.Schema({
   is_expired: {
     type: Boolean,
     default: false
+  },
+  eligible_rebid_users: {
+    type: [mongoose.Schema.Types.ObjectId], // Array of user IDs eligible for the rebid event
+    ref: 'User',
+    default: []
+  },
+  rebid_end_time: {
+    type: Date, // Track the new 24-hour period end time
+  },
+  rebid_active: {
+    type: Boolean, // Track if the voucher is in the rebid phase
+    default: false
   }
 });
 
