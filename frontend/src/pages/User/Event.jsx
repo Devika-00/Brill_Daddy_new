@@ -11,9 +11,10 @@ import { useAppSelector } from "../../Redux/Store/store";
 const EventPage = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [vouchers, setVouchers] = useState([]);
-  const [eligibleFreeVouchers, setEligibleFreeVouchers] = useState([]);
+
   const [winners, setWinners] = useState([]);
   const navigate = useNavigate();
+  const [firstFreeVoucher, setFirstFreeVoucher] = useState(null);
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
@@ -41,7 +42,11 @@ const EventPage = () => {
           
           return (isEligibleUser && isRebidActive) || isActiveVoucher;
         });
-        setVouchers(validVouchers);
+
+        const freeVouchers = validVouchers.filter((voucher) => voucher.price === 0).slice(0, 2);
+        const paidVouchers = validVouchers.filter((voucher) => voucher.price !== 0);
+
+        setVouchers([...freeVouchers, ...paidVouchers]);
 
         // Fetch eligible free vouchers
         const freeVoucherResponse = await axios.get(
@@ -76,7 +81,7 @@ const EventPage = () => {
   const handleClaimVoucher = (voucher) => {
     const isEligibleForFree = voucher.eligible_rebid_users.includes(userId) && voucher.rebid_active;
 
-    if (isEligibleForFree) {
+    if (isEligibleForFree || voucher.price === 0 ) {
       navigate(`/eventDetail`, { state: { voucher } });
     } else {
       navigate(`/payment/${voucher._id}`, { state: { voucher } });
@@ -155,11 +160,11 @@ const EventPage = () => {
                         <div className="absolute -right-2 -top-2 transform rotate-12">
                           <div
                             className={`${
-                              isEligibleForFree ? "bg-green-400" : "bg-yellow-400"
+                              isEligibleForFree  || voucher.price === 0 ? "bg-green-400" : "bg-yellow-400"
                             } text-gray-900 font-bold px-8 py-2 rounded-lg shadow-lg relative`}
                           >
                             <div className="absolute -bottom-2 right-0 w-0 h-0 border-t-8 border-l-8 border-transparent border-yellow-600" />
-                            {isEligibleForFree ? "Free" : `₹${voucher.price}`}
+                            {isEligibleForFree || voucher.price === 0 ? "Free" : `₹${voucher.price}`}
                           </div>
                         </div>
 
@@ -197,13 +202,13 @@ const EventPage = () => {
                               className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-300"
                               onClick={() => handleClaimVoucher(voucher)}
                             >
-                              <span className="mr-1">{isEligibleForFree ? "Bid Now" : "Claim Now"}</span>
+                              <span className="mr-1">{isEligibleForFree || voucher.price === 0 ? "Bid Now" : "Claim Now"}</span>
                             </button>
                           </div>
                         </div>
                       </div>
                       {/* Optional: Free Voucher Badge */}
-                      {isEligibleForFree && (
+                      {isEligibleForFree || voucher.price === 0 && (
                         <div className="absolute top-2 left-2 bg-green-600 text-white text-sm px-2 py-1 rounded-md">
                           Free Voucher!
                         </div>
