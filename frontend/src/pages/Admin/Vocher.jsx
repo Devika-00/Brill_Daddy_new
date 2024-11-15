@@ -4,6 +4,7 @@ import Sidebar from "../../components/Admin/Sidebar";
 import axios from "axios";
 import { SERVER_URL } from "../../Constants";
 import { uploadImagesToCloudinary } from "../../Api/uploadImage";
+import { FaTrash, FaEdit } from 'react-icons/fa';
 
 // Modal Component for Add Voucher
 const AddModal = ({ isOpen, onClose, onSubmit }) => {
@@ -12,8 +13,11 @@ const AddModal = ({ isOpen, onClose, onSubmit }) => {
     details: "",
     product_name: "",
     price: "",
+    productPrice: "",  
     date: "", 
     time: "", 
+    endDate: "",  
+    endTime: "",  
     image: null,
   });
 
@@ -24,8 +28,11 @@ const AddModal = ({ isOpen, onClose, onSubmit }) => {
         details: "",
         product_name: "",
         price: "",
+        productPrice: "",
         date: "",
         time: "",
+        endDate: "",
+        endTime: "",
         image: null,
       });
     }
@@ -50,9 +57,9 @@ const AddModal = ({ isOpen, onClose, onSubmit }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded-md w-96">
+      <div className="bg-white p-4 rounded-md w-full max-w-lg h-auto max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-bold mb-4">Add Voucher</h3>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4" >
           <div className="mb-4">
             <label className="block text-sm mb-1">Name</label>
             <input
@@ -87,11 +94,22 @@ const AddModal = ({ isOpen, onClose, onSubmit }) => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm mb-1">Price</label>
+            <label className="block text-sm mb-1">Voucher Price</label>
             <input
               type="text"
               name="price"
               value={formData.price}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md w-full p-2"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm mb-1">Product Price</label>
+            <input
+              type="text"
+              name="productPrice"
+              value={formData.productPrice}
               onChange={handleChange}
               className="border border-gray-300 rounded-md w-full p-2"
               required
@@ -107,7 +125,7 @@ const AddModal = ({ isOpen, onClose, onSubmit }) => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm mb-1">Date</label>
+            <label className="block text-sm mb-1"> Start Date</label>
             <input
               type="date"
               name="date"
@@ -119,11 +137,34 @@ const AddModal = ({ isOpen, onClose, onSubmit }) => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm mb-1">Time</label>
+            <label className="block text-sm mb-1">Start Time</label>
             <input
               type="time"
               name="time"
               value={formData.time}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md w-full p-2"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm mb-1">End Date</label>
+            <input
+              type="date"
+              name="endDate"
+              value={formData.endDate}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md w-full p-2"
+              min={formData.date}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm mb-1">End Time</label>
+            <input
+              type="time"
+              name="endTime"
+              value={formData.endTime}
               onChange={handleChange}
               className="border border-gray-300 rounded-md w-full p-2"
               required
@@ -155,19 +196,27 @@ const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
     details: "",
     product_name: "",
     price: "",
+    productPrice: "",
     date: "",
     time: "",
+    endDate: "",
+    endTime: "",
+    image:null,
   });
 
   useEffect(() => {
-    if (voucher) {
+    if (isOpen && voucher) {
       setFormData({
         voucher_name: voucher.voucher_name,
         details: voucher.details,
         product_name: voucher.product_name,
         price: voucher.price,
-        date: voucher.date,
-        time: voucher.time,
+        productPrice: voucher.productPrice,
+        date: voucher.start_time ? voucher.start_time.split("T")[0] : "", 
+        time: voucher.start_time ? voucher.start_time.split("T")[1].slice(0, 5) : "", 
+        endDate: voucher.end_time ? voucher.end_time.split("T")[0] : "", 
+        endTime: voucher.end_time ? voucher.end_time.split("T")[1].slice(0, 5) : "",
+        image:voucher.imageUrl || null,
       });
     } else {
       setFormData({
@@ -175,11 +224,17 @@ const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
         details: "",
         product_name: "",
         price: "",
+        productPrice:"",
         date: "",
         time: "",
+        endDate: "",
+        endTime: "",
+        image:null,
       });
     }
-  }, [voucher]);
+  }, [isOpen, voucher]);
+
+  console.log(voucher,"lllllllllllllllllllllll");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -192,17 +247,17 @@ const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData); // Submit the updated form data
-    onClose(); // Close modal after submission
+    onSubmit(formData); 
+    onClose(); 
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded-md w-96">
+      <div className="bg-white p-4 rounded-md w-full max-w-lg h-auto max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-bold mb-4">Edit Voucher</h3>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="mb-4">
             <label className="block text-sm mb-1">Name</label>
             <input
@@ -237,11 +292,22 @@ const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm mb-1">Price</label>
+            <label className="block text-sm mb-1">Voucher Price</label>
             <input
               type="text"
               name="price"
               value={formData.price}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md w-full p-2"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm mb-1">Product Price</label>
+            <input
+              type="text"
+              name="productPrice"
+              value={formData.productPrice}
               onChange={handleChange}
               className="border border-gray-300 rounded-md w-full p-2"
               required
@@ -257,7 +323,7 @@ const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm mb-1">Date</label>
+            <label className="block text-sm mb-1"> StartDate</label>
             <input
               type="date"
               name="date"
@@ -269,11 +335,34 @@ const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm mb-1">Time</label>
+            <label className="block text-sm mb-1"> Start Time</label>
             <input
               type="time"
               name="time"
               value={formData.time}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md w-full p-2"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm mb-1">End Date</label>
+            <input
+              type="date"
+              name="endDate"
+              value={formData.endDate}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md w-full p-2"
+              min={formData.date}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm mb-1">End Time</label>
+            <input
+              type="time"
+              name="endTime"
+              value={formData.endTime}
               onChange={handleChange}
               className="border border-gray-300 rounded-md w-full p-2"
               required
@@ -391,7 +480,6 @@ const Voucher = () => {
     }
   };
 
-  console.log(vouchers, "uiuiuiuiuiuiu");
 
   return (
     <div className="flex">
@@ -413,9 +501,11 @@ const Voucher = () => {
                   <th className="px-4 py-2 border-b">Name</th>
                   <th className="px-4 py-2 border-b">Details</th>
                   <th className="px-4 py-2 border-b">Product Name</th>
-                  <th className="px-4 py-2 border-b">Price</th>
+                  <th className="px-4 py-2 border-b">Voucher Price</th>
+                  <th className="px-4 py-2 border-b">Product Price</th>
                   <th className="px-4 py-2 border-b">Image</th>
-                  <th className="border px-4 py-2">Date</th>
+                  <th className="border px-4 py-2">Start Date</th>
+                  <th className="border px-4 py-2">End Date</th>
                   <th className="px-4 py-2 border-b">Actions</th>
                 </tr>
               </thead>
@@ -430,6 +520,7 @@ const Voucher = () => {
                       {voucher.product_name}
                     </td>
                     <td className="px-4 py-2 border-b">{voucher.price}</td>
+                    <td className="px-4 py-2 border-b">{voucher.productPrice}</td>
                     <td>
                       {" "}
                       <img
@@ -441,25 +532,28 @@ const Voucher = () => {
                     <td className="border px-4 py-2">
                       {new Date(voucher.start_time).toISOString().split("T")[0]}
                     </td>
+                    <td className="border px-4 py-2">
+                      {new Date(voucher.end_time).toISOString().split("T")[0]}
+                    </td>
 
-                    <td className="px-4 py-2 border-b">
+                    <td className="px-4 py-2 flex space-x-2 mt-3">
                       <button
                         onClick={() => {
                           setCurrentVoucher(voucher);
                           setEditModalOpen(true);
                         }}
-                        className="bg-blue-500 text-white rounded-md px-4 py-2 mr-2 hover:bg-blue-600"
+                        
                       >
-                        Edit
+                        <FaEdit className="text-blue-500 hover:text-blue-700 mr-5 text-xl" />
                       </button>
                       <button
                         onClick={() => {
                           setCurrentVoucher(voucher);
                           setDeleteModalOpen(true);
                         }}
-                        className="bg-red-500 text-white rounded-md px-4 py-2 hover:bg-red-600"
+                        
                       >
-                        Delete
+                        <FaTrash className="text-red-500 hover:text-red-700 text-lg" />
                       </button>
                     </td>
                   </tr>

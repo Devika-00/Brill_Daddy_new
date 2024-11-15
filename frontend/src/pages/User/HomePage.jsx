@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import OrginalNavbar from "../../components/User/OrginalUserNavbar";
 import NavbarWithMenu from "../../components/User/NavbarwithMenu";
 import Footer from "../../components/User/Footer";
-import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaHeart } from "react-icons/fa";
 import { SERVER_URL } from "../../Constants";
 import axios from "axios";
 import ImageOne from "../../assets/one.jpg";
@@ -21,6 +21,7 @@ const HomePage = () => {
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
+  const token = user.token;
 
   const carouselImages = [
     ImageOne,
@@ -34,6 +35,7 @@ const HomePage = () => {
   ];
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [wishlist, setWishlist] = useState({});
 
   const [products, setProducts] = useState([]);
   const [electronicProducts, setElectronicProducts] = useState([]);
@@ -47,7 +49,7 @@ const HomePage = () => {
         const response = await axios.get(`${SERVER_URL}/user/products`);
         const products = response.data;
 
-        const filteredProducts = response.data.filter(
+        const filteredProducts = products.filter(
           (product) => product.category === "electronics"
         );
         setElectronicProducts(filteredProducts.slice(0, 5));
@@ -71,8 +73,88 @@ const HomePage = () => {
       }
     };
 
+    const fetchWishlist = async () => {
+      try {
+        if (!userId || !token) return;
+
+        console.log("Fetching wishlist for User ID:", userId, "Token:", token);
+
+        const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const wishlistItems = response.data.reduce((acc, item) => {
+          acc[item.productId._id] = item.wishlistStatus === 'added';
+          return acc;
+        }, {});
+
+        console.log("Wishlist fetched:", JSON.stringify(wishlistItems, null, 2));
+
+        setWishlist(wishlistItems);
+      } catch (error) {
+        console.error("Error fetching wishlist:", error);
+      }
+    };
+
     fetchProducts();
-  }, []);
+    fetchWishlist();
+  }, [userId, token]);
+
+  const toggleFavorite = async (productId) => {
+    try {
+      // Ensure the user is logged in (check if userId or token exists)
+      if (!userId || !token) {
+        navigate("/login");
+        return;
+      }
+
+      // Log the token to confirm it's being retrieved correctly
+      console.log("Retrieved token:", token);
+      console.log("Retrieved userId:", userId);
+
+      const headers = {
+        Authorization: `Bearer ${token}`,  // Pass token as Bearer token in headers
+      };
+
+      console.log("Toggling favorite for productId:", productId);
+
+      // Add userId to the request body when adding/removing from wishlist
+      const requestBody = {
+        productId,
+        userId,
+        wishlistStatus: wishlist[productId] ? 'removed' : 'added',
+      };
+
+      console.log("Current wishlist state before update:", wishlist);
+
+      if (wishlist[productId]) {
+        console.log("Removing from wishlist:", productId);
+        // Use DELETE to remove from wishlist, similar to your previous working route
+        const response = await axios.delete(`${SERVER_URL}/user/wishlist/remove`, {
+          headers,
+          data: requestBody
+        });
+
+        if (response.status === 200) {
+          setWishlist(prev => ({ ...prev, [productId]: false }));
+          alert("Product removed from wishlist successfully!");
+        } else {
+          alert('Error removing product from wishlist. Please try again.');
+        }
+      } else {
+        console.log("Adding to wishlist:", productId);
+        // Use POST to add to wishlist
+        const response = await axios.post(`${SERVER_URL}/user/wishlist`, requestBody, { headers });
+        if (response.status === 201) {
+          setWishlist(prev => ({ ...prev, [productId]: true }));
+        } else {
+          console.error("Error adding to wishlist:", response.data);
+        }
+      }
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+      alert("There was an issue adding/removing the item from your wishlist.");
+    }
+  };
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -244,12 +326,12 @@ const HomePage = () => {
             {/* Inner Voucher Card */}
             <div
               className="transform transition-all duration-300 hover:scale-105"
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
+              // onMouseEnter={() => setIsHovered(true)}
+              // onMouseLeave={() => setIsHovered(false)}
             >
               <div className="bg-gradient-to-r from-indigo-600 to-indigo-700  overflow-hidden shadow-lg h-full">
                 {/* Image Section */}
-                <div className="relative h-48">
+                <div className="relative h-32">
                   <img
                     src={firstFreeVoucher?.imageUrl}
                     alt={firstFreeVoucher?.voucher_name}
@@ -270,14 +352,14 @@ const HomePage = () => {
                   <h3 className="text-xl font-bold text-white mb-2">
                     {firstFreeVoucher?.voucher_name}
                   </h3>
-                  <p className="text-white/80 text-sm mb-4">
+                  <p className="text-white/80 text-sm mb-2">
                     {firstFreeVoucher?.details}
                   </p>
 
                   {/* Footer Section */}
-                  <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center text-white/80">
-                      <Clock className="w-4 h-4 mr-2" />
+                      <Clock className="w-4 h-2 mr-2" />
                       <span className="text-sm">Valid until {firstFreeVoucher ? new Date(firstFreeVoucher.end_time).toLocaleDateString() : "Dec 31, 2024"}</span>
                     </div>
                     
@@ -322,6 +404,17 @@ const HomePage = () => {
               key={product.id}
               className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 "
             >
+              {/* Favorite Button */}
+              <button
+                className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${wishlist[product._id] ? "text-red-500" : "text-gray-500"}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleFavorite(product._id);
+                }}
+              >
+                <FaHeart />
+              </button>
+
               <img
                 src={product.imageUrl || product.image}
                 alt={product.name}

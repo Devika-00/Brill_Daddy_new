@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Gift, Award, Sparkles, Clock } from "lucide-react";
+import { Gift, Award, Sparkles, Clock, Tag, Package } from "lucide-react";
 import OrginalNavbar from "../../components/User/OrginalUserNavbar";
 import NavbarWithMenu from "../../components/User/NavbarwithMenu";
 import Footer from "../../components/User/Footer";
@@ -8,6 +8,51 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../Redux/Store/store";
 
+const CountdownTimer = ({ voucher }) => {
+  const [timeLeft, setTimeLeft] = useState({});
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      // Determine the correct end time based on rebid_active
+      const endTime = voucher.rebid_active
+        ? new Date(voucher.rebid_end_time).getTime()
+        : new Date(voucher.end_time).getTime();
+        
+      const difference = endTime - new Date().getTime();
+
+      if (difference > 0) {
+        return {
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60)
+        };
+      }
+      return null;
+    };
+
+    const timer = setInterval(() => {
+      const timeLeft = calculateTimeLeft();
+      if (timeLeft) {
+        setTimeLeft(timeLeft);
+      } else {
+        clearInterval(timer);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [voucher]);
+
+
+  if (!timeLeft) return null;
+
+  return (
+    <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-sm text-white px-3 py-2 rounded-lg font-mono text-sm">
+      {timeLeft.days > 0 && `${timeLeft.days}d `}
+      {`${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`}
+    </div>
+  );
+};
+
 const EventPage = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [vouchers, setVouchers] = useState([]);
@@ -15,6 +60,8 @@ const EventPage = () => {
   const [winners, setWinners] = useState([]);
   const navigate = useNavigate();
   const [firstFreeVoucher, setFirstFreeVoucher] = useState(null);
+  const [eligibleFreeVouchers, setEligibleFreeVouchers] = useState([]);
+
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
@@ -156,6 +203,9 @@ const EventPage = () => {
                             : "scale-100 shadow-lg"
                         }`}
                       >
+                        {/*counter */}
+                        <CountdownTimer voucher={voucher} />
+
                         {/* Price or Free Tag */}
                         <div className="absolute -right-2 -top-2 transform rotate-12">
                           <div
@@ -175,23 +225,37 @@ const EventPage = () => {
                               <img
                                 src={voucher.imageUrl}
                                 alt="Voucher"
-                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300 mb-2"
+                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300 mb-2 ml-4"
                                 style={{ width: "200px", height: "150px" }}
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                             </div>
 
                             {/* Voucher Name and Details */}
-                            <h3 className="text-xl font-bold text-white mt-4">
+                            <h3 className="text-xl font-bold text-white mt-2 mb-1">
                               {voucher.voucher_name}
                             </h3>
-                            <p className="text-white text-opacity-90 mt-2">
+                            <div className="bg-white/10 rounded-lg p-3 space-y-2">
+                              <div className="flex items-center text-white">
+                                <Package className="w-4 h-4 mr-2" />
+                                <span className="font-medium">
+                                  {voucher.product_name || "Product Name"}
+                                </span>
+                              </div>
+                              <div className="flex items-center text-white">
+                                <Tag className="w-4 h-4 mr-2" />
+                                <span className="font-medium">
+                                  MRP: ₹{voucher.productPrice || "N/A"}
+                                </span>
+                              </div>
+                            </div>
+                            {/* <p className="text-white text-opacity-90 mt-2">
                               {voucher.details}
-                            </p>
+                            </p> */}
                           </div>
 
                           {/* Validity and Claim Button */}
-                          <div className="mt-6 flex items-center justify-between">
+                          <div className="mt-2 flex items-center justify-between">
                             <div className="flex items-center text-white text-opacity-90">
                               <Clock className="w-4 h-4 mr-1" />
                               <span className="text-sm">
@@ -208,11 +272,11 @@ const EventPage = () => {
                         </div>
                       </div>
                       {/* Optional: Free Voucher Badge */}
-                      {isEligibleForFree || voucher.price === 0 && (
+                      {/* {isEligibleForFree || voucher.price === 0 && (
                         <div className="absolute top-2 left-2 bg-green-600 text-white text-sm px-2 py-1 rounded-md">
                           Free Voucher!
                         </div>
-                      )}
+                      )} */}
                     </div>
                   );
                 })

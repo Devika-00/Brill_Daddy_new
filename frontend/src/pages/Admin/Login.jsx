@@ -1,67 +1,90 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { FiMail, FiLock } from 'react-icons/fi'; // Importing icons
 
 // Login Component
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Simple validation
     if (!email || !password) {
       setError('Email and Password are required.');
       return;
     }
 
-    // Perform login (mock)
-    console.log('Login details:', { email, password });
+    console.log('Attempting to log in with:', { email, password });
 
-    // Reset fields
-    setEmail('');
-    setPassword('');
+    try {
+      const response = await axios.post("http://localhost:5000/api/admin/login", { email, password });
+      console.log('Login successful:', response.data.message);
+
+      localStorage.setItem('adminEmail', email);
+      localStorage.setItem('adminPassword', password);
+      console.log('Stored credentials:', {
+        adminEmail: localStorage.getItem('adminEmail'),
+        adminPassword: localStorage.getItem('adminPassword')
+      });
+
+      navigate("/admin");
+      setEmail('');
+      setPassword('');
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+    }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-4 sm:p-8 md:p-12">
+      <div className="bg-white shadow-2xl rounded-lg p-6 sm:p-10 md:p-12 w-full max-w-xs sm:max-w-md md:max-w-lg transform transition duration-500 hover:scale-105">
+        <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-center text-gray-800 animate-pulse">Admin Login</h2>
+        {error && <p className="text-red-600 text-center mb-4 font-semibold bg-red-100 p-2 rounded">{error}</p>}
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="border border-gray-300 rounded-md w-full p-2 focus:outline-none focus:border-blue-500"
-              required
-            />
+          <div className="mb-5 relative">
+            <label htmlFor="email" className="block text-sm sm:text-base font-medium mb-2 text-gray-700">Email</label>
+            <div className="flex items-center border border-gray-300 rounded-md p-3 shadow-sm">
+              <FiMail className="text-gray-500 mr-3" />
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full focus:outline-none focus:border-purple-500 transition duration-200"
+                required
+              />
+            </div>
           </div>
-          <div className="mb-6">
-            <label htmlFor="password" className="block text-sm font-medium mb-2">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="border border-gray-300 rounded-md w-full p-2 focus:outline-none focus:border-blue-500"
-              required
-            />
+          <div className="mb-8 relative">
+            <label htmlFor="password" className="block text-sm sm:text-base font-medium mb-2 text-gray-700">Password</label>
+            <div className="flex items-center border border-gray-300 rounded-md p-3 shadow-sm">
+              <FiLock className="text-gray-500 mr-3" />
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full focus:outline-none focus:border-purple-500 transition duration-200"
+                required
+              />
+            </div>
           </div>
           <button
             type="submit"
-            className="bg-blue-500 text-white rounded-md px-4 py-2 w-full hover:bg-blue-600 transition duration-200"
+            className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md px-4 py-3 w-full hover:shadow-lg hover:bg-blue-600 transition duration-300 transform hover:scale-105 font-semibold text-lg"
           >
             Login
           </button>
         </form>
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Don't have an account? <a href="#" className="text-blue-500 hover:underline">Sign up</a>
-        </p>
       </div>
     </div>
   );

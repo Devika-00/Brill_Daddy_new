@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShoppingCart, faMoneyBillWave, faStar, faCheck, faTruck, faShieldAlt, faUndo } from '@fortawesome/free-solid-svg-icons';
@@ -8,6 +8,7 @@ import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
 import { SERVER_URL } from "../../Constants";
 import { useAppSelector } from '../../Redux/Store/store';
+import { FaHeart } from 'react-icons/fa';
 
 const SingleProduct = () => {
   const { id } = useParams();
@@ -17,10 +18,15 @@ const SingleProduct = () => {
   const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
   const [useWalletDiscount, setUseWalletDiscount] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
   const [walletOfferPrice, setWalletOfferPrice] = useState(null);
+  const [wishlist, setWishlist] = useState({});
+  const [wishlistMessage, setWishlistMessage] = useState('');
+  const navigate = useNavigate();
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
+  const token = user.token;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -44,9 +50,68 @@ const SingleProduct = () => {
       }
     };
 
+    const fetchWishlist = async () => {
+      try {
+        if (!userId || !token) return;
+        const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const wishlistItems = response.data.reduce((acc, item) => {
+          acc[item.productId._id] = item.wishlistStatus === 'added';
+          return acc;
+        }, {});
+        setWishlist(wishlistItems);
+      } catch (error) {
+        console.error("Error fetching wishlist:", error);
+      }
+    };
+
     fetchProduct();
     fetchWalletBalance();
-  }, [id, userId]);
+    fetchWishlist();
+  }, [id, userId, token]);
+
+  const toggleFavorite = async () => {
+    try {
+      if (!userId || !token) {
+        navigate("/login");
+        return;
+      }
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+      const requestBody = {
+        productId: id,
+        userId,
+        wishlistStatus: wishlist[id] ? 'removed' : 'added',
+      };
+
+      if (wishlist[id]) {
+        const response = await axios.delete(`${SERVER_URL}/user/wishlist/remove`, {
+          headers,
+          data: requestBody,
+        });
+        if (response.status === 200) {
+          setWishlist((prev) => ({ ...prev, [id]: false }));
+          setWishlistMessage('Product successfully removed from wishlist'); 
+          setShowDialog(true);  // Show dialog box
+          setTimeout(() => setShowDialog(false), 2000);
+        }
+      } else {
+        const response = await axios.post(`${SERVER_URL}/user/wishlist`, requestBody, { headers });
+        if (response.status === 201) {
+          setWishlist((prev) => ({ ...prev, [id]: true }));
+          setWishlistMessage('Product successfully added to wishlist');
+          setShowDialog(true);  // Show dialog box
+          setTimeout(() => setShowDialog(false), 2000);
+        }
+      }
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+    }
+  };
+
 
   useEffect(() => {
     if (product) {
@@ -145,7 +210,18 @@ const SingleProduct = () => {
               </div>
 
               {/* Product Details Section */}
-              <div className="flex flex-col space-y-6">
+              <div className="flex flex-col space-y-6 relative">
+                {/* Favorite Button */}
+                <button
+                  className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${wishlist[id] ? "text-red-500" : "text-gray-500"}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleFavorite();
+                  }}
+                >
+                  <FaHeart />
+                </button>
+
                 <div className="border-b pb-4">
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
                   <div className="flex items-center space-x-2">
@@ -242,6 +318,17 @@ const SingleProduct = () => {
                 )}
               </div>
             </div>
+            {showDialog && (
+          <div 
+            className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 text-center px-4 py-6 rounded-md`}
+          >
+            <div 
+              className={`bg-white py-4 px-6 rounded-xl text-xl ${wishlistMessage.includes("added") ? 'text-green-600' : 'text-red-600'}`}
+            >
+              {wishlistMessage}
+            </div>
+          </div>
+        )}
           </div>
         </div>
 

@@ -4,6 +4,7 @@ const initialState = {
   username: null,
   isAuthenticated: null,
   id: null,
+  token:null,
 };
 
 const userSlice = createSlice({
@@ -14,6 +15,7 @@ const userSlice = createSlice({
       state.username = action.payload.username;
       state.isAuthenticated = action.payload.isAuthenticated;
       state.id = action.payload.id;
+      state.token = action.payload.token;
     },
     clearUser: () => initialState,
   },

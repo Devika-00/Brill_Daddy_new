@@ -1,3 +1,4 @@
+//frontend/src/pages/User/Whishlist.jsx
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShoppingCart, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -11,38 +12,64 @@ import { SERVER_URL } from "../../Constants";
 const WishlistPage = () => {
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
+  const token = user.token;
 
   const [wishlistItems, setWishlistItems] = useState([]);
   const [imageUrls, setImageUrls] = useState({});
 
   useEffect(() => {
-    const fetchWishlistItems = async () => {
+    const fetchWishlist = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/user/wishlist/${userId}`);
-        setWishlistItems(response.data);
+        if (!token) {
+          console.error("No token found!");
+          return;
+        }
 
-        response.data.forEach(async (item) => {
-          const imageId = item.productId.images[0];
-          const imageResponse = await axios.get(`${SERVER_URL}/user/images/${imageId}`);
-          setImageUrls((prev) => ({ ...prev, [imageId]: imageResponse.data.imageUrl }));
-        });
-      } catch (error) {
-        console.error("Error fetching wishlist items:", error);
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        };
+
+        console.log("Sending token in request:", token);  // Debug log
+
+        const response = await axios.get(`${SERVER_URL}/user/wishlist`, { headers });
+
+        console.log("Response from server:", response);  // Debug log
+
+
+        if (response.status === 200) {
+          const items = Array.isArray(response.data) ? response.data : [];
+          setWishlistItems(items);
+
+        // Fetch images for each product
+        const imageUrls = {};
+        await Promise.all(items.map(async (item) => {
+          const productId = item.productId._id;
+          if (item.productId.images && item.productId.images.length > 0) {
+            const imageId = item.productId.images[0];
+            try {
+              const imageResponse = await axios.get(`${SERVER_URL}/user/images/${imageId}`);
+              if (imageResponse.status === 200) {
+                imageUrls[imageId] = imageResponse.data.imageUrl;
+              }
+            } catch (error) {
+              console.error(`Error fetching image for product ${productId}:`, error);
+            }
+          }
+        }));
+        setImageUrls(imageUrls);
       }
-    };
-
-    fetchWishlistItems();
-  }, [userId]);
-
-  const handleRemoveFromWishlist = async (id) => {
-    try {
-      await axios.delete(`${SERVER_URL}/user/wishlist/${userId}/${id}`);
-      setWishlistItems((prevItems) => prevItems.filter((item) => item.productId._id !== id));
-      console.log(`Removed item ${id} from wishlist.`);
     } catch (error) {
-      console.error("Error removing item from wishlist:", error);
+      console.error("Error fetching wishlist:", error);
     }
   };
+
+    if (token) {
+      fetchWishlist();
+    } else {
+      console.error("User not authenticated!");
+    }
+  }, [token]);
+  
 
   const handleAddToCart = async (productId) => {
     try {
@@ -60,6 +87,31 @@ const WishlistPage = () => {
     }
   };
 
+  const handleRemoveFromWishlist = async (productId) => {
+    try {
+      const response = await axios.delete(`${SERVER_URL}/user/wishlist/remove`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          userId,
+          productId,
+        },
+      });
+
+      if (response.status === 200) {
+        // Remove item from local wishlist state after successful removal
+        setWishlistItems(prevItems => prevItems.filter(item => item.productId._id !== productId));
+        alert('Product removed from wishlist successfully!');
+      } else {
+        alert('Error removing product from wishlist. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error removing product from wishlist:', error);
+      alert('Could not remove product from wishlist. Please try again.');
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white">
       <OrginalNavbar />
@@ -72,9 +124,11 @@ const WishlistPage = () => {
               <p className="text-center text-lg text-gray-500">No items in wishlist.</p>
             ) : (
               wishlistItems.map((item) => (
-                <div key={item.id} className="flex flex-col lg:flex-row items-center bg-white shadow-lg rounded-lg p-4">
+                <div key={item.productId._id} className="flex flex-col lg:flex-row items-center bg-white shadow-lg rounded-lg p-4">
                   <img 
-                    src={imageUrls[item.productId.images[0]]} 
+                    src={item.productId.images && item.productId.images.length > 0
+                      ? imageUrls[item.productId.images[0]] || "/path/to/placeholder.jpg"
+                      : "/path/to/placeholder.jpg"} 
                     alt={item.productId.name} 
                     className="w-32 h-32 object-cover rounded-lg" 
                   />

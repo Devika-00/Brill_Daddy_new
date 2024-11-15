@@ -301,16 +301,18 @@ const getOrders = async (req, res) => {
   const addVouchers = async (req, res) => {
     try {
         console.log(req.body, "Request Body"); // Log incoming request body
-        const { voucher_name, details, product_name, price, imageUrl, date, time } = req.body;
+        const { voucher_name, details, product_name, price, productPrice, imageUrl, date, time, endDate, endTime } = req.body;
 
         // Log the parsed fields
         console.log("Voucher Name:", voucher_name);
         console.log("Details:", details);
         console.log("Product Name:", product_name);
         console.log("Price:", price);
+        console.log("Product Price:",productPrice);
 
         // Combine date and time into a single Date object for start_time
         const start_time = new Date(`${date}T${time}`);
+        const end_time = new Date(`${endDate}T${endTime}`)
 
         // Create a new voucher instance
         const voucher = new Voucher({
@@ -318,8 +320,10 @@ const getOrders = async (req, res) => {
             details,
             product_name,
             price,
+            productPrice,
             imageUrl,
-            start_time
+            start_time,
+            end_time,
         });
 
         // Save the voucher to the database
@@ -361,13 +365,16 @@ const deletevoucher = async (req, res) => {
 
 const editVoucher = async (req, res) => {
     const { id } = req.params;
-  const { voucher_name, details, product_name, price } = req.body;
+  const { voucher_name, details, product_name, price,productPrice, imageUrl, date, time, endDate, endTime } = req.body;
 
   try {
+    const start_time = new Date(`${date}T${time}`);
+        const end_time = new Date(`${endDate}T${endTime}`)
+
     // Find the voucher by ID and update its fields
     const updatedVoucher = await Voucher.findByIdAndUpdate(
       id,
-      { voucher_name, details, product_name, price },
+      { voucher_name, details, product_name, price,productPrice, imageUrl,start_time,end_time },
       { new: true } // Return the updated document
     );
 

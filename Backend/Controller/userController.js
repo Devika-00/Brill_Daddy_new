@@ -332,37 +332,6 @@ const clearCart = async (req, res) => {
   }
 };
 
-const addWishlist = async (req, res) => {
-  try {
-    const newWishlistItem = new Wishlist({
-        userId: req.params.userId,
-        productId: req.body.productId,
-    });
-    await newWishlistItem.save();
-    res.status(201).json(newWishlistItem);
-} catch (error) {
-    res.status(500).json({ message: "Error adding to wishlist" });
-}
-};
-
-const getWishlist = async (req, res) => {
-  try {
-    const wishlistItems = await Wishlist.find({ userId: req.params.userId }).populate('productId');
-    res.status(200).json(wishlistItems);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const removeWishlist = async (req, res) => {
-  try {
-    await Wishlist.findOneAndDelete({ productId: req.params.itemId, userId: req.params.userId });
-    res.status(200).json({ message: 'Item removed from wishlist' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
 
 const addAddress = async (req, res) => {
   const { userId, userName, addressLine, pincode, street, state, flatNumber, phoneNumber, addressType } = req.body;
@@ -388,6 +357,128 @@ const addAddress = async (req, res) => {
   } catch (error) {
     console.error('Error saving address:', error);
     res.status(500).json({ message: 'Failed to save address' });
+  }
+};
+
+const removeWishlist = async (req, res) => {
+  try {
+    // Ensure the userId exists in the request user object
+    if (!req.user || !req.user.userId) {
+      return res.status(400).json({ message: "User ID not found in token" });
+    }
+
+    await Wishlist.findOneAndDelete({ productId: req.params.itemId, userId: req.user.userId });
+    res.status(200).json({ message: 'Item removed from wishlist' });
+  } catch (error) {
+    console.error("Error in removeWishlist:", error);  // Log detailed error
+    res.status(500).json({ message: error.message, error: error.message });
+  }
+};
+
+// userController.js
+const addWishlist = async (req, res) => {
+  try {
+    console.log("User ID:", req.user.userId);  // Log the user ID to confirm it's available
+
+    // Ensure the userId exists in the request user object
+    if (!req.user || !req.user.userId) {
+      return res.status(400).json({ message: "User ID not found in token" });
+    }
+
+    const existingWishlistItem = await Wishlist.findOne({
+      userId: req.user.userId,
+      productId: req.body.productId,
+    });
+
+    // Check if the item already exists in the wishlist
+    if (existingWishlistItem) {
+      // Update the wishlistStatus if the product already exists
+      existingWishlistItem.wishlistStatus = req.body.wishlistStatus; // Update status
+      await existingWishlistItem.save();  // Save the updated item
+      return res.status(200).json(existingWishlistItem);  // Return the updated item
+    }
+
+    const newWishlistItem = new Wishlist({
+      userId: req.user.userId,
+      productId: req.body.productId,
+      wishlistStatus: req.body.wishlistStatus,
+    });
+
+    await newWishlistItem.save();
+    res.status(201).json(newWishlistItem);
+  } catch (error) {
+    console.error("Error in addWishlist:", error);  // Log detailed error
+    res.status(500).json({ message: "Error adding to wishlist", error: error.message });
+  }
+};
+
+// backend/controllers/userController.js
+const getWishlist = async (req, res) => {
+  try {
+    // Ensure userId is available from the token
+    if (!req.user || !req.user.userId) {
+      return res.status(400).json({ message: "User ID not found in token" });
+    }
+
+    const userId = req.user.userId;
+
+    // Check if the userId is valid as an ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    // Ensure correct instantiation of ObjectId using new keyword
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+
+    // Find wishlist items associated with the userId
+    const wishlistItems = await Wishlist.find({ userId: userObjectId })
+                                        .populate('productId');  // Populate the associated product details
+
+    if (!wishlistItems || wishlistItems.length === 0) {
+      return res.status(404).json({ message: "No wishlist items found" });
+    }
+
+        // Log the retrieved wishlist items for debugging
+        console.log("Wishlist items retrieved:", wishlistItems);
+
+    // Return the wishlist items along with the populated product details
+    res.status(200).json(wishlistItems);
+  } catch (error) {
+    console.error("Error in getWishlist:", error);
+    res.status(500).json({ message: "Error retrieving wishlist", error: error.message });
+  }
+};
+
+const removeFromWishlist = async (req, res) => {
+  try {
+    console.log("reaching");
+    const { userId, productId } = req.body;
+
+    // Check if userId and productId are valid
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ message: "Invalid product ID" });
+    }
+
+    // Ensure user is authenticated
+    if (!req.user || req.user.userId !== userId) {
+      return res.status(403).json({ message: "Forbidden: User not authorized" });
+    }
+
+    // Remove the product from the user's wishlist
+    const result = await Wishlist.findOneAndDelete({ userId: userId, productId: productId });
+
+    if (!result) {
+      return res.status(404).json({ message: "Product not found in wishlist" });
+    }
+
+    res.status(200).json({ message: "Product removed from wishlist successfully" });
+  } catch (error) {
+    console.error("Error removing from wishlist:", error);
+    res.status(500).json({ message: "Error removing product from wishlist", error: error.message });
   }
 };
 
@@ -539,20 +630,57 @@ const getProductSuggestions = async (req, res) => {
   }
 };
 
+//userController.js
 const getUserDetails = async (req, res) => {
   try {
-    const id = req.params.id;
-    const user = await User.findById(id) 
+    // Use userId from the token instead of req.params.id
+    const userId = req.user.userId; // Extract userId from authenticated user
+   
+
+    // Fetch user details based on the userId
+    const user = await User.findById(userId); // Use userId here
 
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
 
     res.status(200).json(user);
-} catch (error) {
+  } catch (error) {
     console.error('Error fetching user info:', error);
     res.status(500).json({ message: 'Server error' });
-}
+  }
+};
+
+const editAddress = async (req, res) => {
+  const { addressId } = req.params;
+  const { userName, addressLine, pincode, street, state, flatNumber, phoneNumber, addressType } = req.body;
+
+  try {
+    // Find and update the address by ID
+    const updatedAddress = await Address.findOneAndUpdate(
+      { _id: addressId, userId: req.body.userId },
+      {
+        userName,
+        addressLine,
+        pincode,
+        street,
+        state,
+        flatNumber,
+        phoneNumber,
+        addressType
+      },
+      { new: true }
+    );
+
+    if (!updatedAddress) {
+      return res.status(404).json({ message: 'Address not found or does not belong to the user' });
+    }
+
+    res.status(200).json({ message: 'Address updated successfully', address: updatedAddress });
+  } catch (error) {
+    console.error('Error updating address:', error);
+    res.status(500).json({ message: 'Failed to update address' });
+  }
 };
 
 const updateQuantityOfProduct = async (req, res) => {
@@ -646,5 +774,5 @@ const getWallet = async (req, res) => {
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
-  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct
+  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress,
 }

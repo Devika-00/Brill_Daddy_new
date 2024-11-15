@@ -1,9 +1,140 @@
 const Router = require("express")
 const adminRoute = Router();
+const bcrypt = require("bcrypt");
+const Admin = require("../Models/adminModel");
+const Order = require("../Models/orderModel");
 
 const {addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
     deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher
 } = require("../Controller/adminController")
+
+// Admin login route
+adminRoute.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+
+    // Prebuilt admin credentials
+    const prebuiltEmail = "admin@gmail.com";
+    const prebuiltPassword = "admin123";
+
+    // Log received email and password
+    console.log("Received email:", email);
+    console.log("Received password:", password);
+
+    try {
+        // Check if the admin exists in the database
+        let admin = await Admin.findOne({ email });
+
+        // If admin does not exist, create a new one with prebuilt credentials
+        if (!admin) {
+            const hashedPassword = await bcrypt.hash(prebuiltPassword, 10);
+            admin = new Admin({
+                email: prebuiltEmail,
+                password: hashedPassword,
+            });
+            await admin.save();
+            console.log("New admin created:", admin);
+        }
+
+        // Validate the password
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: "Invalid email or password." });
+        }
+
+        // Login successful
+        res.status(200).json({ message: "Login successful." });
+    } catch (error) {
+        console.error("Error during admin login:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+// Admin cancel order route
+adminRoute.put('/cancel-order/:orderId', async (req, res) => {
+    try {
+      console.log(req.body,"kkkkkkkkkkkkkkkkk");
+      
+      const { userId, productId, cancelReason } = req.body;
+      const { orderId } = req.params;
+  
+      // Find the order by ID
+      const order = await Order.findById(orderId);
+  
+      if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+  
+      // Find the specific product in cartItems by productId
+    const productToCancel = order.cartItems.find(
+      (item) => item.productId.toString() === productId
+    );
+
+    if (!productToCancel) {
+      return res.status(404).json({ message: 'Product not found in order' });
+    }
+
+    // Update the status of the specific product to 'Cancelled'
+    productToCancel.status = 'Cancelled';
+
+    // Set the cancellation details for the order
+    order.cancellation = {
+      reason: cancelReason,  // Reason for cancellation
+      cancelledAt: new Date(), // Cancellation timestamp
+      status: 'Cancelled',  // Mark as cancelled
+    };
+
+    
+
+    // Save the order with the updated details
+    await order.save();
+      // Return the updated order with cancellation details
+      res.status(200).json({
+        message: 'Order cancelled successfully',
+        cancellation: order.cancellation,  // Return the cancellation details
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error handling cancellation request' });
+    }
+  });
+
+  adminRoute.put('/return-order/:orderId', async (req, res) => {
+    try {
+      const { userId, productId, selectedReason } = req.body;
+      const { orderId } = req.params;
+
+        // Find the order by ID
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        const productToReturn = order.cartItems.find(
+          (item) => item.productId.toString() === productId
+        );
+    
+        if (!productToReturn) {
+          return res.status(404).json({ message: 'Product not found in order' });
+        }
+    
+        // Update the status of the specific product to 'Cancelled'
+        productToReturn.status = 'Returned';
+    
+    
+        // Save the order with the updated details
+        await order.save();
+
+        // Return the updated order with return details
+        res.status(200).json({
+            message: 'Order returned successfully',
+            returnDetails: order.returnDetails,  // Return the return details
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error handling return request' });
+    }
+});
 
 adminRoute.post("/addcategory",addCategory);
 adminRoute.get("/categories",getcategories);

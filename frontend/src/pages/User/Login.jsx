@@ -36,9 +36,7 @@ const Login = () => {
       console.log(response);
       if (response.data.message === 'OTP verified, login successful') {
         alert('Login successful');
-        const token = response.data.token;
-        const username = response.data.username;
-        const id = response.data.id;
+        const {token, username, id} = response.data;
 
         localStorage.setItem("access_token", token);
       dispatch(
@@ -46,6 +44,7 @@ const Login = () => {
           id,
           username,
           isAuthenticated: true,
+          token,
         })
       );
       navigate('/'); 

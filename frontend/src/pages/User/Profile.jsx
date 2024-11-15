@@ -1,8 +1,9 @@
+//frontend/src/pages/User/Profile.jsx
 import React, { useState, useEffect } from 'react';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
-import { AiOutlineUser, AiOutlineHome, AiOutlineShoppingCart, AiOutlineHeart, AiOutlineLogout, AiFillDelete } from 'react-icons/ai';
+import { AiOutlineUser, AiOutlineHome, AiOutlineShoppingCart, AiOutlineHeart, AiOutlineLogout, AiFillDelete, AiFillEdit } from 'react-icons/ai';
 import { useAppSelector } from '../../Redux/Store/store';
 import { SERVER_URL } from "../../Constants";
 import axios from 'axios';
@@ -26,6 +27,7 @@ const Profile = () => {
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
+  const token = user.token;
 
   const handleTabClick = (tab) => setActiveTab(tab);
   const toggleAddressModal = () => setShowAddressModal(!showAddressModal);
@@ -37,17 +39,45 @@ const Profile = () => {
 
   const handleAddressSave = async () => {
     try {
-      const response = await axios.post(`${SERVER_URL}/user/addAddress`, { 
-        ...addressData, 
-        userId 
-      });
-  
-      if (response.status === 200) {
-        // Fetch updated addresses after saving
-        fetchAddresses();
-        setShowAddressModal(false);
+      if (selectedAddressId) {
+        // Call the edit address endpoint if an address is selected
+        const response = await axios.put(`${SERVER_URL}/user/editAddress/${selectedAddressId}`, {
+          ...addressData,
+          userId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Pass the token in headers
+          },
+        }
+      );
+
+        if (response.status === 200) {
+          fetchAddresses();
+          setShowAddressModal(false);
+          setSelectedAddressId(null);
+        } else {
+          console.error('Failed to update address');
+        }
       } else {
-        console.error('Failed to save address');
+        // Otherwise, add a new address
+        const response = await axios.post(`${SERVER_URL}/user/addAddress`, {
+          ...addressData,
+          userId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Pass the token in headers
+          },
+        }
+      );
+
+        if (response.status === 200) {
+          fetchAddresses();
+          setShowAddressModal(false);
+        } else {
+          console.error('Failed to save address');
+        }
       }
     } catch (error) {
       console.error('Error:', error);
@@ -69,8 +99,10 @@ const Profile = () => {
 
   const fetchUserInfo = async () => {
     try {
-      
-      const response = await axios.get(`${SERVER_URL}/user/${userId}`);
+
+      const response = await axios.get(`${SERVER_URL}/user/${userId}`,{
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (response.status === 200) {
         setUserInfo(response.data);
       } else {
@@ -81,10 +113,17 @@ const Profile = () => {
     }
   };
 
-   // Delete address handler
-   const handleAddressDelete = async (addressId) => {
+  const editAddress = (address) => {
+    // Load the selected address data into the form and set the selected address ID
+    setAddressData(address);
+    setSelectedAddressId(address._id);
+    setShowAddressModal(true);
+  };
+
+  // Delete address handler
+  const handleAddressDelete = async (addressId) => {
     try {
-      const response = await axios.delete(`${SERVER_URL}/user/deleteAddress/${addressId}`,{ data: { userId } });
+      const response = await axios.delete(`${SERVER_URL}/user/deleteAddress/${addressId}`, { data: { userId } });
       if (response.status === 200) {
         // Remove deleted address from state
         setAddresses(addresses.filter(address => address._id !== addressId));
@@ -176,7 +215,7 @@ const Profile = () => {
                 </div>
                 <div>
                   <label className="block text-gray-700">Mobile Number</label>
-                  <input type="text" className="w-full border p-2 rounded-lg" placeholder="Mobile number" value={userInfo.phone}/>
+                  <input type="text" className="w-full border p-2 rounded-lg" placeholder="Mobile number" value={userInfo.phone} />
                 </div>
               </div>
             </div>
@@ -186,34 +225,50 @@ const Profile = () => {
             <div>
               <h2 className="text-2xl font-semibold mb-4">Manage Address</h2>
               <button
-                onClick={toggleAddressModal}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg mb-2"
-              >
-                Add Address
-              </button>
-              
-             {/* Address Cards */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-  {addresses.map((address) => (
-    <div key={address._id} className="bg-gray-100 shadow-lg rounded-lg p-4 flex flex-col justify-between">
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold text-gray-800">{address.userName}</h3>
-        <button 
-          onClick={() => handleAddressDelete(address._id)}
-          className="text-red-600 hover:bg-red-100 rounded-full p-2 transition duration-200"
-          aria-label="Delete address"
-        >
-          <AiFillDelete className="text-2xl" />
-        </button>
-      </div>
-      <div className="mt-2">
-        <p className="text-gray-700">{`${address.addressLine}, ${address.street}, ${address.state}, ${address.pincode}`}</p>
-        <p className="text-gray-700">{`Flat No: ${address.flatNumber}`}</p>
-        <p className="text-gray-700">{`${address.addressType}`}</p>
-      </div>
-    </div>
-  ))}
-</div>
+            onClick={() => {
+              toggleAddressModal();
+              setSelectedAddressId(null);
+              setAddressData({
+                userName: '',
+                addressLine: '',
+                pincode: '',
+                street: '',
+                state: '',
+                flatNumber: '',
+                phoneNumber: '',
+                addressType: 'Home',
+              });
+            }}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg mb-2"
+          >
+            Add Address
+          </button>
+
+              {/* Address Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+                {addresses.map((address) => (
+                  <div key={address._id} className="bg-gray-100 shadow-lg rounded-lg p-4 flex flex-col justify-between">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-xl font-semibold text-gray-800">{address.userName} - {address.addressLine}</h3>
+                      <button onClick={() => editAddress(address)} className="text-blue-600 hover:bg-blue-100 rounded-full p-2 transition duration-200" aria-label="Edit address">
+                          <AiFillEdit className="text-2xl" />
+                        </button>
+                      <button
+                        onClick={() => handleAddressDelete(address._id)}
+                        className="text-red-600 hover:bg-red-100 rounded-full p-2 transition duration-200"
+                        aria-label="Delete address"
+                      >
+                        <AiFillDelete className="text-2xl" />
+                      </button>
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-gray-700">{`${address.addressLine}, ${address.street}, ${address.state}, ${address.pincode}`}</p>
+                      <p className="text-gray-700">{`Flat No: ${address.flatNumber}`}</p>
+                      <p className="text-gray-700">{`${address.addressType}`}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
 
               {/* Add Address Modal */}
@@ -260,7 +315,7 @@ const Profile = () => {
                           onClick={handleAddressSave}
                           className="bg-blue-500 text-white px-4 py-2 rounded-lg"
                         >
-                          Save Address
+                          {selectedAddressId ? 'Update Address' : 'Add Address'}
                         </button>
                       </div>
                     </form>

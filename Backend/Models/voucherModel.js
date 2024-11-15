@@ -20,15 +20,17 @@ const voucherSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  productPrice:{
+    type:Number,
+    required:true
+  },
   start_time: {
     type: Date,
     required: true
   },
   end_time: {
     type: Date,
-    default: function () {
-      return new Date(this.start_time.getTime() + 24 * 60 * 60 * 1000);
-    }
+    required:true
   },
   winner_bid_id: {
     type: mongoose.Schema.Types.ObjectId,

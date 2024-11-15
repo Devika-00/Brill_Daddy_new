@@ -24,6 +24,7 @@ const OrginalNavbar = () => {
   const [selectedAddress, setSelectedAddress] = useState("");
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.user);
+  const token = user.token;
   const dispatch = useDispatch();
   
 
@@ -51,18 +52,23 @@ const OrginalNavbar = () => {
     };
 
     const fetchUserDetails = async () => {
-      if (user.isAuthenticated) {
+      if (user.isAuthenticated && user.id) {
         try {
-          const userDetailsResponse = await axios.get(
-            `${SERVER_URL}/user/${user.id}`
-          );
-          
-        const addressId = userDetailsResponse.data.currentAddress; 
-        const addressResponse = await axios.get(`${SERVER_URL}/user/address/${addressId}`);
-        
-        setSelectedAddress(addressResponse.data); 
+          const userDetailsResponse = await axios.get(`${SERVER_URL}/user/getUserDetails`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const addressId = userDetailsResponse.data.currentAddress; // Assuming this returns the address ID
+          if (addressId) {
+            const addressResponse = await axios.get(`${SERVER_URL}/user/address/${addressId}`);
+            setSelectedAddress(addressResponse.data);
+          }
         } catch (error) {
-          console.error("Error fetching user details:", error);
+          // Handle specific 404 error case
+          if (error.response && error.response.status === 404) {
+            console.error("User not found. Please check the user ID or registration status.");
+          } else {
+            console.error("Error fetching user details:", error);
+          }
         }
       }
     };
@@ -70,7 +76,7 @@ const OrginalNavbar = () => {
     fetchProducts();
     fetchUserAddresses();
     fetchUserDetails();
-  }, [user]);
+  }, [user.isAuthenticated, user.id]);
 
 
   const handleSearchChange = (e) => {

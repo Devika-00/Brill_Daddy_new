@@ -61,6 +61,9 @@ const OrdersList = () => {
     }
   };
 
+    const sortedOrders = orders.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+
+
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white py-0">
       <OrginalNavbar />
@@ -74,7 +77,7 @@ const OrdersList = () => {
           <p className="text-center">No Orders</p>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) =>
+            {sortedOrders.map((order) =>
               order.cartItems.map((item) => (
                 <div
                   key={item._id}
