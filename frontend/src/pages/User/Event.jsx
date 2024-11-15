@@ -225,7 +225,7 @@ const EventPage = () => {
                               <img
                                 src={voucher.imageUrl}
                                 alt="Voucher"
-                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300 mb-2 ml-4"
+                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300 mb-2 ml-8"
                                 style={{ width: "200px", height: "150px" }}
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />

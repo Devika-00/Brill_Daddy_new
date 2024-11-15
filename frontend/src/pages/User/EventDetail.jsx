@@ -1,34 +1,35 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import OrginalNavbar from '../../components/User/OrginalUserNavbar';
-import NavbarWithMenu from '../../components/User/NavbarwithMenu';
-import Footer from '../../components/User/Footer';
-import axios from 'axios';
-import { useAppSelector } from '../../Redux/Store/store';
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import OrginalNavbar from "../../components/User/OrginalUserNavbar";
+import NavbarWithMenu from "../../components/User/NavbarwithMenu";
+import Footer from "../../components/User/Footer";
+import axios from "axios";
+import { useAppSelector } from "../../Redux/Store/store";
 import { SERVER_URL } from "../../Constants";
+import { Award, Sparkles, Tag, DollarSign, Ticket, Timer } from "lucide-react";
 
 const EventDetail = () => {
   const location = useLocation();
   const { voucher } = location.state || {};
+  const [winners, setWinners] = useState([]);
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
 
-  const winners = ['W001', 'W002', 'W003', 'W004', 'W005'];
   const [bidAmount, setBidAmount] = useState(null);
-  const [bidId, setBidId] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [bidId, setBidId] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [confirmEnabled, setConfirmEnabled] = useState(false);
 
   const handleBid = () => {
     if (bidAmount === null) {
-      setErrorMessage('Please enter a value.');
+      setErrorMessage("Please enter a value.");
       return;
     }
-    const uniqueId = 'BID-' + Math.random().toString(36).substr(2, 9);
+    const uniqueId = "BID-" + Math.random().toString(36).substr(2, 9);
     setBidId(uniqueId);
     setConfirmEnabled(true);
-    setErrorMessage('');
+    setErrorMessage("");
   };
 
   const handleConfirm = async () => {
@@ -41,12 +42,37 @@ const EventDetail = () => {
         bidId,
       });
       if (response.status === 201) {
-        navigate('/event');
+        navigate("/event");
       }
     } catch (error) {
-      setErrorMessage('Failed to submit bid. Please try again.');
+      setErrorMessage("Failed to submit bid. Please try again.");
     }
   };
+
+  useEffect(() => {
+    const fetchWinners = async () => {
+      try {
+        const response = await axios.get(`${SERVER_URL}/voucher/getWinners`, {
+          params: { voucherId: voucher._id },
+        });
+        const currentTime = new Date().getTime();
+        const validWinners = response.data.filter(
+          (winner) => new Date(winner.endTime).getTime() > currentTime
+        );
+        setWinners(validWinners);
+      } catch (error) {
+        console.error("Failed to fetch winners:", error);
+      }
+    };
+
+    if (voucher?._id) {
+      fetchWinners();
+    }
+  }, [voucher]);
+
+  if (!voucher) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-purple-100">
@@ -60,147 +86,201 @@ const EventDetail = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           {/* Winners Section */}
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full">
-            <div className="flex items-center gap-2 mb-6">
-              <svg 
-                className="w-6 h-6 text-yellow-500" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                />
-              </svg>
-              <h2 className="text-2xl font-semibold text-gray-800">Winners Gallery</h2>
-            </div>
-
-            <div className="space-y-3">
-              {winners.map((winnerId, index) => (
-                <div
-                  key={index}
-                  className="flex items-center bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg p-4"
-                >
-                  <div className="bg-yellow-200 rounded-full w-8 h-8 flex items-center justify-center mr-4">
-                    <span className="font-semibold text-yellow-700">{index + 1}</span>
-                  </div>
-                  <span className="text-lg font-medium text-gray-700">{winnerId}</span>
-                </div>
-              ))}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-8 backdrop-blur-lg bg-opacity-95">
+              <div className="flex items-center mb-6">
+                <Award className="w-6 h-6 text-yellow-500 mr-2" />
+                <h2 className="text-2xl font-bold">Winners</h2>
+              </div>
+              <div className="space-y-4">
+                {winners.length > 0 ? (
+                  winners.map((winner) => (
+                    <div
+                      key={winner.id}
+                      className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-100 transition-transform hover:scale-105"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-semibold text-gray-800">
+                            {winner.prize}
+                          </p>
+                          <p className="text-sm text-gray-500 font-bold">
+                            ID: {winner.winningBidId.bidId}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Name: {winner.userId.username}
+                          </p>
+                        </div>
+                        <Sparkles className="w-5 h-5 text-yellow-500" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No winners selected</p>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Voucher and Bidding Section */}
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full">
-            <div className="flex items-center gap-2 mb-6">
-              <svg 
-                className="w-6 h-6 text-blue-500" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
-                />
-              </svg>
-              <h2 className="text-2xl font-semibold text-gray-800">Place Your Bid</h2>
+          {/* Main Content Section */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Voucher Details Card */}
+            <div className="bg-white backdrop-blur-lg bg-opacity-95 rounded-xl shadow-xl overflow-hidden">
+              <div className="p-8">
+                <div className="space-y-8">
+                  {/* Top Section: Image and Details Side by Side */}
+                  <div className="flex flex-col lg:flex-row gap-8">
+                    {/* Left Side - Voucher Image */}
+                    <div className="lg:w-1/2">
+                      <div className="relative rounded-xl overflow-hidden shadow-lg group h-72">
+                        <img
+                          src={voucher.imageUrl}
+                          alt="Voucher"
+                          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                          <p className="text-white font-semibold">
+                            {voucher.details}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Side - Product Details */}
+                    <div className="lg:w-1/2 grid grid-cols-1 gap-4">
+                      <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg transform hover:scale-102 transition-all duration-200 hover:bg-gray-100">
+                        <div className="bg-blue-100 p-2 rounded-full">
+                          <Tag className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-500">
+                            Product Name
+                          </p>
+                          <p className="text-gray-900 font-semibold truncate">
+                            {voucher.product_name || "Premium Product"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg transform hover:scale-102 transition-all duration-200 hover:bg-gray-100">
+                        <div className="bg-green-100 p-2 rounded-full">
+                          <DollarSign className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-500">
+                            Product Price
+                          </p>
+                          <p className="text-gray-900 font-semibold">
+                            ₹{voucher.productPrice}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg transform hover:scale-102 transition-all duration-200 hover:bg-gray-100">
+                        <div className="bg-purple-100 p-2 rounded-full">
+                          <Ticket className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-500">
+                            Voucher Value
+                          </p>
+                          <p className="text-gray-900 font-semibold">
+                            ₹{voucher.price}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {voucher ? (
-              <div className="space-y-6">
-                <div>
-                  <img
-                    src={voucher.imageUrl}
-                    alt={`Voucher ${voucher._id}`}
-                    className="w-full h-64 object-cover rounded-lg shadow-md"
+            {/* Bidding Section */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 space-y-4">
+              <div className="relative">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Your Bid Amount
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    value={bidAmount === null ? "" : bidAmount}
+                    onChange={(e) => {
+                      const value =
+                        e.target.value === ""
+                          ? null
+                          : parseFloat(parseFloat(e.target.value).toFixed(1));
+                      setBidAmount(value);
+                      setErrorMessage("");
+                      setConfirmEnabled(false);
+                    }}
+                    className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Enter amount"
+                    step="0.1"
                   />
-                  <div className="mt-4 bg-blue-50 p-4 rounded-lg">
-                    <p className="text-gray-700 text-lg">
-                      {voucher.details}
-                    </p>
-                  </div>
                 </div>
+              </div>
 
-                <div className="space-y-4">
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={bidAmount === null ? '' : bidAmount}
-                      onChange={(e) => {
-                        const value = e.target.value === '' ? null : parseFloat(parseFloat(e.target.value).toFixed(1));
-                        setBidAmount(value);
-                        setErrorMessage('');
-                        setConfirmEnabled(false);
-                      }}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      placeholder="Enter your bid amount"
-                      step="0.1"
+              {errorMessage && (
+                <div className="flex items-center gap-2 text-red-500 bg-red-50 p-3 rounded-lg">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
-                  </div>
-
-                  {errorMessage && (
-                    <div className="flex items-center gap-2 text-red-500 bg-red-50 p-3 rounded-lg">
-                      <svg 
-                        className="w-5 h-5" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth={2} 
-                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <p>{errorMessage}</p>
-                    </div>
-                  )}
-
-                  <div className="flex flex-col sm:flex-row gap-4 justify-end">
-                    <button
-                      onClick={handleBid}
-                      disabled={bidAmount === null}
-                      className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg 
-                               hover:from-green-600 hover:to-emerald-700 transition-all duration-200 
-                               disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                    >
-                      Place Bid
-                    </button>
-
-                    {confirmEnabled && (
-                      <button
-                        onClick={handleConfirm}
-                        className="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg 
-                                 hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 font-medium"
-                      >
-                        Confirm Bid
-                      </button>
-                    )}
-                  </div>
+                  </svg>
+                  <p>{errorMessage}</p>
                 </div>
+              )}
 
-                {bidId && (
-                  <div className="mt-6 bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                      Your Bid Details
-                    </h3>
-                    <div className="flex items-center justify-between bg-white p-4 rounded-md shadow-sm">
-                      <span className="text-gray-600">Bid ID:</span>
-                      <span className="font-mono font-medium text-gray-800">{bidId}</span>
-                    </div>
+              <div className="flex gap-4 justify-end">
+                <button
+                  onClick={handleBid}
+                  disabled={bidAmount === null}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
+                  hover:from-blue-700 hover:to-purple-700 transition-all duration-200 
+                  disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl
+                  transform hover:-translate-y-0.5"
+                >
+                  Place Bid
+                </button>
+              </div>
+            </div>
+
+            {/* Bid Confirmation Section */}
+            {bidId && (
+              <div className="bg-gradient-to-r from-green-50 to-green-50 p-6 rounded-xl">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Bid Confirmation
+                </h3>
+                <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm">
+                  <span className="text-gray-600">Bid ID:</span>
+                  <span className="font-mono font-medium text-gray-800">
+                    {bidId}
+                  </span>
+                </div>
+                {confirmEnabled && (
+                  <div className="flex justify-end mt-3">
+                    <button
+                      onClick={handleConfirm}
+                      className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg 
+          hover:from-green-600 hover:to-emerald-700 transition-all duration-200 font-medium
+          shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    >
+                      Confirm Bid
+                    </button>
                   </div>
                 )}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-600">No voucher available at the moment.</p>
               </div>
             )}
           </div>
