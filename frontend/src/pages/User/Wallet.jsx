@@ -27,10 +27,13 @@ const Wallet = () => {
       try {
         // Fetch wallet data using the userId
         const response = await axios.get(`${SERVER_URL}/user/wallet/${userId}`);
-        console.log(response,"aaaaaaaaaaaaaaaaaaa");
         const data = response.data; // The data returned by the API
         setBalance(data.balance || 0);
-        setTransactions(data.transactions || []);
+        
+        const sortedTransactions = (data.transactions || []).sort(
+          (a, b) => new Date(b.date) - new Date(a.date)
+        );
+        setTransactions(sortedTransactions);
       } catch (err) {
         setError("Failed to fetch wallet data");
       } finally {

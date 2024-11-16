@@ -77,7 +77,7 @@ const OrderDetails = () => {
     if (id && productId) fetchOrderDetails();
   }, [id, productId]);
 
-  console.log(order,"llllllllllllllllllllllllll");
+
   
 
   useEffect(() => {
