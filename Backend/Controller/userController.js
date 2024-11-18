@@ -235,6 +235,12 @@ const addItemToCart = async (req, res) => {
      // Reduce the wallet balance
      userWallet.balance -= walletDiscountAmount;
 
+     userWallet.transactions.push({
+      type: "debit",
+      amount: walletDiscountAmount,
+      description: "Used for Wallet discount",
+    });
+
      await userWallet.save();
      
     res.status(200).json({ message: 'Product added to cart successfully', cart });
@@ -293,6 +299,12 @@ const removeCartProduct = async (req, res) => {
 
       // Add the wallet discount amount back to the wallet balance
       userWallet.balance += walletDiscountAmount;
+
+      userWallet.transactions.push({
+        type: "credit",
+        amount: walletDiscountAmount,
+        description: "Credited back the wallet amount",
+      });
 
       // Save the updated wallet
       await userWallet.save();

@@ -8,7 +8,7 @@ import { SERVER_URL } from "../../Constants";
 import axios from "axios";
 import ImageOne from "../../assets/one.jpg";
 import ImageTwo from "../../assets/two.jpg";
-import { Clock } from "lucide-react";
+import { Clock, Package, Tag, Gift } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
 
 // Dialog Box Component
@@ -371,72 +371,88 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* Voucher Card - Now spans full width of one column */}
-        <div className="bg-white shadow-lg rounded-xl overflow-hidden">
-            {/* Inner Voucher Card */}
-            <div
-              className="transform transition-all duration-300 hover:scale-105"
-              // onMouseEnter={() => setIsHovered(true)}
-              // onMouseLeave={() => setIsHovered(false)}
-            >
-              <div className="bg-gradient-to-r from-indigo-600 to-indigo-700  overflow-hidden shadow-lg h-full">
-                {/* Image Section */}
-                <div className="relative h-32">
-                  <img
-                    src={firstFreeVoucher?.imageUrl}
-                    alt={firstFreeVoucher?.voucher_name}
-                    className="w-full h-full object-cover transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/70 to-transparent" />
-                  
-                  {/* Free Badge */}
-                  <div className="absolute top-4 right-4">
-                    <div className="bg-green-400 text-white font-bold px-6 py-2 rounded-lg shadow-lg transform rotate-6">
-                      Free
-                    </div>
+        {/* Voucher Card */}
+<div className="relative group"
+     onMouseEnter={() => setHoveredCard(true)}
+     onMouseLeave={() => setHoveredCard(false)}>
+  <div className={`bg-gradient-to-r from-indigo-500 to-indigo-700 rounded-xl shadow-lg overflow-hidden 
+                   transform transition-all duration-300 ${hoveredCard ? 'scale-105 shadow-2xl' : 'scale-100'}`}>
+    
+    {/* Free Badge */}
+    {firstFreeVoucher && firstFreeVoucher.price === 0 && (
+      <div className="absolute top-4 right-4 z-10">
+        <div className="bg-green-600 text-white font-bold px-4 py-1 rounded-sm shadow-lg transform rotate-3">
+          FREE
+        </div>
+      </div>
+    )}
+
+              {/* Image Section */}
+              <div className="relative w-full h-40 flex items-center justify-center overflow-hidden">
+                <img
+                  src={firstFreeVoucher?.imageUrl}
+                  alt={firstFreeVoucher?.voucher_name}
+                  className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+              </div>
+
+              {/* Content Section */}
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-white mb-2">
+                  {firstFreeVoucher?.voucher_name || "Special Offer"}
+                </h3>
+                
+                <div className="bg-white/10 rounded-lg p-3 space-y-2 mb-4">
+                  <div className="flex items-center text-white">
+                    <Package className="w-4 h-4 mr-2" />
+                    <span className="font-medium">
+                      {firstFreeVoucher?.product_name || "Premium Product"}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-white">
+                    <Tag className="w-4 h-4 mr-2" />
+                    <span className="font-medium">
+                      Worth ₹{firstFreeVoucher?.productPrice || "1000"}
+                    </span>
                   </div>
                 </div>
 
-                {/* Content Section */}
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    {firstFreeVoucher?.voucher_name}
-                  </h3>
-                  <p className="text-white/80 text-sm mb-2">
-                    {firstFreeVoucher?.details}
-                  </p>
-
-                  {/* Footer Section */}
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center text-white/80">
-                      <Clock className="w-4 h-2 mr-2" />
-                      <span className="text-sm">Valid until {firstFreeVoucher ? new Date(firstFreeVoucher.end_time).toLocaleDateString() : "Dec 31, 2024"}</span>
-                    </div>
-                    
-                    <button 
-                      className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg transition-colors duration-300 font-semibold"
-                      onClick={() => handleClaimVoucher(firstFreeVoucher)}
-                    >
-                      Claim Now
-                    </button>
+                {/* Footer Section */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center text-white/90">
+                    <Clock className="w-4 h-4 mr-2" />
+                    <span className="text-sm">
+                      Valid until {firstFreeVoucher ? new Date(firstFreeVoucher.end_time).toLocaleDateString() : "Dec 31, 2024"}
+                    </span>
                   </div>
+                  
+                  <button 
+                    className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg transition-colors duration-300 flex items-center"
+                    onClick={() => handleClaimVoucher(firstFreeVoucher)}
+                  >
+                    <Gift className="w-4 h-4 mr-2" />
+                    <span>Claim Now</span>
+                  </button>
                 </div>
               </div>
             </div>
 
             {/* Show All Vouchers Link */}
-            <div className="text-center mt-3 mb-3">
+            <div className="text-center mt-4">
               <Link 
                 to="/event" 
-                className="text-indigo-600 hover:text-indigo-800 font-medium underline cursor-pointer "
+                className="text-indigo-600 hover:text-indigo-800 font-medium hover:underline cursor-pointer inline-flex items-center"
               >
-                Show all vouchers
+                <span>Show all vouchers</span>
+                <FaArrowRight className="ml-2 w-4 h-4" />
               </Link>
             </div>
           </div>
         </div>
+      </div>
       
-    </div>
+    
 
       {/* Products Section */}
       <div className="p-6">
