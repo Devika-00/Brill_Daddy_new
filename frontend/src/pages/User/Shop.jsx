@@ -7,6 +7,7 @@ import { FaHeart, FaSearch } from 'react-icons/fa';
 import axios from 'axios';
 import { SERVER_URL } from "../../Constants/index";
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAppSelector } from '../../Redux/Store/store';
 
 const Shop = () => {
   const [search, setSearch] = useState('');
@@ -16,8 +17,9 @@ const Shop = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [wishlist, setWishlist] = useState({});
-  const [token, setToken] = useState(localStorage.getItem("token"));
-  const [userId, setUserId] = useState(localStorage.getItem("userId"));
+  const user = useAppSelector((state) => state.user);
+  const userId = user.id;
+  const token = user.token;
   const itemsPerPage = 6;
 
   const location = useLocation();
@@ -57,18 +59,26 @@ const Shop = () => {
 
     const fetchWishlist = async () => {
       try {
+        console.log("Retrieved token:", token);  // Log token
+        console.log("Retrieved userId:", userId);  // Log userId
         if (!userId || !token) return;
 
         const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const wishlistItems = response.data.reduce((acc, item) => {
-          acc[item.productId._id] = item.wishlistStatus === 'added';
-          return acc;
-        }, {});
-
-        setWishlist(wishlistItems);
+        // Check if wishlist is empty and only process if not empty
+        if (response.data.length > 0) {
+          const wishlistItems = response.data.reduce((acc, item) => {
+            acc[item.productId._id] = item.wishlistStatus === 'added';
+            return acc;
+          }, {});
+          console.log("Wishlist fetched:", JSON.stringify(wishlistItems, null, 2));
+          setWishlist(wishlistItems);
+        } else {
+          console.log("Wishlist is empty, no products found.");
+          setWishlist({});
+        }
       } catch (error) {
         console.error("Error fetching wishlist:", error);
       }
@@ -84,44 +94,49 @@ const Shop = () => {
     setCurrentPage(1);
   };
 
-  const toggleFavorite = async (productId) => {
+  const toggleFavorite = async (productId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  
     try {
-      if (!userId || !token) {
-        navigate("/login");
-        return;
-      }
-
-      console.log("Retrieved token:", token);
-      console.log("Retrieved userId:", userId);
-
+    console.log("Retrieved token:", token);
+    console.log("Retrieved userId:", userId);
+    console.log("Product ID:", productId);
+    if (!userId || !token) {
+      navigate("/login");
+      return;
+    }
+  
       const headers = {
         Authorization: `Bearer ${token}`,
       };
-
+  
       console.log("Toggling favorite for productId:", productId);
-
+  
       const requestBody = {
         productId,
         userId,
         wishlistStatus: wishlist[productId] ? 'removed' : 'added',
       };
-
+  
       console.log("Current wishlist state before update:", wishlist);
-
+  
       if (wishlist[productId]) {
         const response = await axios.delete(`${SERVER_URL}/user/wishlist/remove`, {
           headers,
           data: requestBody
         });
-
+  
         if (response.status === 200) {
           setWishlist(prev => ({ ...prev, [productId]: false }));
+          alert("Product removed from wishlist!");
         }
       } else {
         const response = await axios.post(`${SERVER_URL}/user/wishlist`, requestBody, { headers });
-
+  
         if (response.status === 201) {
           setWishlist(prev => ({ ...prev, [productId]: true }));
+          alert("Product added to wishlist!");
         }
       }
     } catch (error) {
@@ -129,6 +144,7 @@ const Shop = () => {
       alert("There was an issue adding/removing the item from your wishlist.");
     }
   };
+  
 
   const filteredProducts = products.filter(product =>
     (selectedCategory ? product.category === selectedCategory : true) &&
@@ -228,25 +244,27 @@ const Shop = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {displayedProducts.map((product) => (
                   <div key={product._id} className="relative bg-white p-6 rounded-lg shadow-lg">
+                    
                     <button
                       className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${
                         wishlist[product._id] ? "text-red-500" : "text-gray-500"
                       }`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleFavorite(product._id);
-                      }}
+                      onClick={(e) => toggleFavorite(product._id, e)} // Pass event object to toggleFavorite
                     >
                       <FaHeart className={wishlist[product._id] ? "fill-current" : ""} />
                     </button>
-                    <a href={`/singleProduct/${product._id}`}>
-                      <img
-                        src={product.imageUrl}
-                        alt={product.title}
-                        className="h-56 object-cover rounded-lg mb-4"
-                      />
-                    </a>
+
+                    <div
+                      onClick={() => navigate(`/singleProduct/${product._id}`)} // Navigate to single product page
+                      className="cursor-pointer"
+                    >
+  <img
+    src={product.imageUrl}
+    alt={product.title}
+    className="h-56 object-cover rounded-lg mb-4"
+  />
+</div>
+
                     <div>
                       <h4 className="text-lg font-semibold mb-2 truncate">{product.name}</h4>
                       <p className="text-gray-500 mb-4">Category: {product.category}</p>
