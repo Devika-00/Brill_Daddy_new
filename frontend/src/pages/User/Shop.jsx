@@ -1,3 +1,4 @@
+//frontend/src/pages/user/Shop.jsx
 import React, { useState, useEffect } from 'react';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
@@ -5,7 +6,7 @@ import Footer from '../../components/User/Footer';
 import { FaHeart, FaSearch } from 'react-icons/fa';
 import axios from 'axios';
 import { SERVER_URL } from "../../Constants/index";
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Shop = () => {
   const [search, setSearch] = useState('');
@@ -14,9 +15,13 @@ const Shop = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [wishlist, setWishlist] = useState({});
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [userId, setUserId] = useState(localStorage.getItem("userId"));
   const itemsPerPage = 6;
 
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const query = new URLSearchParams(location.search);
@@ -50,13 +55,79 @@ const Shop = () => {
       }
     };
 
+    const fetchWishlist = async () => {
+      try {
+        if (!userId || !token) return;
+
+        const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const wishlistItems = response.data.reduce((acc, item) => {
+          acc[item.productId._id] = item.wishlistStatus === 'added';
+          return acc;
+        }, {});
+
+        setWishlist(wishlistItems);
+      } catch (error) {
+        console.error("Error fetching wishlist:", error);
+      }
+    };
+
     fetchProducts();
     fetchCategories();
-  }, []);
+    fetchWishlist();
+  }, [userId, token]);
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
     setCurrentPage(1);
+  };
+
+  const toggleFavorite = async (productId) => {
+    try {
+      if (!userId || !token) {
+        navigate("/login");
+        return;
+      }
+
+      console.log("Retrieved token:", token);
+      console.log("Retrieved userId:", userId);
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      console.log("Toggling favorite for productId:", productId);
+
+      const requestBody = {
+        productId,
+        userId,
+        wishlistStatus: wishlist[productId] ? 'removed' : 'added',
+      };
+
+      console.log("Current wishlist state before update:", wishlist);
+
+      if (wishlist[productId]) {
+        const response = await axios.delete(`${SERVER_URL}/user/wishlist/remove`, {
+          headers,
+          data: requestBody
+        });
+
+        if (response.status === 200) {
+          setWishlist(prev => ({ ...prev, [productId]: false }));
+        }
+      } else {
+        const response = await axios.post(`${SERVER_URL}/user/wishlist`, requestBody, { headers });
+
+        if (response.status === 201) {
+          setWishlist(prev => ({ ...prev, [productId]: true }));
+        }
+      }
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+      alert("There was an issue adding/removing the item from your wishlist.");
+    }
   };
 
   const filteredProducts = products.filter(product =>
@@ -154,43 +225,40 @@ const Shop = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {displayedProducts.map((product) => (
-                    <div
-                      key={product._id}
-                      className="relative bg-white p-6 rounded-lg shadow-lg"
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {displayedProducts.map((product) => (
+                  <div key={product._id} className="relative bg-white p-6 rounded-lg shadow-lg">
+                    <button
+                      className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${
+                        wishlist[product._id] ? "text-red-500" : "text-gray-500"
+                      }`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleFavorite(product._id);
+                      }}
                     >
-                      <button className="absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full text-gray-500 hover:text-red-500">
-                        <FaHeart />
-                      </button>
-
-                      <a href={`/singleProduct/${product._id}`}>
-                        <img
-                          src={product.imageUrl}
-                          alt={product.title}
-                          className="h-56 object-cover rounded-lg mb-4"
-                        />
-                      </a>
-                      <div>
-                        <h4 className="text-lg font-semibold mb-2 truncate">
-                          {product.name}
-                        </h4>
-                        <p className="text-gray-500 mb-4">
-                          Category: {product.category}
-                        </p>
-                        <div className="flex justify-between items-center">
-                          <span className="text-lg font-bold text-blue-600">
-                            ₹ {product.salePrice}
-                          </span>
-                          {product.salePrice !== product.productPrice && (
-                            <span className="line-through text-gray-400">
-                              ₹ {product.productPrice}
-                            </span>
-                          )}
-                        </div>
+                      <FaHeart className={wishlist[product._id] ? "fill-current" : ""} />
+                    </button>
+                    <a href={`/singleProduct/${product._id}`}>
+                      <img
+                        src={product.imageUrl}
+                        alt={product.title}
+                        className="h-56 object-cover rounded-lg mb-4"
+                      />
+                    </a>
+                    <div>
+                      <h4 className="text-lg font-semibold mb-2 truncate">{product.name}</h4>
+                      <p className="text-gray-500 mb-4">Category: {product.category}</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-bold text-blue-600">₹ {product.salePrice}</span>
+                        {product.salePrice !== product.productPrice && (
+                          <span className="line-through text-gray-400">₹ {product.productPrice}</span>
+                        )}
                       </div>
                     </div>
-                  ))}
+                  </div>
+                ))}
                 </div>
 
                 {displayedProducts.length > 0 && totalPages > 1 && (

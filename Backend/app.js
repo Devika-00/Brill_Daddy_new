@@ -27,7 +27,7 @@ app.use("/api/user",userRoute);
 app.use("/api/voucher",voucherRoute);
 app.use("/api/bid",bidRoute);
 
-const port = ENV.PORT || 5000;
+const port = ENV.PORT || 5002;
 
 app.listen(port, () => {
   connectDb();

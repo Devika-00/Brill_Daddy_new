@@ -11,6 +11,35 @@ import ImageTwo from "../../assets/two.jpg";
 import { Clock } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
 
+// Dialog Box Component
+const WishlistDialog = ({ message, onClose, onGoToWishlist }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(); // Close the dialog automatically after 2 seconds
+    }, 2000);
+
+    return () => clearTimeout(timer); // Cleanup the timer
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+        <p className="mb-4">{message}</p>
+        <button
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          onClick={() => {
+            onGoToWishlist(); // Navigate to Wishlist
+          }}
+        >
+          Go to Wishlist
+        </button>
+      </div>
+    </div>
+  );
+};
+
+
+
 const HomePage = () => {
  
   const [hoveredCard, setHoveredCard] = useState(false);
@@ -36,6 +65,8 @@ const HomePage = () => {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [wishlist, setWishlist] = useState({});
+  const [dialogMessage, setDialogMessage] = useState(null);
+  const [showDialog, setShowDialog] = useState(false);
 
   const [products, setProducts] = useState([]);
   const [electronicProducts, setElectronicProducts] = useState([]);
@@ -77,8 +108,6 @@ const HomePage = () => {
       try {
         if (!userId || !token) return;
 
-        console.log("Fetching wishlist for User ID:", userId, "Token:", token);
-
         const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -87,7 +116,7 @@ const HomePage = () => {
           return acc;
         }, {});
 
-        console.log("Wishlist fetched:", JSON.stringify(wishlistItems, null, 2));
+        // console.log("Wishlist fetched:", JSON.stringify(wishlistItems, null, 2));
 
         setWishlist(wishlistItems);
       } catch (error) {
@@ -136,9 +165,7 @@ const HomePage = () => {
 
         if (response.status === 200) {
           setWishlist(prev => ({ ...prev, [productId]: false }));
-          alert("Product removed from wishlist successfully!");
-        } else {
-          alert('Error removing product from wishlist. Please try again.');
+          setDialogMessage("Product removed from wishlist!");
         }
       } else {
         console.log("Adding to wishlist:", productId);
@@ -146,15 +173,30 @@ const HomePage = () => {
         const response = await axios.post(`${SERVER_URL}/user/wishlist`, requestBody, { headers });
         if (response.status === 201) {
           setWishlist(prev => ({ ...prev, [productId]: true }));
+          setDialogMessage("Product added to wishlist!");
         } else {
           console.error("Error adding to wishlist:", response.data);
         }
       }
+      setShowDialog(true);
+
+            // Automatically close dialog after 2 seconds
+            setTimeout(() => {
+              setShowDialog(false);
+            }, 2000);
     } catch (error) {
       console.error("Error updating wishlist:", error);
       alert("There was an issue adding/removing the item from your wishlist.");
     }
   };
+
+  const closeDialog = () => setShowDialog(false);
+
+  const goToWishlist = () => {
+    closeDialog();
+    navigate("/wishlist");
+  };
+  
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -259,6 +301,14 @@ const HomePage = () => {
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
       <OrginalNavbar />
       <NavbarWithMenu />
+
+      {showDialog && (
+        <WishlistDialog
+          message={dialogMessage}
+          onClose={closeDialog}
+          onGoToWishlist={goToWishlist}
+        />
+      )}
 
       {/* Image Carousel */}
       <div className="relative w-full overflow-hidden">

@@ -7,6 +7,9 @@ import { AiOutlineUser, AiOutlineHome, AiOutlineShoppingCart, AiOutlineHeart, Ai
 import { useAppSelector } from '../../Redux/Store/store';
 import { SERVER_URL } from "../../Constants";
 import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { clearUser } from '../../Redux/Slice/userSlice';
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('personalInfo');
@@ -28,6 +31,8 @@ const Profile = () => {
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
   const token = user.token;
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleTabClick = (tab) => setActiveTab(tab);
   const toggleAddressModal = () => setShowAddressModal(!showAddressModal);
@@ -135,6 +140,11 @@ const Profile = () => {
     }
   };
 
+  const handleLogout = () => {
+    dispatch(clearUser()); // Clear user data from Redux
+    navigate("/login"); // Navigate to the login page
+  };
+
   // Fetch addresses when the component mounts or when activeTab changes
   useEffect(() => {
     if (activeTab === 'manageAddress') {
@@ -192,7 +202,10 @@ const Profile = () => {
               <AiOutlineHeart className="text-lg" />
               <span>My Wishlist</span>
             </button>
-            <button className="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-blue-100">
+            <button 
+              className="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-blue-100"
+              onClick={handleLogout} // Logout logic embedded
+            >
               <AiOutlineLogout className="text-lg" />
               <span>Logout</span>
             </button>

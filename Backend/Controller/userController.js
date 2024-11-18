@@ -64,6 +64,7 @@ const fetchSingleProduct = async (req, res) =>{
     
 }
 
+//backend/Controller/userController.js
 const registerUser = async (req, res) => {
     try {
        
@@ -88,6 +89,7 @@ const registerUser = async (req, res) => {
     }
   };
 
+  //backend/Controller/userController.js
   const sendOtp = async (req, res) => {
     try {
       const { identifier } = req.body;

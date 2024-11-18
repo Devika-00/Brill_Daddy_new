@@ -18,6 +18,7 @@ userRoute.delete('/wishlist/remove', authenticateUser, removeFromWishlist);
 
 
 userRoute.post("/register",registerUser);
+//backend/Routes/userRoutes.js
 userRoute.post("/sendOtp",sendOtp);
 userRoute.post("/verify-otp",verifyOtp);
 
