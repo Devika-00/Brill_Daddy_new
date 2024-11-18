@@ -27,6 +27,19 @@ const Product = () => {
     quantity: "",
   });
 
+  const [errors, setErrors] = useState({
+    name: "",
+    description: "",
+    price: "",
+    salesPrice: "",
+    discount: "",
+    category: "",
+    color: "",
+    brand: "",
+    quantity: "",
+    mainImage: "",
+  });
+
   useEffect(() => {
     // Fetch brands and categories
     const fetchBrandsAndCategories = async () => {
@@ -68,11 +81,58 @@ const Product = () => {
     fetchProducts(); // Call the fetch function
   }, []);
 
+  const validateForm = () => {
+    let formErrors = {};
+
+  // Name validation: Minimum 2 characters, Max 30 characters, and no more than 10 digits allowed
+  if (newProduct.name.length < 2) {
+    formErrors.name = "Product name must be at least 2 characters.";
+  } else if (newProduct.name.length > 30) {
+    formErrors.name = "Product name can have a maximum of 30 characters.";
+  }
+
+    // Description validation: Max 150 characters
+    if (newProduct.description.length > 150) {
+      formErrors.description = "Description can have a maximum of 150 characters.";
+    }
+
+      // Price, Sales Price, and Discount validation: Must be numbers (no strings or alphabets)
+  if (isNaN(newProduct.price) || newProduct.price < 0) {
+    formErrors.price = "Price must be a valid number.";
+  }
+  if (isNaN(newProduct.salesPrice) || newProduct.salesPrice < 0) {
+    formErrors.salesPrice = "Sales price must be a valid number.";
+  }
+  if (isNaN(newProduct.discount) || newProduct.discount < 0) {
+    formErrors.discount = "Discount must be a valid number.";
+  }
+  if (isNaN(newProduct.quantity) || newProduct.quantity < 0) {
+    formErrors.quantity = "Discount must be a valid number.";
+  }
+
+    // Required fields validation
+    if (!newProduct.name) formErrors.name = "Product name is required.";
+    if (!newProduct.description) formErrors.description = "Description is required.";
+    if (!newProduct.price) formErrors.price = "Price is required.";
+    if (!newProduct.salesPrice) formErrors.salesPrice = "Sales price is required.";
+    if (!newProduct.discount) formErrors.discount = "Discount is required.";
+    if (!newProduct.category) formErrors.category = "Category is required.";
+    if (!newProduct.brand) formErrors.brand = "Brand is required.";
+    if (!newProduct.color) formErrors.color = "Color is required.";
+    if (!newProduct.quantity) formErrors.quantity = "Quantity is required.";
+    if (!newProduct.mainImage) formErrors.mainImage = "Main image is required.";
+
+    setErrors(formErrors);
+
+    return Object.keys(formErrors).length === 0;
+  };
+
   const handleAddProduct = () => {
     setIsAddModalOpen(true);
   };
 
   const handleAddProductSubmit = async () => {
+    if (!validateForm()) return;
     // Ensure sales price is valid
     if (parseFloat(newProduct.salesPrice) >= parseFloat(newProduct.price)) {
       alert("Sales price should be less than price");
@@ -270,7 +330,7 @@ const Product = () => {
           <div className="flex justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-700">Product List</h2>
             <button
-              onClick={handleAddProduct}
+              onClick={() => setIsAddModalOpen(true)}
               className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
             >
               Add Product
@@ -350,23 +410,19 @@ const Product = () => {
                 <input
                   type="text"
                   value={newProduct.name}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, name: e.target.value })
-                  }
+                  onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Product Name"
                 />
+                {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
+
                 <textarea
                   value={newProduct.description}
-                  onChange={(e) =>
-                    setNewProduct({
-                      ...newProduct,
-                      description: e.target.value,
-                    })
-                  }
+                  onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Description"
                 />
+                {errors.description && <p className="text-red-500 text-xs">{errors.description}</p>}
                 <select
                   value={newProduct.category}
                   onChange={(e) =>
@@ -381,6 +437,7 @@ const Product = () => {
                     </option>
                   ))}
                 </select>
+                {errors.category && <p className="text-red-500 text-xs">{errors.category}</p>}
                 <select
                   value={newProduct.brand}
                   onChange={(e) =>
@@ -395,6 +452,7 @@ const Product = () => {
                     </option>
                   ))}
                 </select>
+                {errors.brand && <p className="text-red-500 text-xs">{errors.brand}</p>}
                 <input
                   type="number"
                   value={newProduct.price}
@@ -404,6 +462,7 @@ const Product = () => {
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Price"
                 />
+                {errors.price && <p className="text-red-500 text-xs">{errors.price}</p>}
                 <input
                   type="number"
                   value={newProduct.salesPrice}
@@ -413,6 +472,7 @@ const Product = () => {
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Sales Price"
                 />
+                {errors.salesPrice && <p className="text-red-500 text-xs">{errors.salesPrice}</p>}
                 <input
                   type="number"
                   value={newProduct.discount}
@@ -422,6 +482,7 @@ const Product = () => {
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Discount"
                 />
+                {errors.discount && <p className="text-red-500 text-xs">{errors.discount}</p>}
                 <input
                   type="text"
                   value={newProduct.color}
@@ -431,6 +492,7 @@ const Product = () => {
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Color"
                 />
+                {errors.color && <p className="text-red-500 text-xs">{errors.color}</p>}
                   <input
                     type="number"
                     value={newProduct.quantity}
@@ -440,12 +502,14 @@ const Product = () => {
                     className="border p-2 mb-2 w-full rounded-md"
                     placeholder="Quantity"
                   />
+                  {errors.quantity && <p className="text-red-500 text-xs">{errors.quantity}</p>}
                 <input
                   type="file"
                   onChange={(e) => handleImageUpload(e, "main")}
                   className="border p-2 mb-2 w-full rounded-md"
                   accept="image/*"
                 />
+                {errors.mainImage && <p className="text-red-500 text-xs">{errors.mainImage}</p>}
                 <input
                   type="file"
                   onChange={(e) => handleImageUpload(e, "small")}

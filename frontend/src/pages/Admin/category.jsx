@@ -1,3 +1,4 @@
+//frontend/src/pages/Admin/Category.jsx
 import React, { useState, useEffect } from 'react';
 import Navbar from "../../components/Admin/Navbar";
 import Sidebar from '../../components/Admin/Sidebar';
@@ -9,6 +10,7 @@ const Category = () => {
     const [categories, setCategories] = useState([]);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [error, setError] = useState(''); // State for form validation errors
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [currentCategoryId, setCurrentCategoryId] = useState('');
@@ -28,11 +30,35 @@ const Category = () => {
         fetchCategories();
     }, []);
 
+    // Validation function
+    const validateForm = () => {
+        if (!name || !description) {
+            return "Name and description are required.";
+        }
+        if (name.length > 50) {
+            return "Name cannot exceed 50 characters.";
+        }
+        if (!/^\D*(\d{0,4})$/.test(name)) {
+            return "Name can include up to 4 digits only.";
+        }
+        if (description.length > 100) {
+            return "Description cannot exceed 100 characters.";
+        }
+        return null;
+    };
+
     // Add a new category
     const addCategory = async (e) => {
         e.preventDefault();
-        const newCategory = { name, description };
+        setError(''); // Reset error state
 
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
+
+        const newCategory = { name, description };
         try {
             const response = await axios.post(`${SERVER_URL}/admin/addCategory`, newCategory);
             const createdCategory = response.data;
@@ -42,6 +68,7 @@ const Category = () => {
             resetForm();
         } catch (error) {
             console.error('Error adding category:', error);
+            setError('Failed to add category. Please try again later.');
         }
     };
 
@@ -60,6 +87,14 @@ const Category = () => {
     // Update an existing category
     const updateCategory = async (e) => {
         e.preventDefault();
+        setError(''); // Reset error state
+
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
+
         try {
             const updatedCategory = { name, description };
             await axios.put(`${SERVER_URL}/admin/updateCategory/${currentCategoryId}`, updatedCategory);
@@ -71,6 +106,7 @@ const Category = () => {
             resetForm();
         } catch (error) {
             console.error('Error updating category:', error);
+            setError('Failed to update category. Please try again later.');
         }
     };
 
@@ -87,6 +123,7 @@ const Category = () => {
     const resetForm = () => {
         setName('');
         setDescription('');
+        setError(''); // Reset error state
         setIsModalOpen(false);
         setIsEditMode(false);
         setCurrentCategoryId('');
@@ -161,6 +198,7 @@ const Category = () => {
                                         required
                                     />
                                 </div>
+                                {error && <p className="text-red-500 text-sm">{error}</p>}
                                 <div className="flex justify-end">
                                     <button type="button" className="mr-2 px-4 py-2 bg-gray-300 rounded" onClick={resetForm}>
                                         Cancel

@@ -1,8 +1,9 @@
+// Import necessary dependencies
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from "../../components/Admin/Navbar";
 import Sidebar from '../../components/Admin/Sidebar';
-import { FaTrash, FaEdit } from 'react-icons/fa'; 
+import { FaTrash, FaEdit } from 'react-icons/fa';
 import { SERVER_URL } from '../../Constants';
 
 const Brand = () => {
@@ -12,8 +13,8 @@ const Brand = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editBrandId, setEditBrandId] = useState('');
+    const [error, setError] = useState('');
 
-    // Fetch all brands when component mounts
     useEffect(() => {
         fetchBrands();
     }, []);
@@ -27,23 +28,67 @@ const Brand = () => {
         }
     };
 
-    // Add a new brand
+    const validateBrand = (name, description) => {
+        if (!name || !description) {
+            return "Name and description are required.";
+        }
+        if (name.length > 50) {
+            return "Name cannot exceed 50 characters.";
+        }
+        if (/\d/.test(name) && name.replace(/\D/g, '').length > 10) {
+            return "Name cannot contain more than 10 digits.";
+        }
+        if (description.length > 150) {
+            return "Description cannot exceed 100 characters.";
+        }
+        if (!/^[a-zA-Z0-9\s]+$/.test(name)) {
+            return "Name can only contain alphanumeric characters and spaces.";
+        }
+        return null;
+    };
+
+    const handleNameChange = (e) => {
+        const updatedName = e.target.value;
+        setName(updatedName);
+        const validationError = validateBrand(updatedName, description);
+        setError(validationError);
+    };
+
+    const handleDescriptionChange = (e) => {
+        const updatedDescription = e.target.value;
+        setDescription(updatedDescription);
+        const validationError = validateBrand(name, updatedDescription);
+        setError(validationError);
+    };
+
     const addBrand = async (e) => {
         e.preventDefault();
+        setError('');
+        const validationError = validateBrand(name, description);
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
         try {
             const newBrand = { name, description };
             const response = await axios.post(`${SERVER_URL}/admin/addBrand`, newBrand);
-            setBrands([...brands, response.data]); // Update the UI with the new brand
+            setBrands([...brands, response.data]);
             clearFormFields();
             setIsModalOpen(false);
         } catch (error) {
             console.error('Error adding brand:', error);
+            setError('Failed to add brand. Please try again.');
         }
     };
 
-    // Update the brand
     const updateBrand = async (e) => {
         e.preventDefault();
+        setError('');
+        const validationError = validateBrand(name, description);
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
         try {
             const updatedBrand = { name, description };
             const response = await axios.put(`${SERVER_URL}/admin/updateBrand/${editBrandId}`, updatedBrand);
@@ -52,10 +97,10 @@ const Brand = () => {
             setIsEditModalOpen(false);
         } catch (error) {
             console.error('Error updating brand:', error);
+            setError('Failed to update brand. Please try again.');
         }
     };
 
-    // Delete a brand
     const deleteBrand = async (id) => {
         try {
             await axios.delete(`${SERVER_URL}/admin/deleteBrand/${id}`);
@@ -65,7 +110,6 @@ const Brand = () => {
         }
     };
 
-    // Open the edit modal
     const openEditModal = (brand) => {
         setEditBrandId(brand._id);
         setName(brand.name);
@@ -73,10 +117,10 @@ const Brand = () => {
         setIsEditModalOpen(true);
     };
 
-    // Clear form fields
     const clearFormFields = () => {
         setName('');
         setDescription('');
+        setError('');
     };
 
     return (
@@ -137,7 +181,7 @@ const Brand = () => {
                                     <input
                                         type="text"
                                         value={name}
-                                        onChange={(e) => setName(e.target.value)}
+                                        onChange={handleNameChange}
                                         className="border rounded w-full px-3 py-2"
                                         required
                                     />
@@ -146,13 +190,21 @@ const Brand = () => {
                                     <label className="block text-sm font-bold mb-2">Description</label>
                                     <textarea
                                         value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
+                                        onChange={handleDescriptionChange}
                                         className="border rounded w-full px-3 py-2"
                                         required
                                     />
                                 </div>
+                                {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
                                 <div className="flex justify-end">
-                                    <button type="button" className="mr-2 px-4 py-2 bg-gray-300 rounded" onClick={() => setIsModalOpen(false)}>
+                                    <button
+                                        type="button"
+                                        className="mr-2 px-4 py-2 bg-gray-300 rounded"
+                                        onClick={() => {
+                                            setIsModalOpen(false);
+                                            setError(''); // Clear error on close
+                                        }}
+                                    >
                                         Cancel
                                     </button>
                                     <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
@@ -175,7 +227,7 @@ const Brand = () => {
                                     <input
                                         type="text"
                                         value={name}
-                                        onChange={(e) => setName(e.target.value)}
+                                        onChange={handleNameChange}
                                         className="border rounded w-full px-3 py-2"
                                         required
                                     />
@@ -184,13 +236,21 @@ const Brand = () => {
                                     <label className="block text-sm font-bold mb-2">Description</label>
                                     <textarea
                                         value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
+                                        onChange={handleDescriptionChange}
                                         className="border rounded w-full px-3 py-2"
                                         required
                                     />
                                 </div>
+                                {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
                                 <div className="flex justify-end">
-                                    <button type="button" className="mr-2 px-4 py-2 bg-gray-300 rounded" onClick={() => setIsEditModalOpen(false)}>
+                                    <button
+                                        type="button"
+                                        className="mr-2 px-4 py-2 bg-gray-300 rounded"
+                                        onClick={() => {
+                                            setIsEditModalOpen(false);
+                                            setError(''); // Clear error on close
+                                        }}
+                                    >
                                         Cancel
                                     </button>
                                     <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">

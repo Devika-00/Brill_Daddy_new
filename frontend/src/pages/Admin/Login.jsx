@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { SERVER_URL } from "../../Constants/index";
 import { useNavigate } from 'react-router-dom';
 import { FiMail, FiLock } from 'react-icons/fi'; // Importing icons
 
@@ -22,7 +23,7 @@ const Login = () => {
     console.log('Attempting to log in with:', { email, password });
 
     try {
-      const response = await axios.post("http://localhost:5000/api/admin/login", { email, password });
+      const response = await axios.post(`${SERVER_URL}/admin/login`, { email, password });
       console.log('Login successful:', response.data.message);
 
       localStorage.setItem('adminEmail', email);
