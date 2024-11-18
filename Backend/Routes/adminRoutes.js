@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const Admin = require("../Models/adminModel");
 const Order = require("../Models/orderModel");
 
-const {addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
+const {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
     deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher
 } = require("../Controller/adminController")
 
@@ -136,6 +136,8 @@ adminRoute.put('/cancel-order/:orderId', async (req, res) => {
     }
 });
 
+
+adminRoute.get("/users", getAllUsers);
 adminRoute.post("/addcategory",addCategory);
 adminRoute.get("/categories",getcategories);
 adminRoute.put('/updateCategory/:id',updateCategory);

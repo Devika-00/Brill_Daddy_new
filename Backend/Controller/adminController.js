@@ -4,6 +4,26 @@ const Images = require("../Models/imageModel");
 const Product = require("../Models/productModel");
 const Order = require("../Models/orderModel");
 const Voucher = require("../Models/voucherModel");
+const User = require('../Models/userModel');
+
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    
+    if (!users || users.length === 0) {
+      console.warn('No users found');
+      return res.status(404).json({ message: 'No users found' });
+    }
+
+    console.log('Fetched users:', users);
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    const errorMessage = error.message || 'Unknown error occurred while fetching users';
+    res.status(500).json({ message: 'Error fetching users', error: errorMessage });
+  }
+};
+
 
 const addCategory = async (req,res) =>{
     try {
@@ -398,6 +418,6 @@ const editVoucher = async (req, res) => {
 
 
 
-module.exports = {addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
+module.exports = {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
     deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher
 }

@@ -1,3 +1,4 @@
+//backend/Controller/adminController.js
 const Category = require("../Models/categoryModel");
 const Brand = require("../Models/brandModel");
 const Images = require("../Models/imageModel");
