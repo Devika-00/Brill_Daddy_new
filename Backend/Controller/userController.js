@@ -1,4 +1,3 @@
-//backend/Controller/adminController.js
 const Category = require("../Models/categoryModel");
 const Brand = require("../Models/brandModel");
 const Images = require("../Models/imageModel");
@@ -65,7 +64,6 @@ const fetchSingleProduct = async (req, res) =>{
     
 }
 
-//backend/Controller/userController.js
 const registerUser = async (req, res) => {
     try {
        
@@ -90,7 +88,6 @@ const registerUser = async (req, res) => {
     }
   };
 
-  //backend/Controller/userController.js
   const sendOtp = async (req, res) => {
     try {
       const { identifier } = req.body;
@@ -175,81 +172,74 @@ const addItemToCart = async (req, res) => {
 
     // If cart does not exist, create a new one
     if (!cart) {
-      const initialWalletDiscount = walletDiscountAmount || 0;
       cart = new Cart({
         userId,
-        items: [{
-          productId,
-          quantity,
-          price: price , // Apply initial discount to price if provided
-          walletDiscountApplied: initialWalletDiscount > 0,
-          walletDiscountAmount: initialWalletDiscount
-        }]
+        items: [
+          {
+            productId,
+            quantity,
+            price: walletDiscountAmount ? price - walletDiscountAmount : price,
+            walletDiscountApplied: !!walletDiscountAmount,
+            walletDiscountAmount: walletDiscountAmount || 0,
+          },
+        ],
       });
     } else {
-      // Find the index of the product in the cart if it already exists
-      const itemIndex = cart.items.findIndex(item => item.productId.toString() === productId);
+      // Check for an existing item with the same productId and walletDiscountApplied status
+      const existingItem = cart.items.find(
+        (item) =>
+          item.productId.toString() === productId &&
+          item.walletDiscountApplied === !!walletDiscountAmount
+      );
 
-      if (itemIndex > -1) {
-        // If product exists, update quantity, price, and wallet discount if applied
-        cart.items[itemIndex].quantity += quantity;
-
-        if (walletDiscountAmount) {
-          // Apply wallet discount to the price if provided
-          const newDiscountedPrice = price - walletDiscountAmount;
-          cart.items[itemIndex].price = newDiscountedPrice;
-          cart.items[itemIndex].walletDiscountApplied = true;
-          cart.items[itemIndex].walletDiscountAmount = walletDiscountAmount;
-        } else {
-          // No discount, use the original price
-          cart.items[itemIndex].price = price;
-          cart.items[itemIndex].walletDiscountApplied = false;
-          cart.items[itemIndex].walletDiscountAmount = 0;
-        }
+      if (existingItem) {
+        // Update quantity if the item already exists
+        existingItem.quantity += quantity;
       } else {
-        // If product does not exist, add as a new item with provided price and wallet discount
+        // Add a new item to the cart
         cart.items.push({
           productId,
           quantity,
-          price: price ,
+          price: walletDiscountAmount ? price - walletDiscountAmount : price,
           walletDiscountApplied: !!walletDiscountAmount,
-          walletDiscountAmount: walletDiscountAmount || 0
+          walletDiscountAmount: walletDiscountAmount || 0,
         });
       }
     }
 
-    // Save the updated cart to the database
+    // Save the updated cart
     await cart.save();
 
-     // Now, reduce the wallet balance of the user
-     const userWallet = await Wallet.findOne({ userId });
+    // Wallet handling
+    if (walletDiscountAmount) {
+      const userWallet = await Wallet.findOne({ userId });
 
-     if (!userWallet) {
-       return res.status(404).json({ message: "Wallet not found for this user" });
-     }
- 
-     // Check if the wallet has enough balance
-     if (userWallet.balance < walletDiscountAmount) {
-       return res.status(400).json({ message: "Insufficient wallet balance" });
-     }
- 
-     // Reduce the wallet balance
-     userWallet.balance -= walletDiscountAmount;
+      if (!userWallet) {
+        return res.status(404).json({ message: "Wallet not found for this user" });
+      }
 
-     userWallet.transactions.push({
-      type: "debit",
-      amount: walletDiscountAmount,
-      description: "Used for Wallet discount",
-    });
+      if (userWallet.balance < walletDiscountAmount) {
+        return res.status(400).json({ message: "Insufficient wallet balance" });
+      }
 
-     await userWallet.save();
-     
-    res.status(200).json({ message: 'Product added to cart successfully', cart });
+      userWallet.balance -= walletDiscountAmount;
+      userWallet.transactions.push({
+        type: "debit",
+        amount: walletDiscountAmount,
+        description: "Used for Wallet discount",
+      });
+
+      await userWallet.save();
+    }
+
+    res.status(200).json({ message: "Product added to cart successfully", cart });
   } catch (error) {
-    console.error('Error adding product to cart:', error);
-    res.status(500).json({ message: 'Error adding product to cart', error });
+    console.error("Error adding product to cart:", error);
+    res.status(500).json({ message: "Error adding product to cart", error });
   }
 };
+
+
 
 
 
@@ -270,7 +260,7 @@ const getCartItems = async (req, res) => {
 };
 
 const removeCartProduct = async (req, res) => {
-  const { userId, productId } = req.params;
+  const { userId, productId, walletDiscountApplied } = req.params;
 
   try {
     // Find the cart for the given user
@@ -280,8 +270,23 @@ const removeCartProduct = async (req, res) => {
       return res.status(404).json({ message: 'Cart not found for user' });
     }
 
+    console.log(cart, "Cart data retrieved");
+
+    console.log('Received productId:', productId);
+    cart.items.forEach((item) => {
+      console.log('Cart item productId:', item.productId.toString());
+      console.log('walletDiscountApplied:', item.walletDiscountApplied === true);
+    });
+
+
     // Find the item to be removed
-    const itemToRemove = cart.items.find(item => item.productId.toString() === productId);
+    const itemToRemove = cart.items.find(
+      (item) =>
+        item.productId.toString() === productId &&
+      item.walletDiscountApplied === true || item.walletDiscountApplied === false// Convert string to boolean
+    );
+
+    console.log(itemToRemove, "Item to remove");
 
     if (!itemToRemove) {
       return res.status(404).json({ message: 'Product not found in cart' });
@@ -302,9 +307,9 @@ const removeCartProduct = async (req, res) => {
       userWallet.balance += walletDiscountAmount;
 
       userWallet.transactions.push({
-        type: "credit",
+        type: 'credit',
         amount: walletDiscountAmount,
-        description: "Credited back the wallet amount",
+        description: 'Credited back the wallet discount amount',
       });
 
       // Save the updated wallet
@@ -312,17 +317,21 @@ const removeCartProduct = async (req, res) => {
     }
 
     // Remove the product from the cart
-    cart.items = cart.items.filter(item => item.productId.toString() !== productId);
+    cart.items = cart.items.filter((item) => item._id.toString() !== itemToRemove._id.toString());
 
     // Save the updated cart document
     await cart.save();
 
-    res.status(200).json({ message: 'Product removed from cart and wallet updated successfully' });
+    res
+      .status(200)
+      .json({ message: 'Product removed from cart and wallet updated successfully' });
   } catch (error) {
     console.error('Error removing product from cart or updating wallet:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+
 
 
 const clearCart = async (req, res) => {

@@ -58,26 +58,32 @@ const Cart = () => {
     );
   };
 
+  console.log(cartItems,"ddddddddddddddd")
+
   const removeItemFromCart = async (id) => {
     try {
       // Send a DELETE request to remove the item from the cart
       const response = await axios.delete(`${SERVER_URL}/user/cart/${userId}/${id}`);
-      // Update the state to remove the item from the cart items
-      setCartItems((prevItems) => 
-        prevItems.filter((item) => item.productId._id !== id)
-      );
-      alert("Product removed from the cart");
+      
+      // Check if the item removal was successful
+      if (response.status === 200) {
+        // Update the state to remove the item from the cart items
+        setCartItems((prevItems) => 
+          prevItems.filter((item) => item.productId._id !== id)
+        );
+        alert("Product removed from the cart and wallet updated");
+      }
     } catch (error) {
       console.error("Error removing item from cart:", error);
     }
   };
-  
+
   const addToWishlist = async (productId) => {
     try {
-        await axios.post(`${SERVER_URL}/user/wishlist/${userId}`, { productId });
-        alert("Product added to wishlist");
+      await axios.post(`${SERVER_URL}/user/wishlist/${userId}`, { productId });
+      alert("Product added to wishlist");
     } catch (error) {
-        console.error("Error adding item to wishlist:", error);
+      console.error("Error adding item to wishlist:", error);
     }
   };
 
@@ -126,23 +132,29 @@ const Cart = () => {
                   </div>
                   <div className="flex items-center space-x-2 mt-4 lg:mt-0">
                     <span>Quantity:</span>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => updateQuantity(item.productId._id, -1)}
-                        className="px-2 py-1 bg-gray-200 rounded-lg"
-                      >
-                        -
-                      </button>
+                    {item.walletDiscountApplied ? (
                       <span className="px-4 py-1 border border-gray-300 rounded-lg">
                         {item.quantity}
                       </span>
-                      <button
-                        onClick={() => updateQuantity(item.productId._id, 1)}
-                        className="px-2 py-1 bg-gray-200 rounded-lg"
-                      >
-                        +
-                      </button>
-                    </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => updateQuantity(item.productId._id, -1)}
+                          className="px-2 py-1 bg-gray-200 rounded-lg"
+                        >
+                          -
+                        </button>
+                        <span className="px-4 py-1 border border-gray-300 rounded-lg">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(item.productId._id, 1)}
+                          className="px-2 py-1 bg-gray-200 rounded-lg"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
