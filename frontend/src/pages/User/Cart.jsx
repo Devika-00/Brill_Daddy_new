@@ -82,6 +82,8 @@ const Cart = () => {
           prevItems.filter((item) => item.productId._id !== id)
         );
         alert("Product removed from the cart and wallet updated");
+
+        window.location.reload();
       }
     } catch (error) {
       console.error("Error removing item from cart:", error);

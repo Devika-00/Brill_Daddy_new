@@ -294,7 +294,7 @@ const removeCartProduct = async (req, res) => {
 
     // If the item has a wallet discount applied, refund the discount to the wallet
     if (itemToRemove.walletDiscountApplied) {
-      const walletDiscountAmount = itemToRemove.walletDiscountAmount;
+      const walletDiscountAmount = itemToRemove.walletDiscountAmount * itemToRemove.quantity; // Adjusted for quantity
 
       // Find the user's wallet
       const userWallet = await Wallet.findOne({ userId });
