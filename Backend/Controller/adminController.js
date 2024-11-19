@@ -1,3 +1,4 @@
+//backend/Controller/adminController.js
 const Category = require("../Models/categoryModel");
 const Brand = require("../Models/brandModel");
 const Images = require("../Models/imageModel");
@@ -5,6 +6,7 @@ const Product = require("../Models/productModel");
 const Order = require("../Models/orderModel");
 const Voucher = require("../Models/voucherModel");
 const User = require('../Models/userModel');
+const Bid = require('../Models/bidModel'); 
 
 const getAllUsers = async (req, res) => {
   try {
@@ -411,13 +413,37 @@ const editVoucher = async (req, res) => {
   }
 };
 
+// Dashboard Counts Controller
+const getDashboardCounts = async (req, res) => {
+  try {
+    // Count unique users
+    const userCount = await User.countDocuments();
 
-  
+    // Count unique user IDs in bids (auction participants)
+    const auctionParticipants = await Bid.distinct('userId'); // Get distinct user IDs
+    const auctionCount = auctionParticipants.length; // Count of unique user IDs
 
+    // Count unique user and product IDs in orders
+    const orders = await Order.find({}, { userId: 1, 'cartItems.productId': 1 });
+    const orderUserProductSet = new Set();
+    orders.forEach(order => {
+      order.cartItems.forEach(item => {
+        orderUserProductSet.add(`${order.userId}-${item.productId}`);
+      });
+    });
+    const orderCount = orderUserProductSet.size;
 
-
-
+    res.status(200).json({
+      userCount,
+      auctionCount,
+      orderCount
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard counts:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
 
 module.exports = {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
-    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher
+    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts
 }

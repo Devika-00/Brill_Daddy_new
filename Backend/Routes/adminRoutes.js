@@ -1,11 +1,14 @@
+//backend/Routes/adminRoutes.js
 const Router = require("express")
 const adminRoute = Router();
 const bcrypt = require("bcrypt");
 const Admin = require("../Models/adminModel");
 const Order = require("../Models/orderModel");
+const Bid = require('../Models/bidModel');
+const User = require('../Models/userModel');
 
 const {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
-    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher
+    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts
 } = require("../Controller/adminController")
 
 // Admin login route
@@ -135,6 +138,8 @@ adminRoute.put('/cancel-order/:orderId', async (req, res) => {
         res.status(500).json({ message: 'Error handling return request' });
     }
 });
+
+adminRoute.get('/dashboardCounts', getDashboardCounts);
 
 
 adminRoute.get("/users", getAllUsers);

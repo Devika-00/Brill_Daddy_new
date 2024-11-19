@@ -1,3 +1,4 @@
+//backend/Models/bidModel.js
 const mongoose = require("mongoose");
 
 const bidSchema = new mongoose.Schema({
