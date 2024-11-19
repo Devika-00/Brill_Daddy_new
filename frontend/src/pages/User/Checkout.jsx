@@ -1,3 +1,4 @@
+//frontend/src/pages/User/Checkout.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
@@ -28,7 +29,13 @@ const Checkout = () => {
     phoneNumber: ''
   });
   
+  const [errors, setErrors] = useState({
+    userName: '',
+    addressLine: ''
+  });
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
@@ -47,12 +54,21 @@ const Checkout = () => {
     fetchAddresses();
   }, []);
 
+  
+
   const handleAddAddress = async () => {
+        if (errors.userName || errors.addressLine) {
+      alert('Please resolve the errors before submitting.');
+      return;
+    }
     try {
       const response = await axios.post(`${SERVER_URL}/user/addAddress`, { 
         ...addressData, 
         userId 
       });
+
+      setIsLoading(true);
+      setErrorMessage("");
 
       if (response.status === 200) {
         // Fetch updated addresses after saving
@@ -71,14 +87,17 @@ const Checkout = () => {
           phoneNumber: ''
         });
       } else {
-        console.error('Failed to save address');
+        setErrorMessage("Failed to save address. Please try again.");
       }
     } catch (error) {
       console.error('Error:', error);
+      setErrorMessage("Network error, please try again.");
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false); // Stop loading after 20 seconds
+      }, 20000);
     }
   };
-
-  console.log(selectedAddress,"llllllllllllll")
 
   const handlePlaceOrder = async () => {
     if (!selectedAddress || !paymentMethod) {
@@ -105,8 +124,58 @@ const Checkout = () => {
   };
   
 
+  const validateField = (name, value) => {
+    let error = '';
+    
+    if (name === 'userName') {
+      if (!/^[a-zA-Z\s]*$/.test(value)) {
+        error = 'Name should only contain letters.';
+      }
+    }
+  
+    if (name === 'addressLine') {
+      if (value.length > 50) {
+        error = 'Address cannot exceed 50 characters.';
+      }
+    }
+  
+    if (name === 'street') {
+      if (value.length > 10) {
+        error = 'Street should not exceed 10 characters.';
+      }
+    }
+  
+    if (name === 'state') {
+      if (!/^[a-zA-Z]*$/.test(value)) {
+        error = 'State should only contain letters.';
+      }
+    }
+  
+    if (name === 'pincode') {
+      if (!/^\d{1,7}$/.test(value)) {
+        error = 'Pincode must be a maximum of 7 digits and should not contain letters.';
+      }
+    }
+  
+    if (name === 'flatNumber') {
+      if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{1,10}$/.test(value)) {
+        error = 'Flat Number must contain letters, numbers, and special characters, and should not exceed 10 characters.';
+      }
+    }
+  
+    if (name === 'phoneNumber') {
+      if (!/^\d{1,10}$/.test(value.replace(/[^0-9]/g, ''))) {
+        error = 'Phone Number must be a maximum of 10 digits. Letters are not allowed.';
+      }
+    }
+  
+    setErrors({ ...errors, [name]: error });
+  };
+  
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    validateField(name, value);
     setAddressData({ ...addressData, [name]: value });
   };
 
@@ -232,31 +301,45 @@ const Checkout = () => {
             </div>
           </form>
 
-          {/* Address Modal */}
+          {/* Modal for adding address */}
           {showModal && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
               <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                 <h2 className="text-xl font-semibold mb-4">Add New Address</h2>
                 <form onSubmit={(e) => { e.preventDefault(); handleAddAddress(); }}>
                   <div className="space-y-4">
-                    <input
-                      type="text"
-                      name="userName"
-                      placeholder="Name"
-                      value={addressData.userName}
-                      onChange={handleInputChange}
-                      className="border rounded-lg p-2 w-full"
-                      required
-                    />
-                    <input
-                      type="text"
-                      name="addressLine"
-                      placeholder="Address Line"
-                      value={addressData.addressLine}
-                      onChange={handleInputChange}
-                      className="border rounded-lg p-2 w-full"
-                      required
-                    />
+                    <div>
+                      <input
+                        type="text"
+                        name="userName"
+                        placeholder="Name"
+                        value={addressData.userName}
+                        onChange={handleInputChange}
+                        className="border rounded-lg p-2 w-full"
+                        required
+                      />
+                      {errors.userName && (
+                        <p className="text-red-600 text-sm mt-1">{errors.userName}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <input
+                        type="text"
+                        name="addressLine"
+                        placeholder="Address Line"
+                        value={addressData.addressLine}
+                        onChange={handleInputChange}
+                        className="border rounded-lg p-2 w-full"
+                        required
+                      />
+                      {errors.addressLine && (
+                        <p className="text-red-600 text-sm mt-1">{errors.addressLine}</p>
+                      )}
+                    </div>
+
+                    {/* Remaining form fields */}
+                    <div>
                     <input
                       type="text"
                       name="street"
@@ -266,6 +349,11 @@ const Checkout = () => {
                       className="border rounded-lg p-2 w-full"
                       required
                     />
+                                          {errors.street && (
+                        <p className="text-red-600 text-sm mt-1">{errors.street}</p>
+                      )}
+                    </div>
+                    <div>
                     <input
                       type="text"
                       name="state"
@@ -275,6 +363,11 @@ const Checkout = () => {
                       className="border rounded-lg p-2 w-full"
                       required
                     />
+                                                              {errors.state && (
+                        <p className="text-red-600 text-sm mt-1">{errors.state}</p>
+                      )}
+                    </div>
+                    <div>
                     <input
                       type="text"
                       name="pincode"
@@ -284,6 +377,11 @@ const Checkout = () => {
                       className="border rounded-lg p-2 w-full"
                       required
                     />
+                                                              {errors.pincode && (
+                        <p className="text-red-600 text-sm mt-1">{errors.pincode}</p>
+                      )}
+                    </div>
+                    <div>
                     <input
                       type="text"
                       name="flatNumber"
@@ -292,6 +390,11 @@ const Checkout = () => {
                       onChange={handleInputChange}
                       className="border rounded-lg p-2 w-full"
                     />
+                                                              {errors.flatNumber && (
+                        <p className="text-red-600 text-sm mt-1">{errors.flatNumber}</p>
+                      )}
+                    </div>
+                    <div>
                     <input
                       type="text"
                       name="phoneNumber"
@@ -301,6 +404,10 @@ const Checkout = () => {
                       className="border rounded-lg p-2 w-full"
                       required
                     />
+                                                              {errors.phoneNumber && (
+                        <p className="text-red-600 text-sm mt-1">{errors.phoneNumber}</p>
+                      )}
+                    </div>
                     <select
                       name="addressType"
                       value={addressData.addressType}
@@ -320,11 +427,19 @@ const Checkout = () => {
                         Cancel
                       </button>
                       <button
-                        type="submit"
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                      >
-                        Save Address
-                      </button>
+                            type="submit"
+                            className={`px-6 py-3 text-white font-semibold rounded-lg transition-colors ${
+                              isLoading
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-blue-500 hover:bg-blue-700"
+                            }`}
+                            disabled={isLoading}
+                          >
+                            {isLoading ? "Saving..." : "Save Address"}
+                          </button>
+                          {errorMessage && (
+                            <p className="text-red-600 text-sm mt-2">{errorMessage}</p>
+                          )}
                     </div>
                   </div>
                 </form>
@@ -333,7 +448,6 @@ const Checkout = () => {
           )}
         </div>
       </div>
-
       <Footer />
     </div>
   );
