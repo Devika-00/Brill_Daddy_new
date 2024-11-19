@@ -380,7 +380,7 @@ const HomePage = () => {
 <div className="relative group"
      onMouseEnter={() => setHoveredCard(true)}
      onMouseLeave={() => setHoveredCard(false)}>
-  <div className={`bg-gradient-to-r from-indigo-500 to-indigo-700 rounded-xl shadow-lg overflow-hidden 
+  <div className={`bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden 
                    transform transition-all duration-300 ${hoveredCard ? 'scale-105 shadow-2xl' : 'scale-100'}`}>
     
     {/* Free Badge */}
