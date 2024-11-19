@@ -796,7 +796,31 @@ const getWallet = async (req, res) => {
 
 
 
+const updateQuantity = async (req, res) => {
+  const { userId, productId } = req.params;
+  const { quantity } = req.body;
+
+  try {
+    const cart = await Cart.findOne({ userId });
+    if (cart) {
+      const item = cart.items.find(item => item.productId.toString() === productId);
+      if (item) {
+        item.quantity = quantity;
+        await cart.save();
+        return res.status(200).json({ message: 'Quantity updated successfully' });
+      }
+    }
+    return res.status(404).json({ message: 'Item not found in cart' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error', error });
+  }
+};
+
+
+
+
+
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
-  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress,
+  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity
 }

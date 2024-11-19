@@ -189,16 +189,30 @@ const SingleProduct = () => {
   );
   const isProductWithDiscountInCart = cartItems.some(
     (item) =>
-      item.productId === product._id && item.walletDiscountApplied === true
+      item.productId._id === product._id && item.walletDiscountApplied === true
   );
   const isProductWithoutDiscountInCart = cartItems.some(
     (item) =>
-      item.productId === product._id && item.walletDiscountApplied === false
+      item.productId._id === product._id && item.walletDiscountApplied === false
   );
 
   // Conditional rendering of the button based on the cart status
   const renderAddToCartButton = () => {
-    if (isProductInCart) {
+    if (useWalletDiscount) {
+      // If wallet checkbox is selected, show "Add to Cart" button
+      return (
+        <button
+          onClick={handleAddToCart}
+          className="flex-1 px-6 py-4 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-x"
+        >
+          Add to Cart
+        </button>
+      );
+    } else if (
+      isProductInCart &&
+      (isProductWithDiscountInCart || isProductWithoutDiscountInCart)
+    ) {
+      // If product is in the cart (with or without a discount), show "Go to Cart" button
       return (
         <button
           onClick={handleGoToCart}
@@ -208,6 +222,7 @@ const SingleProduct = () => {
         </button>
       );
     } else {
+      // Default case: show "Add to Cart" button
       return (
         <button
           onClick={handleAddToCart}
@@ -331,7 +346,7 @@ const SingleProduct = () => {
                     </span>
                   </div>
 
-                  {walletOfferPrice && walletBalance > 0 && (
+                  {walletBalance > 0 && (
                     <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"

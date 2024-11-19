@@ -49,13 +49,23 @@ const Cart = () => {
 
   const { subTotal, gst, total } = calculateTotal();
 
-  // Function to update quantity
-  const updateQuantity = (id, amount) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.productId._id === id ? { ...item, quantity: Math.max(1, item.quantity + amount) } : item
-      )
+  const updateQuantity = async (id, amount) => {
+    const updatedCartItems = cartItems.map((item) =>
+      item.productId._id === id
+        ? { ...item, quantity: Math.max(1, item.quantity + amount) }
+        : item
     );
+  
+    const updatedItem = updatedCartItems.find(item => item.productId._id === id);
+    if (updatedItem) {
+      try {
+        await axios.put(`${SERVER_URL}/user/cart/${userId}/${id}`, { quantity: updatedItem.quantity });
+        setCartItems(updatedCartItems); // Update local state only after successful DB update
+      } catch (error) {
+        console.error('Error updating quantity:', error);
+        alert('Failed to update quantity. Please try again.');
+      }
+    }
   };
 
   console.log(cartItems,"ddddddddddddddd")
@@ -141,6 +151,7 @@ const Cart = () => {
                         <button
                           onClick={() => updateQuantity(item.productId._id, -1)}
                           className="px-2 py-1 bg-gray-200 rounded-lg"
+                          disabled={item.quantity <= 1}
                         >
                           -
                         </button>
