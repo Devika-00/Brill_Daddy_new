@@ -41,6 +41,7 @@ const WishlistDialog = ({ message, onClose, onGoToWishlist }) => {
 
 
 const HomePage = () => {
+  const [visibleCount, setVisibleCount] = useState(10); 
  
   const [hoveredCard, setHoveredCard] = useState(false);
 
@@ -292,6 +293,10 @@ const HomePage = () => {
       }
     };
 
+    const handleViewMore = () => {
+      setVisibleCount((prevCount) => prevCount + 10); // Increase the count to show more products
+    };
+
   // Calculate visible products
   const visibleProducts = electronicProducts.slice(
     currentIndex,
@@ -464,7 +469,7 @@ const HomePage = () => {
       {/* Product Cards Container */}
       <div className="p-6 grid gap-8 md:grid-cols-3 sm:grid-cols-2 lg:grid-cols-5 mx-auto max-w-7xl">
         {/* Product Cards */}
-        {products.map((product) => (
+        {products.slice(0, visibleCount).map((product) => (
           <Link key={product.id} to={`/singleProduct/${product._id}`}>
             <div
               key={product.id}

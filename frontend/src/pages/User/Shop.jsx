@@ -20,7 +20,7 @@ const Shop = () => {
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
   const token = user.token;
-  const itemsPerPage = 6;
+  const itemsPerPage = 40;
 
   const location = useLocation();
   const navigate = useNavigate();

@@ -172,6 +172,7 @@ const SingleProduct = () => {
       if (response.status === 200) {
         alert("Product added to cart successfully!");
       }
+      window.location.reload();
     } catch (error) {
       console.error("Error adding product to cart:", error);
       alert("Could not add product to cart. Please try again.");
@@ -182,7 +183,6 @@ const SingleProduct = () => {
     navigate("/cart");
   };
 
-  console.log(cartItems,"llllllllllllllllllllllllll")
 
   const isProductInCart = cartItems.some(
     (item) => item.productId._id === product._id
