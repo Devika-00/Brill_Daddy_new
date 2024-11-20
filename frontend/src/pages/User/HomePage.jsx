@@ -41,6 +41,7 @@ const WishlistDialog = ({ message, onClose, onGoToWishlist }) => {
 
 
 const HomePage = () => {
+  const [visibleCount, setVisibleCount] = useState(10); 
  
   const [hoveredCard, setHoveredCard] = useState(false);
 
@@ -292,6 +293,10 @@ const HomePage = () => {
       }
     };
 
+    const handleViewMore = () => {
+      setVisibleCount((prevCount) => prevCount + 10); // Increase the count to show more products
+    };
+
   // Calculate visible products
   const visibleProducts = electronicProducts.slice(
     currentIndex,
@@ -375,7 +380,7 @@ const HomePage = () => {
 <div className="relative group"
      onMouseEnter={() => setHoveredCard(true)}
      onMouseLeave={() => setHoveredCard(false)}>
-  <div className={`bg-gradient-to-r from-indigo-500 to-indigo-700 rounded-xl shadow-lg overflow-hidden 
+  <div className={`bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden 
                    transform transition-all duration-300 ${hoveredCard ? 'scale-105 shadow-2xl' : 'scale-100'}`}>
     
     {/* Free Badge */}
@@ -464,7 +469,7 @@ const HomePage = () => {
       {/* Product Cards Container */}
       <div className="p-6 grid gap-8 md:grid-cols-3 sm:grid-cols-2 lg:grid-cols-5 mx-auto max-w-7xl">
         {/* Product Cards */}
-        {products.map((product) => (
+        {products.slice(0, visibleCount).map((product) => (
           <Link key={product.id} to={`/singleProduct/${product._id}`}>
             <div
               key={product.id}
