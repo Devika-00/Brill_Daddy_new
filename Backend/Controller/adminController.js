@@ -413,36 +413,66 @@ const editVoucher = async (req, res) => {
   }
 };
 
-// Dashboard Counts Controller
+// backend/Controller/adminController.js
 const getDashboardCounts = async (req, res) => {
   try {
-    // Count unique users
-    const userCount = await User.countDocuments();
+    // Count unique users and include registration date
+    const users = await User.find({}, { _id: 1, createdAt: 1 }); // Retrieve user IDs and registration dates
+    const userCount = users.length;
 
-    // Count unique user IDs in bids (auction participants)
-    const auctionParticipants = await Bid.distinct('userId'); // Get distinct user IDs
-    const auctionCount = auctionParticipants.length; // Count of unique user IDs
+    // Count unique user IDs in bids (auction participants) and include auction date
+    const bids = await Bid.find({}, { userId: 1, createdAt: 1 }); // Retrieve user IDs and auction dates
+    const auctionParticipants = new Set(bids.map(bid => bid.userId.toString()));
+    const auctionCount = auctionParticipants.size; // Unique user IDs participating in auctions
 
-    // Count unique user and product IDs in orders
-    const orders = await Order.find({}, { userId: 1, 'cartItems.productId': 1 });
+    // Count unique user and product IDs in orders and include order date
+    const orders = await Order.find({}, { userId: 1, cartItems: 1, orderDate: 1 }); // Retrieve user IDs, cartItems, and order dates
     const orderUserProductSet = new Set();
+    const orderDates = orders.map(order => order.orderDate); // Collect order dates
+    const orderStatusCounts = {
+      Pending: { count: 0, dates: [] },
+      Processing: { count: 0, dates: [] },
+      Shipped: { count: 0, dates: [] },
+      Delivered: { count: 0, dates: [] },
+      'Out for Delivery': { count: 0, dates: [] },
+      Cancelled: { count: 0, dates: [] },
+      Returned: { count: 0, dates: [] }
+    };
+
+    // Loop through orders and cartItems to track status counts and dates
     orders.forEach(order => {
       order.cartItems.forEach(item => {
+        // Track the status counts and dates of each cart item
+        if (item.status in orderStatusCounts) {
+          orderStatusCounts[item.status].count += 1;
+          orderStatusCounts[item.status].dates.push(order.orderDate);
+        }
         orderUserProductSet.add(`${order.userId}-${item.productId}`);
       });
     });
+
     const orderCount = orderUserProductSet.size;
 
     res.status(200).json({
       userCount,
+      userRegistrationDates: users.map(user => user.createdAt), // Add registration dates
       auctionCount,
-      orderCount
+      auctionUniqueParticipants: auctionCount,
+      auctionDates: Array.from(auctionParticipants).map(userId => {
+        const userBids = bids.filter(bid => bid.userId.toString() === userId);
+        return userBids.map(bid => bid.createdAt); // Get bid dates for each user
+      }).flat(), // Flatten the nested arrays
+      orderCount,
+      orderDates, // Add order dates
+      orderStatusCounts
     });
   } catch (error) {
     console.error('Error fetching dashboard counts:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
 
 module.exports = {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
     deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts
