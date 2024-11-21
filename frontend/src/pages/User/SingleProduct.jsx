@@ -317,7 +317,7 @@ const SingleProduct = () => {
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
                     {product.name}
                   </h1>
-                  <div className="flex items-center space-x-2">
+                  {/* <div className="flex items-center space-x-2">
                     {[...Array(5)].map((_, i) => (
                       <FontAwesomeIcon
                         key={i}
@@ -326,7 +326,7 @@ const SingleProduct = () => {
                       />
                     ))}
                     <span className="text-gray-500">(150 Reviews)</span>
-                  </div>
+                  </div> */}
                 </div>
 
                 <div className="space-y-4">

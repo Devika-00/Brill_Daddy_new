@@ -38,16 +38,19 @@ const WishlistDialog = ({ message, onClose, onGoToWishlist }) => {
   );
 };
 
-
-
 const HomePage = () => {
-  const [visibleCount, setVisibleCount] = useState(10); 
- 
+  const [visibleCount, setVisibleCount] = useState(10);
+
   const [hoveredCard, setHoveredCard] = useState(false);
 
   const [vouchers, setVouchers] = useState([]);
-  const [firstFreeVoucher, setFirstFreeVoucher] = useState(null);  // Store the first free voucher
-  
+  const [firstFreeVoucher, setFirstFreeVoucher] = useState(null); // Store the first free voucher
+  const [countdown, setCountdown] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
@@ -113,7 +116,7 @@ const HomePage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const wishlistItems = response.data.reduce((acc, item) => {
-          acc[item.productId._id] = item.wishlistStatus === 'added';
+          acc[item.productId._id] = item.wishlistStatus === "added";
           return acc;
         }, {});
 
@@ -142,7 +145,7 @@ const HomePage = () => {
       console.log("Retrieved userId:", userId);
 
       const headers = {
-        Authorization: `Bearer ${token}`,  // Pass token as Bearer token in headers
+        Authorization: `Bearer ${token}`, // Pass token as Bearer token in headers
       };
 
       console.log("Toggling favorite for productId:", productId);
@@ -151,7 +154,7 @@ const HomePage = () => {
       const requestBody = {
         productId,
         userId,
-        wishlistStatus: wishlist[productId] ? 'removed' : 'added',
+        wishlistStatus: wishlist[productId] ? "removed" : "added",
       };
 
       console.log("Current wishlist state before update:", wishlist);
@@ -159,21 +162,28 @@ const HomePage = () => {
       if (wishlist[productId]) {
         console.log("Removing from wishlist:", productId);
         // Use DELETE to remove from wishlist, similar to your previous working route
-        const response = await axios.delete(`${SERVER_URL}/user/wishlist/remove`, {
-          headers,
-          data: requestBody
-        });
+        const response = await axios.delete(
+          `${SERVER_URL}/user/wishlist/remove`,
+          {
+            headers,
+            data: requestBody,
+          }
+        );
 
         if (response.status === 200) {
-          setWishlist(prev => ({ ...prev, [productId]: false }));
+          setWishlist((prev) => ({ ...prev, [productId]: false }));
           setDialogMessage("Product removed from wishlist!");
         }
       } else {
         console.log("Adding to wishlist:", productId);
         // Use POST to add to wishlist
-        const response = await axios.post(`${SERVER_URL}/user/wishlist`, requestBody, { headers });
+        const response = await axios.post(
+          `${SERVER_URL}/user/wishlist`,
+          requestBody,
+          { headers }
+        );
         if (response.status === 201) {
-          setWishlist(prev => ({ ...prev, [productId]: true }));
+          setWishlist((prev) => ({ ...prev, [productId]: true }));
           setDialogMessage("Product added to wishlist!");
         } else {
           console.error("Error adding to wishlist:", response.data);
@@ -181,10 +191,10 @@ const HomePage = () => {
       }
       setShowDialog(true);
 
-            // Automatically close dialog after 2 seconds
-            setTimeout(() => {
-              setShowDialog(false);
-            }, 2000);
+      // Automatically close dialog after 2 seconds
+      setTimeout(() => {
+        setShowDialog(false);
+      }, 2000);
     } catch (error) {
       console.error("Error updating wishlist:", error);
       alert("There was an issue adding/removing the item from your wishlist.");
@@ -197,7 +207,6 @@ const HomePage = () => {
     closeDialog();
     navigate("/wishlist");
   };
-  
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -246,62 +255,95 @@ const HomePage = () => {
   const isEligibleForFree =
     voucher.eligible_rebid_users.includes(userId) && voucher.rebid_active;
 
-    useEffect(() => {
-      const fetchVouchers = async () => {
-        try {
-          const response = await axios.get(`${SERVER_URL}/voucher/getVouchers`);
-          const currentTime = new Date().getTime();
-  
-          const validVouchers = response.data.filter((voucher) => {
-            const isEligibleUser = voucher.eligible_rebid_users.includes(userId);
-            const isRebidActive = voucher.rebid_active && new Date(voucher.rebid_end_time).getTime() > currentTime;
-            const isActiveVoucher = new Date(voucher.start_time).getTime() <= currentTime && new Date(voucher.end_time).getTime() > currentTime;
-            
-            return (isEligibleUser && isRebidActive) || isActiveVoucher;
-          });
-  
-          const freeVouchers = validVouchers.filter((voucher) => voucher.price === 0).slice(0, 2);
-          const paidVouchers = validVouchers.filter((voucher) => voucher.price !== 0);
-  
-          setVouchers([...freeVouchers, ...paidVouchers]);
-  
-          // Set the first free voucher to display on the home page
-          if (freeVouchers.length > 0) {
-            setFirstFreeVoucher(freeVouchers[0]);
-          }
-        } catch (error) {
-          console.error("Failed to fetch vouchers:", error);
-        }
-      };
-  
-      fetchVouchers();
-  
-      // Set interval to fetch every minute (adjust as necessary)
-      const intervalId = setInterval(fetchVouchers, 1000);
-  
-      // Cleanup interval on component unmount
-      return () => clearInterval(intervalId);
-    }, []);
+  useEffect(() => {
+    const fetchVouchers = async () => {
+      try {
+        const response = await axios.get(`${SERVER_URL}/voucher/getVouchers`);
+        const currentTime = new Date().getTime();
 
-  
-    const handleClaimVoucher = (voucher) => {
-  
-      if ( firstFreeVoucher?.price === 0 ) {
-        navigate(`/eventDetail`, { state: { voucher } });
-      } else {
-        navigate(`/payment/${voucher._id}`, { state: { voucher } });
+        const validVouchers = response.data.filter((voucher) => {
+          const isEligibleUser = voucher.eligible_rebid_users.includes(userId);
+          const isRebidActive =
+            voucher.rebid_active &&
+            new Date(voucher.rebid_end_time).getTime() > currentTime;
+          const isActiveVoucher =
+            new Date(voucher.start_time).getTime() <= currentTime &&
+            new Date(voucher.end_time).getTime() > currentTime;
+
+          return (isEligibleUser && isRebidActive) || isActiveVoucher;
+        });
+
+        const freeVouchers = validVouchers
+          .filter((voucher) => voucher.price === 0)
+          .slice(0, 2);
+        const paidVouchers = validVouchers.filter(
+          (voucher) => voucher.price !== 0
+        );
+
+        setVouchers([...freeVouchers, ...paidVouchers]);
+
+        // Set the first free voucher to display on the home page
+        if (freeVouchers.length > 0) {
+          setFirstFreeVoucher(freeVouchers[0]);
+        }
+        startCountdown(new Date(firstFreeVoucher.end_time).getTime());
+      } catch (error) {
+        console.error("Failed to fetch vouchers:", error);
       }
     };
 
-    const handleViewMore = () => {
-      setVisibleCount((prevCount) => prevCount + 10); // Increase the count to show more products
+    fetchVouchers();
+
+    // Set interval to fetch every minute (adjust as necessary)
+    const intervalId = setInterval(fetchVouchers, 1000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [userId]);
+
+  const startCountdown = (endTime) => {
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const distance = endTime - now;
+
+      if (distance > 0) {
+        setCountdown({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor(
+            (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+          ),
+          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((distance % (1000 * 60)) / 1000),
+        });
+      } else {
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
     };
+
+    updateCountdown();
+    const intervalId = setInterval(updateCountdown, 1000);
+    return () => clearInterval(intervalId); // Cleanup on component unmount
+  };
+
+  const handleClaimVoucher = (voucher) => {
+    if (firstFreeVoucher?.price === 0) {
+      navigate(`/eventDetail`, { state: { voucher } });
+    } else {
+      navigate(`/payment/${voucher._id}`, { state: { voucher } });
+    }
+  };
+
+  const handleViewMore = () => {
+    setVisibleCount((prevCount) => prevCount + 10); // Increase the count to show more products
+  };
 
   // Calculate visible products
   const visibleProducts = electronicProducts.slice(
     currentIndex,
     currentIndex + productsPerPage
   );
+
+  console.log(firstFreeVoucher,"llllllllllllllllllll")
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
       <OrginalNavbar />
@@ -333,64 +375,69 @@ const HomePage = () => {
       </div>
 
       <div className="p-6 mx-auto max-w-7xl">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Fashion Category Card */}
-        <div
-          onClick={() => handleCategoryClick("fashion")}
-          className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
-        >
-          <div className="relative h-48">
-            <img
-              src="https://st3.depositphotos.com/3591429/14866/i/450/depositphotos_148668333-stock-photo-credit-card-and-fashion-graphic.jpg"
-              alt="Fashion"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Fashion Category Card */}
+          <div
+            onClick={() => handleCategoryClick("fashion")}
+            className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
+          >
+            <div className="relative h-48">
+              <img
+                src="https://st3.depositphotos.com/3591429/14866/i/450/depositphotos_148668333-stock-photo-credit-card-and-fashion-graphic.jpg"
+                alt="Fashion"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+            </div>
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-700">Fashion</h2>
+              <p className="text-gray-500 mt-2">
+                Stylish clothing and accessories for every season.
+              </p>
+            </div>
           </div>
-          <div className="p-6">
-            <h2 className="text-xl font-bold text-gray-700">Fashion</h2>
-            <p className="text-gray-500 mt-2">
-              Stylish clothing and accessories for every season.
-            </p>
-          </div>
-        </div>
 
-        {/* Electronics Category Card */}
-        <div
-          onClick={() => handleCategoryClick("electronics")}
-          className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
-        >
-          <div className="relative h-48">
-            <img
-              src="https://assets.architecturaldigest.in/photos/60084fc951daf9662c149bb9/16:9/w_2560%2Cc_limit/how-to-clean-gadgets-1366x768.jpg"
-              alt="Electronics"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+          {/* Electronics Category Card */}
+          <div
+            onClick={() => handleCategoryClick("electronics")}
+            className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
+          >
+            <div className="relative h-48">
+              <img
+                src="https://assets.architecturaldigest.in/photos/60084fc951daf9662c149bb9/16:9/w_2560%2Cc_limit/how-to-clean-gadgets-1366x768.jpg"
+                alt="Electronics"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+            </div>
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-700">Electronics</h2>
+              <p className="text-gray-500 mt-2">
+                Latest gadgets and devices at unbeatable prices.
+              </p>
+            </div>
           </div>
-          <div className="p-6">
-            <h2 className="text-xl font-bold text-gray-700">Electronics</h2>
-            <p className="text-gray-500 mt-2">
-              Latest gadgets and devices at unbeatable prices.
-            </p>
-          </div>
-        </div>
 
-        {/* Voucher Card */}
-<div className="relative group"
-     onMouseEnter={() => setHoveredCard(true)}
-     onMouseLeave={() => setHoveredCard(false)}>
-  <div className={`bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden 
-                   transform transition-all duration-300 ${hoveredCard ? 'scale-105 shadow-2xl' : 'scale-100'}`}>
-    
-    {/* Free Badge */}
-    {firstFreeVoucher && firstFreeVoucher.price === 0 && (
-      <div className="absolute top-4 right-4 z-10">
-        <div className="bg-green-600 text-white font-bold px-4 py-1 rounded-sm shadow-lg transform rotate-3">
-          FREE
-        </div>
-      </div>
-    )}
+          {/* Voucher Card */}
+          <div
+            className="relative group"
+            onMouseEnter={() => setHoveredCard(true)}
+            onMouseLeave={() => setHoveredCard(false)}
+          >
+            <div
+              className={`bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden 
+                   transform transition-all duration-300 ${
+                     hoveredCard ? "scale-105 shadow-2xl" : "scale-100"
+                   }`}
+            >
+              {/* Free Badge */}
+              {firstFreeVoucher && firstFreeVoucher.price === 0 && (
+                <div className="absolute top-4 right-4 z-10">
+                  <div className="bg-green-600 text-white font-bold px-4 py-1 rounded-sm shadow-lg transform rotate-3">
+                    FREE
+                  </div>
+                </div>
+              )}
 
               {/* Image Section */}
               <div className="relative w-full h-40 flex items-center justify-center overflow-hidden">
@@ -399,6 +446,12 @@ const HomePage = () => {
                   alt={firstFreeVoucher?.voucher_name}
                   className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
                 />
+                <div className="absolute top-2 left-2 bg-gray-600 text-white py-1 px-3 rounded-lg text-sm">
+                  <span>
+                    {countdown.days}d : {countdown.hours}h : {countdown.minutes}
+                    m : {countdown.seconds}s
+                  </span>
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
               </div>
 
@@ -407,7 +460,7 @@ const HomePage = () => {
                 <h3 className="text-xl font-bold text-white mb-2">
                   {firstFreeVoucher?.voucher_name || "Special Offer"}
                 </h3>
-                
+
                 <div className="bg-white/10 rounded-lg p-3 space-y-2 mb-4">
                   <div className="flex items-center text-white">
                     <Package className="w-4 h-4 mr-2" />
@@ -428,11 +481,16 @@ const HomePage = () => {
                   <div className="flex items-center text-white/90">
                     <Clock className="w-4 h-4 mr-2" />
                     <span className="text-sm">
-                      Valid until {firstFreeVoucher ? new Date(firstFreeVoucher.end_time).toLocaleDateString() : "Dec 31, 2024"}
+                      Valid until{" "}
+                      {firstFreeVoucher
+                        ? new Date(
+                            firstFreeVoucher.end_time
+                          ).toLocaleDateString()
+                        : "Dec 31, 2024"}
                     </span>
                   </div>
-                  
-                  <button 
+
+                  <button
                     className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg transition-colors duration-300 flex items-center"
                     onClick={() => handleClaimVoucher(firstFreeVoucher)}
                   >
@@ -445,8 +503,8 @@ const HomePage = () => {
 
             {/* Show All Vouchers Link */}
             <div className="text-center mt-4">
-              <Link 
-                to="/event" 
+              <Link
+                to="/event"
                 className="text-indigo-600 hover:text-indigo-800 font-medium hover:underline cursor-pointer inline-flex items-center"
               >
                 <span>Show all vouchers</span>
@@ -456,8 +514,6 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-      
-    
 
       {/* Products Section */}
       <div className="p-6">
@@ -477,7 +533,9 @@ const HomePage = () => {
             >
               {/* Favorite Button */}
               <button
-                className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${wishlist[product._id] ? "text-red-500" : "text-gray-500"}`}
+                className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${
+                  wishlist[product._id] ? "text-red-500" : "text-gray-500"
+                }`}
                 onClick={(e) => {
                   e.preventDefault();
                   toggleFavorite(product._id);

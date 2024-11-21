@@ -30,14 +30,13 @@ const CountdownTimer = ({ voucher }) => {
       return null;
     };
 
-    const timer = setInterval(() => {
+    const updateTimer = () => {
       const timeLeft = calculateTimeLeft();
-      if (timeLeft) {
-        setTimeLeft(timeLeft);
-      } else {
-        clearInterval(timer);
-      }
-    }, 1000);
+      setTimeLeft(timeLeft);
+    };
+
+    updateTimer(); // Initial call
+    const timer = setInterval(updateTimer, 1000);
 
     return () => clearInterval(timer);
   }, [voucher]);
