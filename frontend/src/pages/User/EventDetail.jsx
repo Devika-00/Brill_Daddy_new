@@ -75,7 +75,7 @@ const EventDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-purple-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-purple-100 scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
 

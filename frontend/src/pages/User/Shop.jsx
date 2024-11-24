@@ -174,7 +174,7 @@ const Shop = () => {
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
       <div className="container mx-auto px-6 py-12">

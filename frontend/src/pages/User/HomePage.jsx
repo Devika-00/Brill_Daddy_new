@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OrginalNavbar from "../../components/User/OrginalUserNavbar";
 import NavbarWithMenu from "../../components/User/NavbarwithMenu";
@@ -51,7 +51,7 @@ const HomePage = () => {
     minutes: 0,
     seconds: 0,
   });
-
+  const scrollContainerRef = useRef(null);
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
   const token = user.token;
@@ -74,6 +74,9 @@ const HomePage = () => {
 
   const [products, setProducts] = useState([]);
   const [electronicProducts, setElectronicProducts] = useState([]);
+  const [categoriesAndProducts, setCategoriesAndProducts] = useState({});
+
+  const [currentVoucherIndex, setCurrentVoucherIndex] = useState(0);
 
   const navigate = useNavigate();
 
@@ -83,11 +86,6 @@ const HomePage = () => {
       try {
         const response = await axios.get(`${SERVER_URL}/user/products`);
         const products = response.data;
-
-        const filteredProducts = products.filter(
-          (product) => product.category === "electronics"
-        );
-        setElectronicProducts(filteredProducts.slice(0, 5));
 
         // Fetch images for each product
         const productsWithImages = await Promise.all(
@@ -101,6 +99,16 @@ const HomePage = () => {
             return product;
           })
         );
+
+        const groupedByCategory = productsWithImages.reduce((acc, product) => {
+          if (!acc[product.category]) {
+            acc[product.category] = [];
+          }
+          acc[product.category].push(product);
+          return acc;
+        }, {});
+
+        setCategoriesAndProducts(groupedByCategory);
 
         setProducts(productsWithImages);
       } catch (error) {
@@ -222,25 +230,35 @@ const HomePage = () => {
     navigate(`/shopCategory?category=${encodeURIComponent(categoryName)}`);
   };
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const productsPerPage = 5;
+  const [visibleProducts, setVisibleProducts] = useState({});
+  const productsPerView = 5;
 
-  // Carousel Scroll Left
-  const scrollLeft = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0
-        ? electronicProducts.length - productsPerPage
-        : prevIndex - 1
-    );
+  useEffect(() => {
+    const initialVisibleProducts = {};
+    Object.keys(categoriesAndProducts).forEach((category) => {
+      initialVisibleProducts[category] = 0; // Start index for each category
+    });
+    setVisibleProducts(initialVisibleProducts);
+  }, [categoriesAndProducts]);
+
+  // Modified scroll functions
+  const scrollLeft = (category) => {
+    setVisibleProducts((prev) => ({
+      ...prev,
+      [category]: Math.max(0, prev[category] - productsPerView),
+    }));
   };
 
-  // Carousel Scroll Right
-  const scrollRight = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex + productsPerPage >= electronicProducts.length
-        ? 0
-        : prevIndex + 1
+  const scrollRight = (category) => {
+    const categoryProducts = categoriesAndProducts[category] || [];
+    const maxStartIndex = Math.max(
+      0,
+      categoryProducts.length - productsPerView
     );
+    setVisibleProducts((prev) => ({
+      ...prev,
+      [category]: Math.min(maxStartIndex, prev[category] + productsPerView),
+    }));
   };
 
   const voucher = {
@@ -275,18 +293,12 @@ const HomePage = () => {
 
         const freeVouchers = validVouchers
           .filter((voucher) => voucher.price === 0)
-          .slice(0, 2);
+          .slice(0, 3); // Show 3 vouchers
         const paidVouchers = validVouchers.filter(
           (voucher) => voucher.price !== 0
         );
 
         setVouchers([...freeVouchers, ...paidVouchers]);
-
-        // Set the first free voucher to display on the home page
-        if (freeVouchers.length > 0) {
-          setFirstFreeVoucher(freeVouchers[0]);
-        }
-        startCountdown(new Date(firstFreeVoucher.end_time).getTime());
       } catch (error) {
         console.error("Failed to fetch vouchers:", error);
       }
@@ -294,12 +306,22 @@ const HomePage = () => {
 
     fetchVouchers();
 
-    // Set interval to fetch every minute (adjust as necessary)
+    // Set interval to fetch vouchers every minute (adjust as necessary)
     const intervalId = setInterval(fetchVouchers, 1000);
 
     // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
   }, [userId]);
+
+  // Set up automatic sliding every 2 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentVoucherIndex((prevIndex) => (prevIndex + 1) % vouchers.length);
+    }, 2000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
+  }, [vouchers.length]);
 
   const startCountdown = (endTime) => {
     const updateCountdown = () => {
@@ -337,15 +359,9 @@ const HomePage = () => {
     setVisibleCount((prevCount) => prevCount + 10); // Increase the count to show more products
   };
 
-  // Calculate visible products
-  const visibleProducts = electronicProducts.slice(
-    currentIndex,
-    currentIndex + productsPerPage
-  );
-
-  console.log(firstFreeVoucher,"llllllllllllllllllll")
+  console.log(firstFreeVoucher, "llllllllllllllllllll");
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
 
@@ -419,96 +435,88 @@ const HomePage = () => {
           </div>
 
           {/* Voucher Card */}
-          <div
-            className="relative group"
-            onMouseEnter={() => setHoveredCard(true)}
-            onMouseLeave={() => setHoveredCard(false)}
-          >
+          <div className="relative w-full overflow-hidden">
             <div
-              className={`bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden 
-                   transform transition-all duration-300 ${
-                     hoveredCard ? "scale-105 shadow-2xl" : "scale-100"
-                   }`}
+              className="flex transition-transform duration-500"
+              style={{
+                transform: `translateX(-${currentVoucherIndex * 100}%)`,
+                width: `${vouchers.length * 14.5}%`,
+              }}
             >
-              {/* Free Badge */}
-              {firstFreeVoucher && firstFreeVoucher.price === 0 && (
-                <div className="absolute top-4 right-4 z-10">
-                  <div className="bg-green-600 text-white font-bold px-4 py-1 rounded-sm shadow-lg transform rotate-3">
-                    FREE
+              {vouchers.map((voucher, index) => (
+                <div key={index} className="w-full flex-shrink-0">
+                  <div className="bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden">
+                    {/* Free Badge */}
+                    {voucher.price === 0 && (
+                      <div className="absolute top-2 left-4 z-10">
+                        <div className="bg-green-600 text-white font-bold px-4 py-1 rounded-md shadow-lg">
+                          FREE
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Image Section */}
+                    <div className="relative w-full h-44">
+                      <img
+                        src={voucher.imageUrl}
+                        alt={voucher.voucher_name}
+                        className="w-full h-full object-cover rounded-t-lg"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="p-4">
+                      <h3 className="text-xl font-bold text-white mb-2">
+                        {voucher.voucher_name || "Special Offer"}
+                      </h3>
+                      <div className="bg-white/10 rounded-lg p-3 space-y-2 mb-2">
+                        <div className="flex items-center text-white">
+                          <Package className="w-4 h-4 mr-2" />
+                          <span className="font-medium">
+                            {voucher.product_name || "Premium Product"}
+                          </span>
+                        </div>
+                        <div className="flex items-center text-white">
+                          <Tag className="w-4 h-4 mr-2" />
+                          <span className="font-medium">
+                            Worth ₹{voucher.productPrice || "1000"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Footer Section */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center text-white/90">
+                          <Clock className="w-4 h-4 mr-2" />
+                          <span className="text-sm">
+                            Valid until{" "}
+                            {voucher.end_time
+                              ? new Date(voucher.end_time).toLocaleDateString()
+                              : "Dec 31, 2024"}
+                          </span>
+                        </div>
+
+                        <button
+                          className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg transition-colors duration-300 flex items-center"
+                          onClick={() => handleClaimVoucher(voucher)}
+                        >
+                          <Gift className="w-4 h-4 mr-2" />
+                          <span>Get it now</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
-
-              {/* Image Section */}
-              <div className="relative w-full h-40 flex items-center justify-center overflow-hidden">
-                <img
-                  src={firstFreeVoucher?.imageUrl}
-                  alt={firstFreeVoucher?.voucher_name}
-                  className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
-                />
-                <div className="absolute top-2 left-2 bg-gray-600 text-white py-1 px-3 rounded-lg text-sm">
-                  <span>
-                    {countdown.days}d : {countdown.hours}h : {countdown.minutes}
-                    m : {countdown.seconds}s
-                  </span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-              </div>
-
-              {/* Content Section */}
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-white mb-2">
-                  {firstFreeVoucher?.voucher_name || "Special Offer"}
-                </h3>
-
-                <div className="bg-white/10 rounded-lg p-3 space-y-2 mb-4">
-                  <div className="flex items-center text-white">
-                    <Package className="w-4 h-4 mr-2" />
-                    <span className="font-medium">
-                      {firstFreeVoucher?.product_name || "Premium Product"}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-white">
-                    <Tag className="w-4 h-4 mr-2" />
-                    <span className="font-medium">
-                      Worth ₹{firstFreeVoucher?.productPrice || "1000"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Footer Section */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center text-white/90">
-                    <Clock className="w-4 h-4 mr-2" />
-                    <span className="text-sm">
-                      Valid until{" "}
-                      {firstFreeVoucher
-                        ? new Date(
-                            firstFreeVoucher.end_time
-                          ).toLocaleDateString()
-                        : "Dec 31, 2024"}
-                    </span>
-                  </div>
-
-                  <button
-                    className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg transition-colors duration-300 flex items-center"
-                    onClick={() => handleClaimVoucher(firstFreeVoucher)}
-                  >
-                    <Gift className="w-4 h-4 mr-2" />
-                    <span>Claim Now</span>
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
-
-            {/* Show All Vouchers Link */}
             <div className="text-center mt-4">
               <Link
                 to="/event"
                 className="text-indigo-600 hover:text-indigo-800 font-medium hover:underline cursor-pointer inline-flex items-center"
               >
                 <span>Show all vouchers</span>
-                <FaArrowRight className="ml-2 w-4 h-4" />
+                <FaArrowRight className="ml-2 w-4 h-2" />
               </Link>
             </div>
           </div>
@@ -589,62 +597,80 @@ const HomePage = () => {
       </div>
 
       {/* Products Section */}
-      <div className="p-6">
-        <h2 className="text-xl font-bold text-blue-900 mb-4 ml-36 mt-4">
-          Electronics
-        </h2>
-      </div>
+      <div className=" mx-auto max-w-7xl">
+        {Object.entries(categoriesAndProducts).map(([category, products]) => (
+          <div key={category} className="mb-7">
+            {/* Category Header */}
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-blue-900 mb-4 ml-20">
+                {category}
+              </h2>
+            </div>
 
-      {/* Carousel Container */}
-      <div className="relative flex items-center">
-        {/* Left Scroll Arrow */}
-        <button
-          onClick={scrollLeft}
-          className="absolute left-0 z-10 p-2 bg-white rounded-full shadow-lg"
-        >
-          <FaArrowLeft />
-        </button>
+            {/* Carousel Container */}
+            <div className="relative">
+              <div className="flex items-center justify-center">
+                {/* Left Arrow */}
+                {visibleProducts[category] > 0 && (
+                  <button
+                    onClick={() => scrollLeft(category)}
+                    className="absolute left-0 z-10 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transform -translate-y-1/2 top-1/2"
+                  >
+                    <FaArrowLeft className="text-gray-600" />
+                  </button>
+                )}
 
-        {/* Product Cards Container */}
-        <div className="p-6 grid gap-8 md:grid-cols-3 sm:grid-cols-2 lg:grid-cols-5 mx-auto max-w-7xl">
-          {/* Product Cards */}
-          {electronicProducts.map((product) => (
-            <Link key={product.id} to={`/singleProduct/${product._id}`}>
-              <div
-                key={product.id}
-                className="bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105 duration-300 relative"
-              >
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-4">
-                  <h2 className="text-lg font-bold text-gray-700">
-                    {product.name}
-                  </h2>
-                  <p className="text-gray-500 mt-2 line-through">
-                    {product.productPrice}
-                  </p>
-                  <span className="text-lg text-bold text-green-500 mr-2">
-                    {product.salePrice}
-                  </span>
-                  <span className="text-blue-600 font-medium">
-                    {product.discount}% off
-                  </span>
+                {/* Products Container */}
+                <div className="grid grid-cols-5 gap-8 mx-4">
+                  {products
+                    .slice(
+                      visibleProducts[category],
+                      visibleProducts[category] + productsPerView
+                    )
+                    .map((product) => (
+                      <Link
+                        key={product._id}
+                        to={`/singleProduct/${product._id}`}
+                      >
+                        <div className="bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105 duration-300 relative">
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className="w-full h-48 object-cover"
+                          />
+                          <div className="p-4">
+                            <h2 className="text-lg font-bold text-gray-700">
+                              {product.name}
+                            </h2>
+                            <p className="text-gray-500 mt-2 line-through">
+                              ₹{product.productPrice}
+                            </p>
+                            <span className="text-lg text-bold text-green-500 mr-2">
+                              ₹{product.salePrice}
+                            </span>
+                            <span className="text-blue-600 font-medium">
+                              {product.discount}% off
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
 
-        {/* Right Scroll Arrow */}
-        <button
-          onClick={scrollRight}
-          className="absolute right-0 z-10 p-2 bg-white rounded-full shadow-lg"
-        >
-          <FaArrowRight />
-        </button>
+                {/* Right Arrow */}
+                {products.length >
+                  visibleProducts[category] + productsPerView && (
+                  <button
+                    onClick={() => scrollRight(category)}
+                    className="absolute right-0 z-10 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transform -translate-y-1/2 top-1/2"
+                  >
+                    <FaArrowRight className="text-gray-600" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <Footer />

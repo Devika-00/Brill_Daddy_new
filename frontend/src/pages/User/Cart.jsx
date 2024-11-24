@@ -104,7 +104,7 @@ const Cart = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
 

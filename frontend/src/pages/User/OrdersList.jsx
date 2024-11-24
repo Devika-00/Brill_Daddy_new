@@ -65,7 +65,7 @@ const OrdersList = () => {
 
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white py-0">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white py-0 scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
       <div className="max-w-6xl flex-grow mx-auto p-4 w-full">
