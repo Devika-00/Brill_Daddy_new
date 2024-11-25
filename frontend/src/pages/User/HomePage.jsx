@@ -10,6 +10,7 @@ import ImageOne from "../../assets/one.jpg";
 import ImageTwo from "../../assets/two.jpg";
 import { Clock, Package, Tag, Gift } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
+import ChatBotButton from "../../components/User/chatBot";
 
 // Dialog Box Component
 const WishlistDialog = ({ message, onClose, onGoToWishlist }) => {
@@ -674,6 +675,9 @@ const HomePage = () => {
       </div>
 
       <Footer />
+      <div className="fixed bottom-8 right-8 z-50">
+    <ChatBotButton />
+  </div>
     </div>
   );
 };
