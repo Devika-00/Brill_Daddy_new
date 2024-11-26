@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
   FaSearch,
   FaUser,
-  FaWallet, FaShoppingCart
+  FaWallet, FaShoppingCart,
+  FaHeart,
 } from "react-icons/fa";
 import logo from "../../assets/logo.png";
 import { useNavigate, Link } from "react-router-dom";
@@ -143,6 +144,10 @@ const OrginalNavbar = () => {
     navigate("/wallet"); // Navigate to wallet page
   };
 
+  const handleHeartClick = () => {
+    navigate("/wishlist"); // Navigate to wallet page
+  };
+
   const handleCartClick = () => {
     navigate("/cart");// Navigate to cart page
   };
@@ -232,7 +237,7 @@ const OrginalNavbar = () => {
             </div>
           </div>
         </div>
-        <div className="flex items-center mx-auto mt-2 ml-3 md:mt-0">
+        <div className="flex items-center mx-auto mt-2 ml-10 md:mt-0">
           <form
             onSubmit={handleSearchSubmit}
             className="relative w-full md:w-[800px]"
@@ -267,11 +272,11 @@ const OrginalNavbar = () => {
                 <FaUser className="text-gray-700 mr-1" />
                 <span
                   onClick={handleModalToggle}
-                  className="cursor-pointer text-gray-700 hover:text-blue-500 hover:border hover:border-blue-500 p-1 rounded mr-8"
+                  className="cursor-pointer text-gray-700 hover:text-blue-500 hover:border hover:border-blue-500 p-1 rounded mr-5"
                 >
                   Account
                 </span>
-                
+                <FaHeart onClick={handleHeartClick} className="text-red-700 ml-4 cursor-pointer hover:text-red-500 text-2xl mr-8" />
                 <FaWallet onClick={handleWalletClick} className="text-yellow-700 ml-4 cursor-pointer hover:text-yellow-500 text-2xl mr-8" />
                 <FaShoppingCart onClick={handleCartClick} className="text-green-700 ml-4 cursor-pointer hover:text-green-500 text-2xl mr-4" />
              

@@ -110,6 +110,9 @@ const EventDetail = () => {
                           <p className="text-sm text-gray-500">
                             Name: {winner.userId.username}
                           </p>
+                          <p className="text-sm text-gray-500">
+                            State: {winner.userId.state}
+                          </p>
                         </div>
                         <Sparkles className="w-5 h-5 text-yellow-500" />
                       </div>
@@ -252,7 +255,7 @@ const EventDetail = () => {
                   disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl
                   transform hover:-translate-y-0.5"
                 >
-                  Place Bid
+                  Submit
                 </button>
               </div>
             </div>
@@ -264,7 +267,7 @@ const EventDetail = () => {
                   Bid Confirmation
                 </h3>
                 <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm">
-                  <span className="text-gray-600">Bid ID:</span>
+                  <span className="text-gray-600">Unique ID:</span>
                   <span className="font-mono font-medium text-gray-800">
                     {bidId}
                   </span>
@@ -277,7 +280,7 @@ const EventDetail = () => {
           hover:from-green-600 hover:to-emerald-700 transition-all duration-200 font-medium
           shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                     >
-                      Confirm Bid
+                      Confirm
                     </button>
                   </div>
                 )}

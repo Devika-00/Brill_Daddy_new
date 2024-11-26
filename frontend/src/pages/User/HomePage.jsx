@@ -6,8 +6,8 @@ import Footer from "../../components/User/Footer";
 import { FaArrowLeft, FaArrowRight, FaHeart } from "react-icons/fa";
 import { SERVER_URL } from "../../Constants";
 import axios from "axios";
-import ImageOne from "../../assets/one.jpg";
-import ImageTwo from "../../assets/two.jpg";
+import ImageOne from "../../assets/Group1.png";
+import ImageTwo from "../../assets/Group2.png";
 import { Clock, Package, Tag, Gift } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
 import ChatBotButton from "../../components/User/chatBot";
@@ -399,7 +399,7 @@ const HomePage = () => {
               key={index}
               src={image}
               alt={`Carousel ${index}`}
-              className="w-screen h-40 mt-2"
+              className="w-screen h-44 mt-2"
             />
           ))}
         </div>
@@ -581,7 +581,7 @@ const HomePage = () => {
                           >
                             <Gift className="w-4 h-4 mr-2" />
                             Claim now
-                          </button>
+                          </button> 
                         </div>
                       </div>
                     </div>

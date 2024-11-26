@@ -166,6 +166,9 @@ const EventPage = () => {
                           <p className="text-sm text-gray-500">
                             Name: {winner.userId.username}
                           </p>
+                          <p className="text-sm text-gray-500">
+                            State: {winner.userId.state}
+                          </p>
                         </div>
                         <Sparkles className="w-5 h-5 text-yellow-500" />
                       </div>
