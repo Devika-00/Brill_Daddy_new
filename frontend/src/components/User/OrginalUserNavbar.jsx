@@ -181,10 +181,10 @@ const OrginalNavbar = () => {
 
   return (
     <>
-      <nav className="flex flex-col md:flex-row justify-between items-center bg-white p-4 shadow h-24">
+      <nav className="flex flex-col md:flex-row justify-between items-center bg-white p-4 shadow h-32">
         <div className="flex items-center justify-between w-full md:w-auto">
           <Link to="/">
-            <img src={logo} alt="Logo" className="h-16 ml-3" />
+            <img src={logo} alt="Logo" className="h-24 ml-3" />
           </Link>
           <div className="flex items-center">
           {user.isAuthenticated && (

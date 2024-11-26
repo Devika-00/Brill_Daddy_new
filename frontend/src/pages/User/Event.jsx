@@ -265,7 +265,7 @@ const EventPage = () => {
                               className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-300"
                               onClick={() => handleClaimVoucher(voucher)}
                             >
-                              <span className="mr-1">{isEligibleForFree || voucher.price === 0 ? "Bid Now" : "Claim Now"}</span>
+                              <span className="mr-1">{isEligibleForFree || voucher.price === 0 ? "Claim Now" : "Claim Now"}</span>
                             </button>
                           </div>
                         </div>

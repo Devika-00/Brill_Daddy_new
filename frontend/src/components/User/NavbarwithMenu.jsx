@@ -34,6 +34,10 @@ const NavbarWithMenu = () => {
         navigate("/event"); // Redirect to the events page
     };
 
+    const handleHomeClick = () => {
+        navigate("/"); // Redirect to the events page
+    };
+
     return (
         <>
             <div className="bg-blue-900 text-white font-bold flex justify-between items-center p-2">
@@ -47,6 +51,7 @@ const NavbarWithMenu = () => {
                     </button>
 
                     <div className="hidden md:flex space-x-6 ml-10">
+                        <span className="cursor-pointer hover:text-gray-300 " onClick={handleHomeClick}>Home</span>
                         <span className="cursor-pointer hover:text-gray-300 ">Today's Deals</span>
                         <span 
                             className="cursor-pointer hover:text-gray-300"

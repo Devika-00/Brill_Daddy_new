@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import LogoFace from "../../assets/LogoFace.jpg";
 
 const ChatBotButton = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -29,9 +30,9 @@ const ChatBotButton = () => {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onClick={() => setIsChatOpen(true)}
-          className={`relative group p-2 rounded-3xl shadow-lg transition-all duration-500
-            bg-gradient-to-r from-blue-400 to-blue-300
-            hover:from-blue-500 hover:to-blue-400
+          className={`relative group  rounded-3xl shadow-lg transition-all duration-500
+            bg-gradient-to-r from-blue-100 to-blue-100
+            hover:from-blue-100 hover:to-blue-100
             ${isHovered ? "shadow-[0_0_10px_rgba(59,130,246,0.5)]" : ""} mr-6
           `}
         >
@@ -40,9 +41,9 @@ const ChatBotButton = () => {
           
           {/* Monkey Face */}
           <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1WEGeVpU2TWxIP48PgqsPuJJ3nyOeHM4kRg&s"
+            src={LogoFace}
             alt="Monkey Face"
-            className="w-12 h-12 rounded-full object-cover"
+            className="w-16 h-16 rounded-full object-cover p-1"
           />
         </button>
       </div>

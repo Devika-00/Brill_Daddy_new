@@ -7,6 +7,19 @@ import { useAppSelector } from '../../Redux/Store/store';
 import axios from 'axios';
 import { SERVER_URL } from "../../Constants";
 
+const formatCurrency = (value) => {
+  if (value === undefined || value === null) return '';
+  
+  // Convert to string and split decimal parts
+  const [integerPart, decimalPart] = value.toString().split('.');
+  
+  // Add commas to integer part
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  // Recombine with decimal part if exists
+  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+};
+
 const OrdersList = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
@@ -101,7 +114,7 @@ const OrdersList = () => {
 
                   {/* Price and Quantity */}
                   <div className="w-1/6 text-center">
-                    <p className="text-xl font-semibold">₹{item.price}</p>
+                    <p className="text-xl font-semibold">₹{formatCurrency(item.price)}</p>
                     <p className="text-gray-500 italic">Quantity: {item.quantity}</p>
                   </div>
 

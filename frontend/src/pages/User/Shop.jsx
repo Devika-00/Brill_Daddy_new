@@ -9,6 +9,20 @@ import { SERVER_URL } from "../../Constants/index";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../Redux/Store/store';
 
+
+const formatCurrency = (value) => {
+  if (value === undefined || value === null) return '';
+  
+  // Convert to string and split decimal parts
+  const [integerPart, decimalPart] = value.toString().split('.');
+  
+  // Add commas to integer part
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  // Recombine with decimal part if exists
+  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+};
+
 const Shop = () => {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('default');
@@ -269,9 +283,9 @@ const Shop = () => {
                       <h4 className="text-lg font-semibold mb-2 truncate">{product.name}</h4>
                       <p className="text-gray-500 mb-4">Category: {product.category}</p>
                       <div className="flex justify-between items-center">
-                        <span className="text-lg font-bold text-blue-600">₹ {product.salePrice}</span>
+                        <span className="text-lg font-bold text-blue-600">₹{formatCurrency(product.productPrice)}</span>
                         {product.salePrice !== product.productPrice && (
-                          <span className="line-through text-gray-400">₹ {product.productPrice}</span>
+                          <span className="line-through text-gray-400">₹{formatCurrency(product.salePrice)}</span>
                         )}
                       </div>
                     </div>

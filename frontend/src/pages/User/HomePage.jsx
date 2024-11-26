@@ -12,6 +12,20 @@ import { Clock, Package, Tag, Gift } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
 import ChatBotButton from "../../components/User/chatBot";
 
+
+const formatCurrency = (value) => {
+  if (value === undefined || value === null) return '';
+  
+  // Convert to string and split decimal parts
+  const [integerPart, decimalPart] = value.toString().split('.');
+  
+  // Add commas to integer part
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  // Recombine with decimal part if exists
+  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+};
+
 // Dialog Box Component
 const WishlistDialog = ({ message, onClose, onGoToWishlist }) => {
   useEffect(() => {
@@ -385,7 +399,7 @@ const HomePage = () => {
               key={index}
               src={image}
               alt={`Carousel ${index}`}
-              className="w-full h-80 mt-3"
+              className="w-screen h-40 mt-2"
             />
           ))}
         </div>
@@ -396,7 +410,7 @@ const HomePage = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left: Categories Section */}
           <div className="flex-2 space-y-8">
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-xl font-bold text-blue-950">
               Shop by Category
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -493,11 +507,11 @@ const HomePage = () => {
           </div>
 
           {/* Right: Voucher Section */}
-          <div className="flex-1 space-y-4">
-            <h2 className="text-2xl font-bold text-gray-800 mb-7 ml-10">
+          <div className="flex-1 space-y-4 ">
+            <h2 className="text-xl font-bold text-blue-950 mb-9 ml-10">
               Exclusive Vouchers
             </h2>
-            <div className="relative w-96 overflow-hidden ml-10 mr-10">
+            <div className="relative w-[430px] h-[520px] overflow-hidden ml-10 mr-10 ">
               {vouchers.length > 0 && (
                 <div
                   className="transition-transform duration-500 ease-in-out"
@@ -523,7 +537,7 @@ const HomePage = () => {
                       )}
 
                       {/* Image Section */}
-                      <div className="relative w-full h-64">
+                      <div className="relative w-full h-72">
                         <img
                           src={voucher.imageUrl}
                           alt={voucher.voucher_name || "Voucher"}
@@ -566,7 +580,7 @@ const HomePage = () => {
                             onClick={() => handleClaimVoucher(voucher)}
                           >
                             <Gift className="w-4 h-4 mr-2" />
-                            Get it now
+                            Claim now
                           </button>
                         </div>
                       </div>
@@ -576,27 +590,14 @@ const HomePage = () => {
               )}
             </div>
 
-            {/* Pagination Dots */}
-            {/* <div className="flex justify-center mt-4 space-x-2">
-              {vouchers.map((_, index) => (
-                <button
-                  key={index}
-                  className={`h-2 w-2 rounded-full ${
-                    index === currentVoucherIndex
-                      ? "bg-violet-700"
-                      : "bg-violet-300"
-                  }`}
-                  onClick={() => setCurrentVoucherIndex(index)}
-                />
-              ))}
-            </div> */}
+            
 
-            <div className="text-center mt-4">
+            <div className="text-center">
               <Link
                 to="/event"
                 className="text-indigo-600 hover:text-indigo-800 font-medium hover:underline cursor-pointer inline-flex items-center"
               >
-                <span>Show all vouchers</span>
+                <span className="text-xl">Show all vouchers</span>
                 <FaArrowRight className="ml-2 w-4 h-2" />
               </Link>
             </div>
@@ -652,10 +653,10 @@ const HomePage = () => {
 
                 <div className="flex items-center">
                   <p className="text-gray-500 line-through mr-2">
-                    {product.productPrice}
+                  ₹{formatCurrency(product.productPrice)}
                   </p>
                   <span className="text-lg text-bold text-green-500 mr-2">
-                    {product.salePrice}
+                  ₹{formatCurrency(product.salePrice)}
                   </span>
                   <span className="text-blue-600 font-medium">
                     {product.discount}% off
@@ -724,10 +725,10 @@ const HomePage = () => {
                               {product.name}
                             </h2>
                             <p className="text-gray-500 mt-2 line-through">
-                              ₹{product.productPrice}
+                            ₹{formatCurrency(product.productPrice)}
                             </p>
                             <span className="text-lg text-bold text-green-500 mr-2">
-                              ₹{product.salePrice}
+                            ₹{formatCurrency(product.salePrice)}
                             </span>
                             <span className="text-blue-600 font-medium">
                               {product.discount}% off

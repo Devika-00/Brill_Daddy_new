@@ -18,6 +18,19 @@ import { SERVER_URL } from "../../Constants";
 import { useAppSelector } from "../../Redux/Store/store";
 import { FaHeart } from "react-icons/fa";
 
+const formatCurrency = (value) => {
+  if (value === undefined || value === null) return '';
+  
+  // Convert to string and split decimal parts
+  const [integerPart, decimalPart] = value.toString().split('.');
+  
+  // Add commas to integer part
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  // Recombine with decimal part if exists
+  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+};
+
 const SingleProduct = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
@@ -336,10 +349,10 @@ const SingleProduct = () => {
 
                   <div className="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg">
                     <span className="text-3xl font-bold text-red-600">
-                      ₹{product.salePrice}
+                    ₹{formatCurrency(product.salePrice)}
                     </span>
                     <span className="text-xl text-gray-400 line-through">
-                      ₹{product.productPrice}
+                    ₹{formatCurrency(product.productPrice)}
                     </span>
                     <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
                       {product.discount}% OFF

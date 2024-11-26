@@ -9,6 +9,19 @@ import { useAppSelector } from '../../Redux/Store/store';
 import axios from "axios";
 import { SERVER_URL } from "../../Constants";
 
+const formatCurrency = (value) => {
+  if (value === undefined || value === null) return '';
+  
+  // Convert to string and split decimal parts
+  const [integerPart, decimalPart] = value.toString().split('.');
+  
+  // Add commas to integer part
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  // Recombine with decimal part if exists
+  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+};
+
 const Cart = () => {
   const navigate = useNavigate();
 
@@ -128,7 +141,7 @@ const Cart = () => {
                   <div className="flex-grow px-4 mt-4 lg:mt-0">
                     <h3 className="text-lg font-semibold">{item.productId.name}</h3>
                     <p className="text-gray-600">{item.productId.description}</p>
-                    <p className="text-gray-800 font-bold mt-2">₹{item.price}</p>
+                    <p className="text-gray-800 font-bold mt-2"> ₹{formatCurrency(item.price)}</p>
                     <div className="flex items-center mt-4 space-x-4">
                       <button
                         onClick={() => addToWishlist(item.productId._id)} 

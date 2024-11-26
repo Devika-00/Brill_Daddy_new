@@ -9,6 +9,19 @@ import Footer from '../../components/User/Footer';
 import { SERVER_URL } from "../../Constants";
 import { FaMapMarkerAlt, FaTimesCircle, FaCheckCircle, FaTruck, FaBoxOpen, FaClock, FaTruckMoving } from 'react-icons/fa';
 
+const formatCurrency = (value) => {
+  if (value === undefined || value === null) return '';
+  
+  // Convert to string and split decimal parts
+  const [integerPart, decimalPart] = value.toString().split('.');
+  
+  // Add commas to integer part
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  // Recombine with decimal part if exists
+  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+};
+
 const OrderDetails = () => {
   const { id, productId } = useParams();
   const [order, setOrder] = useState(null);
@@ -342,9 +355,9 @@ const OrderDetails = () => {
                 <h5 className="text-lg font-bold">{item.productId.name}</h5>
                 <p className="text-gray-600">{item.productId.description}</p>
                 <div className="flex justify-between w-full mt-2">
-                  <span className="text-gray-700">Price: ${item.price.toFixed(2)}</span>
+                  <span className="text-gray-700">Price: ₹{formatCurrency(item.price)}</span>
                   <span className="text-gray-700">Quantity: {item.quantity}</span>
-                  <span className="text-gray-700">Total: ${(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="text-gray-700">Total: ₹{formatCurrency(item.price * item.quantity)}</span>
                 </div>
               </div>
             </div>
