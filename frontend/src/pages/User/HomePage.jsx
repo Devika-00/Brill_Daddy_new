@@ -392,125 +392,205 @@ const HomePage = () => {
       </div>
 
       <div className="p-6 mx-auto max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Fashion Category Card */}
-          <div
-            onClick={() => handleCategoryClick("fashion")}
-            className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
-          >
-            <div className="relative h-48">
-              <img
-                src="https://st3.depositphotos.com/3591429/14866/i/450/depositphotos_148668333-stock-photo-credit-card-and-fashion-graphic.jpg"
-                alt="Fashion"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-            </div>
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-700">Fashion</h2>
-              <p className="text-gray-500 mt-2">
-                Stylish clothing and accessories for every season.
-              </p>
-            </div>
-          </div>
-
-          {/* Electronics Category Card */}
-          <div
-            onClick={() => handleCategoryClick("electronics")}
-            className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
-          >
-            <div className="relative h-48">
-              <img
-                src="https://assets.architecturaldigest.in/photos/60084fc951daf9662c149bb9/16:9/w_2560%2Cc_limit/how-to-clean-gadgets-1366x768.jpg"
-                alt="Electronics"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-            </div>
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-700">Electronics</h2>
-              <p className="text-gray-500 mt-2">
-                Latest gadgets and devices at unbeatable prices.
-              </p>
-            </div>
-          </div>
-
-          {/* Voucher Card */}
-          <div className="relative w-full overflow-hidden">
-            <div
-              className="flex transition-transform duration-500"
-              style={{
-                transform: `translateX(-${currentVoucherIndex * 100}%)`,
-                width: `${vouchers.length * 14.5}%`,
-              }}
-            >
-              {vouchers.map((voucher, index) => (
-                <div key={index} className="w-full flex-shrink-0">
-                  <div className="bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden">
-                    {/* Free Badge */}
-                    {voucher.price === 0 && (
-                      <div className="absolute top-2 left-4 z-10">
-                        <div className="bg-green-600 text-white font-bold px-4 py-1 rounded-md shadow-lg">
-                          FREE
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Image Section */}
-                    <div className="relative w-full h-44">
-                      <img
-                        src={voucher.imageUrl}
-                        alt={voucher.voucher_name}
-                        className="w-full h-full object-cover rounded-t-lg"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                    </div>
-
-                    {/* Content Section */}
-                    <div className="p-4">
-                      <h3 className="text-xl font-bold text-white mb-2">
-                        {voucher.voucher_name || "Special Offer"}
-                      </h3>
-                      <div className="bg-white/10 rounded-lg p-3 space-y-2 mb-2">
-                        <div className="flex items-center text-white">
-                          <Package className="w-4 h-4 mr-2" />
-                          <span className="font-medium">
-                            {voucher.product_name || "Premium Product"}
-                          </span>
-                        </div>
-                        <div className="flex items-center text-white">
-                          <Tag className="w-4 h-4 mr-2" />
-                          <span className="font-medium">
-                            Worth ₹{voucher.productPrice || "1000"}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Footer Section */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center text-white/90">
-                          <Clock className="w-4 h-4 mr-2" />
-                          <span className="text-sm">
-                            Valid until{" "}
-                            {voucher.end_time
-                              ? new Date(voucher.end_time).toLocaleDateString()
-                              : "Dec 31, 2024"}
-                          </span>
-                        </div>
-
-                        <button
-                          className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg transition-colors duration-300 flex items-center"
-                          onClick={() => handleClaimVoucher(voucher)}
-                        >
-                          <Gift className="w-4 h-4 mr-2" />
-                          <span>Get it now</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+        {/* Flex Layout for Side-by-Side Design */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left: Categories Section */}
+          <div className="flex-2 space-y-8">
+            <h2 className="text-2xl font-bold text-gray-800">
+              Shop by Category
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* Fashion Category Card */}
+              <div
+                onClick={() => handleCategoryClick("fashion")}
+                className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
+              >
+                <div className="relative h-40">
+                  <img
+                    src="https://st3.depositphotos.com/3591429/14866/i/450/depositphotos_148668333-stock-photo-credit-card-and-fashion-graphic.jpg"
+                    alt="Fashion"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                 </div>
-              ))}
+                <div className="p-4">
+                  <h3 className="text-base font-bold text-gray-700">Fashion</h3>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Stylish clothing and accessories for every season.
+                  </p>
+                </div>
+              </div>
+
+              {/* Electronics Category Card */}
+              <div
+                onClick={() => handleCategoryClick("electronics")}
+                className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
+              >
+                <div className="relative h-40">
+                  <img
+                    src="https://assets.architecturaldigest.in/photos/60084fc951daf9662c149bb9/16:9/w_2560%2Cc_limit/how-to-clean-gadgets-1366x768.jpg"
+                    alt="Electronics"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-base font-bold text-gray-700">
+                    Electronics
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Latest gadgets and devices at unbeatable prices.
+                  </p>
+                </div>
+              </div>
+
+              {/* Home Appliances Category Card */}
+              <div
+                onClick={() => handleCategoryClick("homeAppliances")}
+                className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
+              >
+                <div className="relative h-40">
+                  <img
+                    src="https://media.istockphoto.com/id/1211554164/photo/3d-render-of-home-appliances-collection-set.jpg?s=612x612&w=0&k=20&c=blm3IyPyZo5ElWLOjI-hFMG-NrKQ0G76JpWGyNttF8s="
+                    alt="Home Appliances"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-base font-bold text-gray-700">
+                    Home Appliances
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-2">
+                    High-quality appliances for a better home experience.
+                  </p>
+                </div>
+              </div>
+
+              {/* Vehicles Category Card */}
+              <div
+                onClick={() => handleCategoryClick("vehicles")}
+                className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
+              >
+                <div className="relative h-40">
+                  <img
+                    src="https://www.gtainside.com/downloads/picr/2021-10/1635019704_sound%20pack.jpg"
+                    alt="Vehicles"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-base font-bold text-gray-700">
+                    Vehicles
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Find the best vehicles and accessories for your needs.
+                  </p>
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* Right: Voucher Section */}
+          <div className="flex-1 space-y-4">
+            <h2 className="text-2xl font-bold text-gray-800 mb-7 ml-10">
+              Exclusive Vouchers
+            </h2>
+            <div className="relative w-96 overflow-hidden ml-10 mr-10">
+              {vouchers.length > 0 && (
+                <div
+                  className="transition-transform duration-500 ease-in-out"
+                  style={{
+                    transform: `translateX(-${currentVoucherIndex * 100}%)`,
+                    display: "flex",
+                    width: `${vouchers.length * 14.5}%`,
+                  }}
+                >
+                  {vouchers.map((voucher, index) => (
+                    <div
+                      key={voucher._id}
+                      className="w-full flex-shrink-0 bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden"
+                      style={{ width: "100%" }}
+                    >
+                      {/* Free Badge */}
+                      {voucher.price === 0 && (
+                        <div className="absolute top-2 left-4 z-10">
+                          <div className="bg-green-600 text-white font-bold px-4 py-1 rounded-md shadow-lg">
+                            FREE
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Image Section */}
+                      <div className="relative w-full h-64">
+                        <img
+                          src={voucher.imageUrl}
+                          alt={voucher.voucher_name || "Voucher"}
+                          className="w-full h-full object-cover rounded-t-lg"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      </div>
+
+                      {/* Content Section */}
+                      <div className="p-6 text-white">
+                        <h3 className="text-lg font-bold mb-2">
+                          {voucher.voucher_name || "Special Offer"}
+                        </h3>
+                        <div className="bg-white/10 rounded-lg p-3 space-y-2 mb-4">
+                          <div className="flex items-center">
+                            <Package className="w-4 h-4 mr-2" />
+                            <span>
+                              {voucher.product_name || "Premium Product"}
+                            </span>
+                          </div>
+                          <div className="flex items-center">
+                            <Tag className="w-4 h-4 mr-2" />
+                            <span>Worth ₹{voucher.productPrice || "1000"}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center text-white/90">
+                            <Clock className="w-4 h-4 mr-2" />
+                            <span className="text-sm">
+                              Valid until{" "}
+                              {voucher.end_time
+                                ? new Date(
+                                    voucher.end_time
+                                  ).toLocaleDateString()
+                                : "Dec 31, 2024"}
+                            </span>
+                          </div>
+                          <button
+                            className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors duration-300 flex items-center"
+                            onClick={() => handleClaimVoucher(voucher)}
+                          >
+                            <Gift className="w-4 h-4 mr-2" />
+                            Get it now
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Pagination Dots */}
+            {/* <div className="flex justify-center mt-4 space-x-2">
+              {vouchers.map((_, index) => (
+                <button
+                  key={index}
+                  className={`h-2 w-2 rounded-full ${
+                    index === currentVoucherIndex
+                      ? "bg-violet-700"
+                      : "bg-violet-300"
+                  }`}
+                  onClick={() => setCurrentVoucherIndex(index)}
+                />
+              ))}
+            </div> */}
+
             <div className="text-center mt-4">
               <Link
                 to="/event"
@@ -676,8 +756,8 @@ const HomePage = () => {
 
       <Footer />
       <div className="fixed bottom-8 right-8 z-50">
-    <ChatBotButton />
-  </div>
+        <ChatBotButton />
+      </div>
     </div>
   );
 };
