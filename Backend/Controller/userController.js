@@ -14,6 +14,7 @@ const Address = require("../Models/addressModel");
 const Order = require("../Models/orderModel");
 const Voucher = require("../Models/voucherModel");
 const Wallet = require("../Models/walletModel");
+const Winner = require("../Models/winnerModel");
 
 const getProducts = async (req,res) =>{
     try {
@@ -29,13 +30,28 @@ const fetchimages = async (req, res) =>{
         const id = req.params.id;
         const image = await Images.findById(id);
         if (image) {
-          res.json({ imageUrl: image.thumbnailUrl }); // Adjust based on your image model structure
+          res.json({ imageUrl: image.thumbnailUrl }); 
         } else {
           res.status(404).json({ error: "Image not found" });
         }
       } catch (error) {
         res.status(500).json({ error: "Server error" });
       }
+}
+
+const fetchimagesSub = async (req, res) =>{
+  try {
+      const id = req.params.id;
+      const image = await Images.findById(id);
+      console.log(image,"ooooooooooooo")
+      if (image) {
+        res.json({ imageSubUrl: image.imageUrl }); 
+      } else {
+        res.status(404).json({ error: "Image not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Server error" });
+    }
 }
 
 const fetchCategory = async (req, res) =>{
@@ -817,10 +833,44 @@ const updateQuantity = async (req, res) => {
 };
 
 
+const getWinningDetails = async (req, res) => {
+  try {
+  
+    const { userId } = req.params;
+    const winner = await Winner.find({userId : userId});
+
+    if (!winner) {
+      return res.status(404).json({ message: 'Winner not found' });
+    }
+
+    res.json(winner);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+const getParticularVoucher = async (req, res) => {
+  try {
+    const { voucherId } = req.params;
+    const voucher = await Voucher.find({ _id: voucherId });
+
+    if (!voucher) {
+      return res.status(404).json({ message: 'Voucher not found' });
+    }
+   
+    res.json(voucher);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
 
 
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
-  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity
+  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity, fetchimagesSub, getWinningDetails, getParticularVoucher,
 }

@@ -1,36 +1,37 @@
 //frontend/src/pages/user/Shop.jsx
-import React, { useState, useEffect } from 'react';
-import OrginalNavbar from '../../components/User/OrginalUserNavbar';
-import NavbarWithMenu from '../../components/User/NavbarwithMenu';
-import Footer from '../../components/User/Footer';
-import { FaHeart, FaSearch } from 'react-icons/fa';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import OrginalNavbar from "../../components/User/OrginalUserNavbar";
+import NavbarWithMenu from "../../components/User/NavbarwithMenu";
+import Footer from "../../components/User/Footer";
+import { FaHeart, FaSearch } from "react-icons/fa";
+import axios from "axios";
 import { SERVER_URL } from "../../Constants/index";
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useAppSelector } from '../../Redux/Store/store';
-
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAppSelector } from "../../Redux/Store/store";
 
 const formatCurrency = (value) => {
-  if (value === undefined || value === null) return '';
-  
+  if (value === undefined || value === null) return "";
+
   // Convert to string and split decimal parts
-  const [integerPart, decimalPart] = value.toString().split('.');
-  
+  const [integerPart, decimalPart] = value.toString().split(".");
+
   // Add commas to integer part
-  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
   // Recombine with decimal part if exists
   return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
 };
 
 const Shop = () => {
-  const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('default');
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("default");
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [wishlist, setWishlist] = useState({});
+  const [productImageIndices, setProductImageIndices] = useState({});
+
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
   const token = user.token;
@@ -41,7 +42,7 @@ const Shop = () => {
 
   useEffect(() => {
     const query = new URLSearchParams(location.search);
-    const searchQuery = query.get('search') || '';
+    const searchQuery = query.get("search") || "";
     setSearch(searchQuery);
   }, [location.search]);
 
@@ -49,13 +50,27 @@ const Shop = () => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(`${SERVER_URL}/user/products`);
-        const productsWithImages = await Promise.all(response.data.map(async (product) => {
-          if (product.images && product.images.length > 0) {
-            const imageResponse = await axios.get(`${SERVER_URL}/user/images/${product.images[0]}`);
-            product.imageUrl = imageResponse.data.imageUrl;
-          }
-          return product;
-        }));
+        const productsWithImages = await Promise.all(
+          response.data.map(async (product) => {
+            if (product.images && product.images.length > 0) {
+              const imageResponse = await axios.get(
+                `${SERVER_URL}/user/images/${product.images[0]}`
+              );
+              product.imageUrl = imageResponse.data.imageUrl;
+
+              const imagesSubResponses = await Promise.all(
+                product.images.slice(1).map(async (imageId) => {
+                  const subImageResponse = await axios.get(
+                    `${SERVER_URL}/user/imagesSub/${imageId}`
+                  );
+                  return subImageResponse.data.imageSubUrl;
+                })
+              );
+              product.imageSubUrl = [product.imageUrl, ...imagesSubResponses];
+            }
+            return product;
+          })
+        );
         setProducts(productsWithImages);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -73,8 +88,8 @@ const Shop = () => {
 
     const fetchWishlist = async () => {
       try {
-        console.log("Retrieved token:", token);  // Log token
-        console.log("Retrieved userId:", userId);  // Log userId
+        console.log("Retrieved token:", token); // Log token
+        console.log("Retrieved userId:", userId); // Log userId
         if (!userId || !token) return;
 
         const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
@@ -84,10 +99,13 @@ const Shop = () => {
         // Check if wishlist is empty and only process if not empty
         if (response.data.length > 0) {
           const wishlistItems = response.data.reduce((acc, item) => {
-            acc[item.productId._id] = item.wishlistStatus === 'added';
+            acc[item.productId._id] = item.wishlistStatus === "added";
             return acc;
           }, {});
-          console.log("Wishlist fetched:", JSON.stringify(wishlistItems, null, 2));
+          console.log(
+            "Wishlist fetched:",
+            JSON.stringify(wishlistItems, null, 2)
+          );
           setWishlist(wishlistItems);
         } else {
           console.log("Wishlist is empty, no products found.");
@@ -103,6 +121,40 @@ const Shop = () => {
     fetchWishlist();
   }, [userId, token]);
 
+
+  useEffect(() => {
+    // Initialize image indices for each product
+    const initialImageIndices = products.reduce((acc, product) => {
+      acc[product._id] = 0;
+      return acc;
+    }, {});
+    setProductImageIndices(initialImageIndices);
+
+    // Function to cycle images
+    const cycleProductImages = () => {
+      const newIndices = { ...productImageIndices };
+      
+      products.forEach(product => {
+        if (product.imageSubUrl && product.imageSubUrl.length > 1) {
+          newIndices[product._id] = 
+            (newIndices[product._id] + 1) % product.imageSubUrl.length;
+        }
+      });
+
+      setProductImageIndices(newIndices);
+    };
+
+    // Set up interval to cycle images every 2 seconds
+    const intervalId = setInterval(cycleProductImages, 2000);
+
+    // Clear interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [products]);
+
+ 
+
+  
+
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
     setCurrentPage(1);
@@ -111,45 +163,52 @@ const Shop = () => {
   const toggleFavorite = async (productId, e) => {
     e.preventDefault();
     e.stopPropagation();
-  
+
     try {
-    console.log("Retrieved token:", token);
-    console.log("Retrieved userId:", userId);
-    console.log("Product ID:", productId);
-    if (!userId || !token) {
-      navigate("/login");
-      return;
-    }
-  
+      console.log("Retrieved token:", token);
+      console.log("Retrieved userId:", userId);
+      console.log("Product ID:", productId);
+      if (!userId || !token) {
+        navigate("/login");
+        return;
+      }
+
       const headers = {
         Authorization: `Bearer ${token}`,
       };
-  
+
       console.log("Toggling favorite for productId:", productId);
-  
+
       const requestBody = {
         productId,
         userId,
-        wishlistStatus: wishlist[productId] ? 'removed' : 'added',
+        wishlistStatus: wishlist[productId] ? "removed" : "added",
       };
-  
+
       console.log("Current wishlist state before update:", wishlist);
-  
+
       if (wishlist[productId]) {
-        const response = await axios.delete(`${SERVER_URL}/user/wishlist/remove`, {
-          headers,
-          data: requestBody
-        });
-  
+        const response = await axios.delete(
+          `${SERVER_URL}/user/wishlist/remove`,
+          {
+            headers,
+            data: requestBody,
+          }
+        );
+
         if (response.status === 200) {
-          setWishlist(prev => ({ ...prev, [productId]: false }));
+          setWishlist((prev) => ({ ...prev, [productId]: false }));
           alert("Product removed from wishlist!");
         }
       } else {
-        const response = await axios.post(`${SERVER_URL}/user/wishlist`, requestBody, { headers });
-  
+        const response = await axios.post(
+          `${SERVER_URL}/user/wishlist`,
+          requestBody,
+          { headers }
+        );
+
         if (response.status === 201) {
-          setWishlist(prev => ({ ...prev, [productId]: true }));
+          setWishlist((prev) => ({ ...prev, [productId]: true }));
           alert("Product added to wishlist!");
         }
       }
@@ -158,22 +217,22 @@ const Shop = () => {
       alert("There was an issue adding/removing the item from your wishlist.");
     }
   };
-  
 
-  const filteredProducts = products.filter(product =>
-    (selectedCategory ? product.category === selectedCategory : true) &&
-    product.name.toLowerCase().includes(search.toLowerCase())
+  const filteredProducts = products.filter(
+    (product) =>
+      (selectedCategory ? product.category === selectedCategory : true) &&
+      product.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
-      case 'az':
+      case "az":
         return a.name.localeCompare(b.name);
-      case 'za':
+      case "za":
         return b.name.localeCompare(a.name);
-      case 'priceasc':
+      case "priceasc":
         return a.salePrice - b.salePrice;
-      case 'pricedesc':
+      case "pricedesc":
         return b.salePrice - a.salePrice;
       default:
         return 0;
@@ -185,7 +244,11 @@ const Shop = () => {
     currentPage * itemsPerPage
   );
 
+  console.log(products, "llllllllll");
+
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
+
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
@@ -212,8 +275,10 @@ const Shop = () => {
               <h3 className="text-xl font-semibold mb-3">Categories</h3>
               <ul>
                 <button
-                  onClick={() => handleCategoryClick('')}
-                  className={`text-gray-700 mb-2 ${!selectedCategory && 'font-bold'}`}
+                  onClick={() => handleCategoryClick("")}
+                  className={`text-gray-700 mb-2 ${
+                    !selectedCategory && "font-bold"
+                  }`}
                 >
                   Show All
                 </button>
@@ -221,7 +286,9 @@ const Shop = () => {
                   <li key={category._id} className="mb-2">
                     <button
                       onClick={() => handleCategoryClick(category.name)}
-                      className={`text-gray-700 hover:text-blue-600 transition ${selectedCategory === category.name ? 'font-bold' : ''}`}
+                      className={`text-gray-700 hover:text-blue-600 transition ${
+                        selectedCategory === category.name ? "font-bold" : ""
+                      }`}
                     >
                       {category.name}
                     </button>
@@ -255,42 +322,68 @@ const Shop = () => {
               </div>
             ) : (
               <>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {displayedProducts.map((product) => (
-                  <div key={product._id} className="relative bg-white p-6 rounded-lg shadow-lg">
-                    
-                    <button
-                      className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${
-                        wishlist[product._id] ? "text-red-500" : "text-gray-500"
-                      }`}
-                      onClick={(e) => toggleFavorite(product._id, e)} // Pass event object to toggleFavorite
-                    >
-                      <FaHeart className={wishlist[product._id] ? "fill-current" : ""} />
-                    </button>
-
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  {displayedProducts.map((product) => (
                     <div
-                      onClick={() => navigate(`/singleProduct/${product._id}`)} // Navigate to single product page
+                      key={product._id}
+                      className="relative bg-white p-6 rounded-lg shadow-lg"
+                      
+                    >
+                      <button
+                        className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${
+                          wishlist[product._id]
+                            ? "text-red-500"
+                            : "text-gray-500"
+                        }`}
+                        onClick={(e) => toggleFavorite(product._id, e)} // Pass event object to toggleFavorite
+                      >
+                        <FaHeart
+                          className={
+                            wishlist[product._id] ? "fill-current" : ""
+                          }
+                        />
+                      </button>
+
+                      <div
+                      onClick={() =>
+                        navigate(`/singleProduct/${product._id}`)
+                      } 
+                      onMouseEnter={() => handleMouseEnter(product._id)}
                       className="cursor-pointer"
                     >
-  <img
-    src={product.imageUrl}
-    alt={product.title}
-    className="h-56 object-cover rounded-lg mb-4"
-  />
-</div>
+                      <img
+                        src={
+                          product.imageSubUrl && product.imageSubUrl.length > 0
+                            ? product.imageSubUrl[
+                                productImageIndices[product._id] || 0
+                              ]
+                            : product.imageUrl
+                        }
+                        alt={product.title}
+                        className="h-56 w-full object-cover rounded-lg mb-4"
+                      />
+                    </div>
 
-                    <div>
-                      <h4 className="text-lg font-semibold mb-2 truncate">{product.name}</h4>
-                      <p className="text-gray-500 mb-4">Category: {product.category}</p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-lg font-bold text-blue-600">₹{formatCurrency(product.productPrice)}</span>
-                        {product.salePrice !== product.productPrice && (
-                          <span className="line-through text-gray-400">₹{formatCurrency(product.salePrice)}</span>
-                        )}
+                      <div>
+                        <h4 className="text-lg font-semibold mb-2 truncate">
+                          {product.name}
+                        </h4>
+                        <p className="text-gray-500 mb-4">
+                          Category: {product.category}
+                        </p>
+                        <div className="flex justify-between items-center">
+                          <span className="text-lg font-bold text-blue-600">
+                            ₹{formatCurrency(product.productPrice)}
+                          </span>
+                          {product.salePrice !== product.productPrice && (
+                            <span className="line-through text-gray-400">
+                              ₹{formatCurrency(product.salePrice)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
                 </div>
 
                 {displayedProducts.length > 0 && totalPages > 1 && (
@@ -309,7 +402,11 @@ const Shop = () => {
                         <li key={page + 1}>
                           <button
                             onClick={() => setCurrentPage(page + 1)}
-                            className={`px-4 py-2 bg-white border border-gray-300 ${currentPage === page + 1 ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'}`}
+                            className={`px-4 py-2 bg-white border border-gray-300 ${
+                              currentPage === page + 1
+                                ? "bg-blue-500 text-white"
+                                : "hover:bg-gray-200"
+                            }`}
                           >
                             {page + 1}
                           </button>

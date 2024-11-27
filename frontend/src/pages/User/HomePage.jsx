@@ -7,6 +7,7 @@ import { FaArrowLeft, FaArrowRight, FaHeart } from "react-icons/fa";
 import { SERVER_URL } from "../../Constants";
 import axios from "axios";
 import ImageOne from "../../assets/Group1.png";
+import ImageTagLine from "../../assets/Group 4.png";
 import ImageTwo from "../../assets/Group2.png";
 import { Clock, Package, Tag, Gift } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
@@ -73,13 +74,21 @@ const HomePage = () => {
 
   const carouselImages = [
     ImageOne,
+    ImageTagLine,
     ImageTwo,
+    ImageTagLine,
     ImageOne,
+    ImageTagLine,
     ImageTwo,
+    ImageTagLine,
     ImageOne,
+    ImageTagLine,
     ImageTwo,
+    ImageTagLine,
     ImageOne,
+    ImageTagLine,
     ImageTwo,
+    ImageTagLine,
   ];
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -526,6 +535,7 @@ const HomePage = () => {
                       key={voucher._id}
                       className="w-full flex-shrink-0 bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden"
                       style={{ width: "100%" }}
+                      onClick={() => handleClaimVoucher(voucher)}
                     >
                       {/* Free Badge */}
                       {voucher.price === 0 && (

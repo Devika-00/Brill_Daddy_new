@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
-import { AiOutlineUser, AiOutlineHome, AiOutlineShoppingCart, AiOutlineHeart, AiOutlineLogout, AiFillDelete, AiFillEdit } from 'react-icons/ai';
+import { AiOutlineUser, AiOutlineHome, AiOutlineShoppingCart, AiOutlineHeart, AiOutlineLogout, AiFillDelete, AiFillEdit, AiOutlineTrophy} from 'react-icons/ai';
 import { useAppSelector } from '../../Redux/Store/store';
 import { SERVER_URL } from "../../Constants";
 import axios from 'axios';
@@ -187,6 +187,13 @@ const Profile = () => {
             >
               <AiOutlineHome className="text-lg" />
               <span>Manage Address</span>
+            </button>
+            <button
+              className="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-blue-100"
+              onClick={() => window.location.href = '/winalbum'}
+            >
+              <AiOutlineTrophy className="text-lg" />
+              <span>Win Album</span>
             </button>
             <button
               className="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-blue-100"
