@@ -1,4 +1,3 @@
-//frontend/src/pages/user/Shop.jsx
 import React, { useState, useEffect } from "react";
 import OrginalNavbar from "../../components/User/OrginalUserNavbar";
 import NavbarWithMenu from "../../components/User/NavbarwithMenu";

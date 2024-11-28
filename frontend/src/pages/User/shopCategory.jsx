@@ -5,7 +5,8 @@ import Footer from '../../components/User/Footer';
 import { FaHeart } from 'react-icons/fa';
 import axios from 'axios';
 import { SERVER_URL } from "../../Constants/index";
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAppSelector } from "../../Redux/Store/store";
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return '';
@@ -33,6 +34,10 @@ const ShopCategory = () => {
   const itemsPerPage = 40;
 
   const location = useLocation();
+  const navigate = useNavigate();
+  const user = useAppSelector((state) => state.user);
+  const userId = user.id;
+  const token = user.token;
 
   useEffect(() => {
     const query = new URLSearchParams(location.search);
@@ -68,9 +73,40 @@ const ShopCategory = () => {
       }
     };
 
+    const fetchWishlist = async () => {
+      try {
+        console.log("Retrieved token:", token); // Log token
+        console.log("Retrieved userId:", userId); // Log userId
+        if (!userId || !token) return;
+
+        const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // Check if wishlist is empty and only process if not empty
+        if (response.data.length > 0) {
+          const wishlistItems = response.data.reduce((acc, item) => {
+            acc[item.productId._id] = item.wishlistStatus === "added";
+            return acc;
+          }, {});
+          console.log(
+            "Wishlist fetched:",
+            JSON.stringify(wishlistItems, null, 2)
+          );
+          setWishlist(wishlistItems);
+        } else {
+          console.log("Wishlist is empty, no products found.");
+          setWishlist({});
+        }
+      } catch (error) {
+        console.error("Error fetching wishlist:", error);
+      }
+    };
+
     fetchProducts();
     fetchCategories();
-  }, []);
+    fetchWishlist();
+  }, [userId, token]);
 
   useEffect(() => {
     const initialImageIndices = products.reduce((acc, product) => {
@@ -100,6 +136,57 @@ const ShopCategory = () => {
 
   const handleMouseEnter = (productId) => setHoveredProduct(productId);
   const handleMouseLeave = () => setHoveredProduct(null);
+
+  const toggleFavorite = async (productId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      if (!userId || !token) {
+        navigate("/login");
+        return;
+      }
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      const requestBody = {
+        productId,
+        userId,
+        wishlistStatus: wishlist[productId] ? "removed" : "added",
+      };
+
+      if (wishlist[productId]) {
+        const response = await axios.delete(
+          `${SERVER_URL}/user/wishlist/remove`,
+          {
+            headers,
+            data: requestBody,
+          }
+        );
+
+        if (response.status === 200) {
+          setWishlist((prev) => ({ ...prev, [productId]: false }));
+          alert("Product removed from wishlist!");
+        }
+      } else {
+        const response = await axios.post(
+          `${SERVER_URL}/user/wishlist`,
+          requestBody,
+          { headers }
+        );
+
+        if (response.status === 201) {
+          setWishlist((prev) => ({ ...prev, [productId]: true }));
+          alert("Product added to wishlist!");
+        }
+      }
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+      alert("There was an issue adding/removing the item from your wishlist.");
+    }
+  };
 
   const filteredProducts = products.filter(product =>
     (selectedCategory ? product.category === selectedCategory : true) &&
@@ -168,9 +255,20 @@ const ShopCategory = () => {
                   <div key={product._id} className="relative bg-white p-4 rounded-lg shadow-lg" onMouseEnter={() => handleMouseEnter(product._id)}
                   onMouseLeave={handleMouseLeave}
                   >
-                    <button className="absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full text-gray-500 hover:text-red-500">
-                      <FaHeart />
-                    </button>
+                    <button
+                        className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${
+                          wishlist[product._id]
+                            ? "text-red-500"
+                            : "text-gray-500"
+                        }`}
+                        onClick={(e) => toggleFavorite(product._id, e)} // Pass event object to toggleFavorite
+                      >
+                        <FaHeart
+                          className={
+                            wishlist[product._id] ? "fill-current" : ""
+                          }
+                        />
+                      </button>
                     <a href={`/singleProduct/${product._id}`}>
                     <img
                     src={
