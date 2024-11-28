@@ -27,7 +27,10 @@ const ShopCategory = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const [wishlist, setWishlist] = useState({});
+  const [productImageIndices, setProductImageIndices] = useState({});
+  const [hoveredProduct, setHoveredProduct] = useState(null);
+  const itemsPerPage = 40;
 
   const location = useLocation();
 
@@ -46,6 +49,7 @@ const ShopCategory = () => {
           if (product.images && product.images.length > 0) {
             const imageResponse = await axios.get(`${SERVER_URL}/user/images/${product.images[0]}`);
             product.imageUrl = imageResponse.data.imageUrl;
+            product.imageSubUrl = imageResponse.data.subImageUrl;
           }
           return product;
         }));
@@ -67,6 +71,35 @@ const ShopCategory = () => {
     fetchProducts();
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    const initialImageIndices = products.reduce((acc, product) => {
+      acc[product._id] = 0;
+      return acc;
+    }, {});
+    setProductImageIndices(initialImageIndices);
+  }, [products]);
+
+  useEffect(() => {
+    let intervalId;
+
+    if (hoveredProduct) {
+      intervalId = setInterval(() => {
+        setProductImageIndices((prevIndices) => {
+          const newIndices = { ...prevIndices };
+          newIndices[hoveredProduct] =
+            (newIndices[hoveredProduct] + 1) %
+            products.find((p) => p._id === hoveredProduct).imageSubUrl.length;
+          return newIndices;
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(intervalId);
+  }, [hoveredProduct, products]);
+
+  const handleMouseEnter = (productId) => setHoveredProduct(productId);
+  const handleMouseLeave = () => setHoveredProduct(null);
 
   const filteredProducts = products.filter(product =>
     (selectedCategory ? product.category === selectedCategory : true) &&
@@ -103,7 +136,7 @@ const ShopCategory = () => {
       <NavbarWithMenu />
 
       <div className="container mx-auto flex-grow px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {selectedCategory && (
             <h2 className="text-2xl font-bold text-center col-span-4 mb-3 text-blue-900">
               {selectedCategory} Products
@@ -112,12 +145,12 @@ const ShopCategory = () => {
 
           {hasProducts && (
             <div className="mb-4">
-              <label htmlFor="sortBy" className="mb-2 text-lg font-semibold mr-2">Sort By:</label>
+              <label htmlFor="sortBy" className="mb-2 text-lg font-semibold ml-14">Sort By:</label>
               <select
                 id="sortBy"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-md"
+                className="px-4 py-2 border border-gray-300 rounded-md ml-2"
               >
                 <option value="default">Relevant</option>
                 <option value="az">Name: A-Z</option>
@@ -132,16 +165,22 @@ const ShopCategory = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 ml-10 mr-10 flex-1">
               {hasProducts ? (
                 displayedProducts.map((product) => (
-                  <div key={product._id} className="relative bg-white p-4 rounded-lg shadow-lg">
+                  <div key={product._id} className="relative bg-white p-4 rounded-lg shadow-lg" onMouseEnter={() => handleMouseEnter(product._id)}
+                  onMouseLeave={handleMouseLeave}
+                  >
                     <button className="absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full text-gray-500 hover:text-red-500">
                       <FaHeart />
                     </button>
                     <a href={`/singleProduct/${product._id}`}>
-                      <img
-                        src={product.imageUrl}
-                        alt={product.title}
-                        className="h-56 w-full object-cover rounded-lg mb-4"
-                      />
+                    <img
+                    src={
+                      product.imageSubUrl?.[
+                        productImageIndices[product._id] || 0
+                      ] || product.imageUrl
+                    }
+                    alt={product.name}
+                    className="w-64 h-64 object-cover"
+                  />
                     </a>
                     <div>
                       <h4 className="text-lg font-semibold mb-2 truncate">{product.name}</h4>
