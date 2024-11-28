@@ -15,6 +15,7 @@ const Order = require("../Models/orderModel");
 const Voucher = require("../Models/voucherModel");
 const Wallet = require("../Models/walletModel");
 const Winner = require("../Models/winnerModel");
+const Bid = require("../Models/bidModel");
 
 const getProducts = async (req,res) =>{
     try {
@@ -866,6 +867,37 @@ const getParticularVoucher = async (req, res) => {
   }
 };
 
+const getUserBids = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    // Fetch all bids by the user
+    const userBids = await Bid.find({ userId }).lean();
+
+    if (!userBids.length) {
+      return res.status(404).json({ message: "No bids found for the user." });
+    }
+
+    // Group bids by voucherId
+    const groupedBids = userBids.reduce((acc, bid) => {
+      if (!acc[bid.voucherId]) {
+        acc[bid.voucherId] = [];
+      }
+      acc[bid.voucherId].push(bid);
+      return acc;
+    }, {});
+
+    return res.status(200).json(groupedBids);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 
 
 
@@ -873,4 +905,5 @@ const getParticularVoucher = async (req, res) => {
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
   updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity, fetchimagesSub, getWinningDetails, getParticularVoucher,
+  getUserBids,
 }

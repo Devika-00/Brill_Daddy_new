@@ -32,6 +32,7 @@ import NotFoundPage from "../pages/User/NotFoundPage";
 import PaymentPage from "../pages/User/Payment";
 import Wallet from "../pages/User/Wallet";
 import WinnerAlbumPage from "../pages/User/WinAlbum";
+import BidProductsPage from "../pages/User/BidProducts";
 
 const MainRouter = () => {
   return (
@@ -54,6 +55,7 @@ const MainRouter = () => {
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/winAlbum" element={<WinnerAlbumPage />} />
+        <Route path="/bidProducts" element={<BidProductsPage />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/event" element={<Event />} />
         <Route path="/eventDetail" element={<EventDetail />} />

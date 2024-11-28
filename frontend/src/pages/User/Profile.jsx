@@ -197,6 +197,13 @@ const Profile = () => {
             </button>
             <button
               className="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-blue-100"
+              onClick={() => window.location.href = '/bidProducts'}
+            >
+              <AiOutlineTrophy className="text-lg" />
+              <span>Attempt Products</span>
+            </button>
+            <button
+              className="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-blue-100"
               onClick={() => window.location.href = '/orderList'}
             >
               <AiOutlineShoppingCart className="text-lg" />

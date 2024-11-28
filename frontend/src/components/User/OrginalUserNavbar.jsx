@@ -287,7 +287,7 @@ const OrginalNavbar = () => {
                       onClick={() => handleOptionSelect("Your Account")}
                       className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
                     >
-                      Your prize
+                      Account
                     </a>
                     <a
                       onClick={() => handleOptionSelect("Your Orders")}
