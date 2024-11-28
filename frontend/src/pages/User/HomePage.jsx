@@ -371,13 +371,18 @@ const HomePage = () => {
     return () => clearInterval(intervalId); // Cleanup on component unmount
   };
 
-  const handleClaimVoucher = (voucher) => {
-    if (firstFreeVoucher?.price === 0) {
-      navigate(`/eventDetail`, { state: { voucher } });
-    } else {
-      navigate(`/payment/${voucher._id}`, { state: { voucher } });
-    }
-  };
+  // const handleClaimVoucher = (voucher) => {
+  //   if (firstFreeVoucher?.price === 0) {
+  //     navigate(`/eventDetail`, { state: { voucher } });
+  //   } else {
+  //     navigate(`/payment/${voucher._id}`, { state: { voucher } });
+  //   }
+  // };
+
+  const handleClaimVoucher = (voucher) =>{
+    navigate("/event")
+  }
+  
 
   const handleViewMore = () => {
     setVisibleCount((prevCount) => prevCount + 10); // Increase the count to show more products

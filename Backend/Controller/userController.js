@@ -31,7 +31,9 @@ const fetchimages = async (req, res) =>{
         const id = req.params.id;
         const image = await Images.findById(id);
         if (image) {
-          res.json({ imageUrl: image.thumbnailUrl }); 
+          res.json({ imageUrl: image.thumbnailUrl,
+            subImageUrl: image.imageUrl,
+           }); 
         } else {
           res.status(404).json({ error: "Image not found" });
         }
@@ -40,20 +42,19 @@ const fetchimages = async (req, res) =>{
       }
 }
 
-const fetchimagesSub = async (req, res) =>{
-  try {
-      const id = req.params.id;
-      const image = await Images.findById(id);
-      console.log(image,"ooooooooooooo")
-      if (image) {
-        res.json({ imageSubUrl: image.imageUrl }); 
-      } else {
-        res.status(404).json({ error: "Image not found" });
-      }
-    } catch (error) {
-      res.status(500).json({ error: "Server error" });
-    }
-}
+// const fetchimagesSub = async (req, res) =>{
+//   try {
+//       const id = req.params.id;
+//       const image = await Images.findById(id);
+//       if (image) {
+//         res.json({ imageSubUrl: image.imageUrl }); 
+//       } else {
+//         res.status(404).json({ error: "Image not found" });
+//       }
+//     } catch (error) {
+//       res.status(500).json({ error: "Server error" });
+//     }
+// }
 
 const fetchCategory = async (req, res) =>{
     try {
@@ -904,6 +905,6 @@ const getUserBids = async (req, res) => {
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
-  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity, fetchimagesSub, getWinningDetails, getParticularVoucher,
+  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity, getWinningDetails, getParticularVoucher,
   getUserBids,
 }

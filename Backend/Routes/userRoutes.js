@@ -5,12 +5,12 @@ const authenticateUser = require("../middleware/authMiddleware");
 
 const { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems,clearCart, addWishlist,getWishlist,removeWishlist,addAddress
     ,getAddress,deleteAddress, placeOrder, getOrders, getOrderDetail, getProductSuggestions, getUserDetails, removeFromWishlist, updateQuantityOfProduct, updateAddressUser, getUserAddress, getVouchersUserSide,
-    getWallet, removeCartProduct, editAddress, updateQuantity, fetchimagesSub, getWinningDetails, getParticularVoucher, getUserBids,
+    getWallet, removeCartProduct, editAddress, updateQuantity, getWinningDetails, getParticularVoucher, getUserBids,
  } = require("../Controller/userController");
 
 userRoute.get("/products",getProducts);
 userRoute.get("/images/:id",fetchimages);
-userRoute.get("/imagesSub/:id",fetchimagesSub);
+// userRoute.get("/imagesSub/:id",fetchimagesSub);
 userRoute.get("/category",fetchCategory);
 userRoute.get("/products/:id",fetchSingleProduct);
 userRoute.get('/getUserDetails', authenticateUser, getUserDetails);

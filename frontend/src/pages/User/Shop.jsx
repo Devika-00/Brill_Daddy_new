@@ -31,6 +31,7 @@ const Shop = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [wishlist, setWishlist] = useState({});
   const [productImageIndices, setProductImageIndices] = useState({});
+  const [hoveredProduct, setHoveredProduct] = useState(null);
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
@@ -57,16 +58,7 @@ const Shop = () => {
                 `${SERVER_URL}/user/images/${product.images[0]}`
               );
               product.imageUrl = imageResponse.data.imageUrl;
-
-              const imagesSubResponses = await Promise.all(
-                product.images.slice(1).map(async (imageId) => {
-                  const subImageResponse = await axios.get(
-                    `${SERVER_URL}/user/imagesSub/${imageId}`
-                  );
-                  return subImageResponse.data.imageSubUrl;
-                })
-              );
-              product.imageSubUrl = [product.imageUrl, ...imagesSubResponses];
+              product.imageSubUrl = imageResponse.data.subImageUrl;
             }
             return product;
           })
@@ -123,37 +115,33 @@ const Shop = () => {
 
 
   useEffect(() => {
-    // Initialize image indices for each product
     const initialImageIndices = products.reduce((acc, product) => {
       acc[product._id] = 0;
       return acc;
     }, {});
     setProductImageIndices(initialImageIndices);
-
-    // Function to cycle images
-    const cycleProductImages = () => {
-      const newIndices = { ...productImageIndices };
-      
-      products.forEach(product => {
-        if (product.imageSubUrl && product.imageSubUrl.length > 1) {
-          newIndices[product._id] = 
-            (newIndices[product._id] + 1) % product.imageSubUrl.length;
-        }
-      });
-
-      setProductImageIndices(newIndices);
-    };
-
-    // Set up interval to cycle images every 2 seconds
-    const intervalId = setInterval(cycleProductImages, 2000);
-
-    // Clear interval on component unmount
-    return () => clearInterval(intervalId);
   }, [products]);
 
- 
+  useEffect(() => {
+    let intervalId;
 
-  
+    if (hoveredProduct) {
+      intervalId = setInterval(() => {
+        setProductImageIndices((prevIndices) => {
+          const newIndices = { ...prevIndices };
+          newIndices[hoveredProduct] =
+            (newIndices[hoveredProduct] + 1) %
+            products.find((p) => p._id === hoveredProduct).imageSubUrl.length;
+          return newIndices;
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(intervalId);
+  }, [hoveredProduct, products]);
+
+  const handleMouseEnter = (productId) => setHoveredProduct(productId);
+  const handleMouseLeave = () => setHoveredProduct(null);
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
@@ -165,9 +153,6 @@ const Shop = () => {
     e.stopPropagation();
 
     try {
-      console.log("Retrieved token:", token);
-      console.log("Retrieved userId:", userId);
-      console.log("Product ID:", productId);
       if (!userId || !token) {
         navigate("/login");
         return;
@@ -177,15 +162,11 @@ const Shop = () => {
         Authorization: `Bearer ${token}`,
       };
 
-      console.log("Toggling favorite for productId:", productId);
-
       const requestBody = {
         productId,
         userId,
         wishlistStatus: wishlist[productId] ? "removed" : "added",
       };
-
-      console.log("Current wishlist state before update:", wishlist);
 
       if (wishlist[productId]) {
         const response = await axios.delete(
@@ -247,6 +228,7 @@ const Shop = () => {
   console.log(products, "llllllllll");
 
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
+
 
   
 
@@ -327,6 +309,8 @@ const Shop = () => {
                     <div
                       key={product._id}
                       className="relative bg-white p-6 rounded-lg shadow-lg"
+                      onMouseEnter={() => handleMouseEnter(product._id)}
+                      onMouseLeave={handleMouseLeave}
                       
                     >
                       <button
@@ -352,16 +336,14 @@ const Shop = () => {
                       className="cursor-pointer"
                     >
                       <img
-                        src={
-                          product.imageSubUrl && product.imageSubUrl.length > 0
-                            ? product.imageSubUrl[
-                                productImageIndices[product._id] || 0
-                              ]
-                            : product.imageUrl
-                        }
-                        alt={product.title}
-                        className="h-56 w-full object-cover rounded-lg mb-4"
-                      />
+                    src={
+                      product.imageSubUrl?.[
+                        productImageIndices[product._id] || 0
+                      ] || product.imageUrl
+                    }
+                    alt={product.name}
+                    className="w-full h-48 object-cover"
+                  />
                     </div>
 
                       <div>
