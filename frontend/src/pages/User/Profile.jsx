@@ -10,6 +10,7 @@ import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import { clearUser } from '../../Redux/Slice/userSlice';
 import { useNavigate } from 'react-router-dom';
+import ChatBotButton from "../../components/User/chatBot";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('personalInfo');
@@ -354,6 +355,9 @@ const Profile = () => {
         </div>
       </div>
       <Footer />
+      <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
     </div>
   );
 };

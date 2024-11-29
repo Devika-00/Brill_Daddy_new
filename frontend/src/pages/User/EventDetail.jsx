@@ -7,6 +7,7 @@ import axios from "axios";
 import { useAppSelector } from "../../Redux/Store/store";
 import { SERVER_URL } from "../../Constants";
 import { Award, Sparkles, Tag, DollarSign, Ticket, Timer } from "lucide-react";
+import ChatBotButton from "../../components/User/chatBot";
 
 const EventDetail = () => {
   const location = useLocation();
@@ -291,6 +292,9 @@ const EventDetail = () => {
       </div>
 
       <Footer className="mt-8" />
+      <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
     </div>
   );
 };

@@ -13,16 +13,15 @@ import { Clock, Package, Tag, Gift } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
 import ChatBotButton from "../../components/User/chatBot";
 
-
 const formatCurrency = (value) => {
-  if (value === undefined || value === null) return '';
-  
+  if (value === undefined || value === null) return "";
+
   // Convert to string and split decimal parts
-  const [integerPart, decimalPart] = value.toString().split('.');
-  
+  const [integerPart, decimalPart] = value.toString().split(".");
+
   // Add commas to integer part
-  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
   // Recombine with decimal part if exists
   return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
 };
@@ -379,10 +378,9 @@ const HomePage = () => {
   //   }
   // };
 
-  const handleClaimVoucher = (voucher) =>{
-    navigate("/event")
-  }
-  
+  const handleClaimVoucher = (voucher) => {
+    navigate("/event");
+  };
 
   const handleViewMore = () => {
     setVisibleCount((prevCount) => prevCount + 10); // Increase the count to show more products
@@ -591,12 +589,12 @@ const HomePage = () => {
                             </span>
                           </div>
                           <button
-                            className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors duration-300 flex items-center"
+                            className="bg-gradient-to-r from-green-600 to-blue-500 text-white px-6 py-2 rounded-lg shadow-lg hover:from-green-500 hover:to-blue-600 hover:scale-105 transition-transform duration-300 flex items-center"
                             onClick={() => handleClaimVoucher(voucher)}
                           >
                             <Gift className="w-4 h-4 mr-2" />
                             Claim now
-                          </button> 
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -604,8 +602,6 @@ const HomePage = () => {
                 </div>
               )}
             </div>
-
-            
 
             <div className="text-center">
               <Link
@@ -668,10 +664,10 @@ const HomePage = () => {
 
                 <div className="flex items-center">
                   <p className="text-gray-500 line-through mr-2">
-                  ₹{formatCurrency(product.productPrice)}
+                    ₹{formatCurrency(product.productPrice)}
                   </p>
                   <span className="text-lg text-bold text-green-500 mr-2">
-                  ₹{formatCurrency(product.salePrice)}
+                    ₹{formatCurrency(product.salePrice)}
                   </span>
                   <span className="text-blue-600 font-medium">
                     {product.discount}% off
@@ -740,10 +736,10 @@ const HomePage = () => {
                               {product.name}
                             </h2>
                             <p className="text-gray-500 mt-2 line-through">
-                            ₹{formatCurrency(product.productPrice)}
+                              ₹{formatCurrency(product.productPrice)}
                             </p>
                             <span className="text-lg text-bold text-green-500 mr-2">
-                            ₹{formatCurrency(product.salePrice)}
+                              ₹{formatCurrency(product.salePrice)}
                             </span>
                             <span className="text-blue-600 font-medium">
                               {product.discount}% off

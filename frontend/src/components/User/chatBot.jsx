@@ -26,29 +26,48 @@ const ChatBotButton = () => {
           ${isChatOpen ? "scale-0" : "scale-100"}
         `}
       >
-        <button
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          onClick={() => setIsChatOpen(true)}
-          className={`relative group  rounded-3xl shadow-lg transition-all duration-500
-            bg-gradient-to-r from-blue-100 to-blue-100
-            hover:from-blue-100 hover:to-blue-100
-            ${isHovered ? "shadow-[0_0_10px_rgba(59,130,246,0.5)]" : ""} mr-6
-          `}
-        >
-          {/* Animated Ripple Effect */}
-          <div className="absolute inset-0 rounded-full animate-ping bg-blue-500 opacity-20"></div>
-          
-          {/* Monkey Face */}
-          <img
-            src={LogoFace}
-            alt="Monkey Face"
-            className="w-16 h-16 rounded-full object-cover p-1"
-          />
-        </button>
+        <div className="relative group">
+          {/* Hover Tooltip */}
+          {isHovered && (
+            <div 
+              className="absolute -top-16 left-1/2 transform -translate-x-1/2 
+              bg-blue-500 text-white font-bold px-4 py-2 rounded-lg 
+              shadow-lg text-sm
+              before:content-[''] before:absolute before:bottom-[-6px] 
+              before:left-1/2 before:transform before:-translate-x-1/2 
+              before:border-t-blue-500 before:border-t-8 
+              before:border-x-transparent before:border-x-8 
+              before:border-b-0 
+              animate-fadeIn"
+            >
+              Let's Talk
+            </div>
+          )}
+
+          <button
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onClick={() => setIsChatOpen(true)}
+            className={`relative group rounded-3xl shadow-lg transition-all duration-500
+              bg-gradient-to-r from-blue-100 to-blue-100
+              hover:from-blue-100 hover:to-blue-100
+              ${isHovered ? "shadow-[0_0_10px_rgba(59,130,246,0.5)]" : ""} mr-6
+            `}
+          >
+            {/* Animated Ripple Effect */}
+            <div className="absolute inset-0 rounded-full animate-ping bg-blue-500 opacity-20"></div>
+            
+            {/* Monkey Face */}
+            <img
+              src={LogoFace}
+              alt="Monkey Face"
+              className="w-16 h-16 rounded-full object-cover p-1"
+            />
+          </button>
+        </div>
       </div>
 
-      {/* Chat Window */}
+      {/* Chat Window - Unchanged from previous implementation */}
       <div
         className={`fixed bottom-6 right-6 z-50 transition-all duration-500 transform origin-bottom-right
           ${isChatOpen ? "scale-100 opacity-100" : "scale-0 opacity-0"}`}

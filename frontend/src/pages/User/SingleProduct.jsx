@@ -17,6 +17,7 @@ import Footer from "../../components/User/Footer";
 import { SERVER_URL } from "../../Constants";
 import { useAppSelector } from "../../Redux/Store/store";
 import { FaHeart } from "react-icons/fa";
+import ChatBotButton from "../../components/User/chatBot";
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return '';
@@ -457,6 +458,9 @@ const SingleProduct = () => {
         </div>
 
         <Footer />
+        <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
       </div>
     </>
   );

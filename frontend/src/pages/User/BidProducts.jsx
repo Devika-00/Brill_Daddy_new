@@ -6,6 +6,7 @@ import Footer from "../../components/User/Footer";
 import { useAppSelector } from "../../Redux/Store/store";
 import { SERVER_URL } from "../../Constants";
 import { Gift, Tag, DollarSign, IndianRupeeIcon } from "lucide-react";
+import ChatBotButton from "../../components/User/chatBot";
 
 const BidProductsPage = () => {
   const [groupedBids, setGroupedBids] = useState({});
@@ -170,6 +171,9 @@ const BidProductsPage = () => {
         </div>
       </div>
       <Footer />
+      <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
     </div>
   );
 };

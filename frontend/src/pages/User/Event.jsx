@@ -7,6 +7,7 @@ import { SERVER_URL } from "../../Constants";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../Redux/Store/store";
+import ChatBotButton from "../../components/User/chatBot";
 
 const CountdownTimer = ({ voucher }) => {
   const [timeLeft, setTimeLeft] = useState({});
@@ -183,7 +184,7 @@ const EventPage = () => {
 
           {/* Vouchers Section */}
           <div className="lg:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
               {vouchers.length > 0 ? (
                 vouchers.map((voucher, index) => {
                   // Check if the voucher is eligible for free claiming
@@ -195,6 +196,7 @@ const EventPage = () => {
                       className="relative group"
                       onMouseEnter={() => setHoveredCard(voucher._id)}
                       onMouseLeave={() => setHoveredCard(null)}
+                      onClick={() => handleClaimVoucher(voucher)}
                     >
                       <div
                         className={`${
@@ -212,7 +214,7 @@ const EventPage = () => {
                         <div className="absolute -right-2 -top-2 transform rotate-12">
                           <div
                             className={`${
-                              isEligibleForFree  || voucher.price === 0 ? "bg-green-400" : "bg-yellow-400"
+                              isEligibleForFree  || voucher.price === 0 ? "bg-green-500" : "bg-yellow-400"
                             } text-gray-900 font-bold px-8 py-2 rounded-lg shadow-lg relative`}
                           >
                             <div className="absolute -bottom-2 right-0 w-0 h-0 border-t-8 border-l-8 border-transparent border-yellow-600" />
@@ -265,11 +267,12 @@ const EventPage = () => {
                               </span>
                             </div>
                             <button
-                              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-300"
-                              onClick={() => handleClaimVoucher(voucher)}
-                            >
-                              <span className="mr-1">{isEligibleForFree || voucher.price === 0 ? "Claim Now" : "Claim Now"}</span>
-                            </button>
+                            className="bg-gradient-to-r from-green-600 to-blue-500 text-white px-6 py-2 rounded-lg shadow-lg hover:from-green-500 hover:to-blue-600 hover:scale-105 transition-transform duration-300 flex items-center"
+                            onClick={() => handleClaimVoucher(voucher)}
+                          >
+                            <Gift className="w-4 h-4 mr-2" />
+                            Claim now
+                          </button>
                           </div>
                         </div>
                       </div>
@@ -292,6 +295,9 @@ const EventPage = () => {
         </div>
       </div>
       <Footer />
+      <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
     </div>
   );
 };

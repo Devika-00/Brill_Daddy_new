@@ -7,6 +7,7 @@ import axios from 'axios';
 import { SERVER_URL } from "../../Constants/index";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppSelector } from "../../Redux/Store/store";
+import ChatBotButton from "../../components/User/chatBot";
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return '';
@@ -338,6 +339,9 @@ const ShopCategory = () => {
         )}
       </div>
       <Footer />
+      <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
     </div>
   );
 };

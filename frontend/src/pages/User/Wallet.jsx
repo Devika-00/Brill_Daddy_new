@@ -6,6 +6,7 @@ import { ArrowUpRight, ArrowDownLeft, Clock } from "lucide-react";
 import axios from "axios"; // Import axios
 import { useAppSelector } from "../../Redux/Store/store";
 import { SERVER_URL } from "../../Constants";
+import ChatBotButton from "../../components/User/chatBot";
 
 const Wallet = () => {
   const user = useAppSelector((state) => state.user);
@@ -136,6 +137,9 @@ const Wallet = () => {
         </div>
       </div>
       <Footer />
+      <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
     </div>
   );
 };

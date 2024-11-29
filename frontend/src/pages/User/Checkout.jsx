@@ -8,6 +8,7 @@ import axios from 'axios';
 import { useAppSelector } from '../../Redux/Store/store';
 import { SERVER_URL } from "../../Constants";
 
+
 const Checkout = () => {
   const location = useLocation();
   const { total, gst, cartItems } = location.state; // Access passed cart data
