@@ -437,7 +437,10 @@ const Voucher = () => {
   const fetchVouchers = async () => {
     try {
       const response = await axios.get(`${SERVER_URL}/admin/voucher`);
-      setVouchers(response.data);
+      const sortedVouchers = response.data.sort(
+        (a, b) => new Date(b.start_time) - new Date(a.start_time)
+      );
+      setVouchers(sortedVouchers);
     } catch (error) {
       console.error("Error fetching vouchers:", error);
     }

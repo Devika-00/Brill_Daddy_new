@@ -379,7 +379,11 @@ const HomePage = () => {
   // };
 
   const handleClaimVoucher = (voucher) => {
-    navigate("/event");
+    if (user.isAuthenticated) {
+      navigate("/event");
+    } else {
+      navigate("/login");
+    }
   };
 
   const handleViewMore = () => {
@@ -656,7 +660,9 @@ const HomePage = () => {
                   {product.name}
                 </h3>
                 <p className="text-sm text-gray-500 mt-1 mb-2">
-                  {product.description || "No description available."}
+                  {product.description && product.description.length > 20
+                    ? `${product.description.slice(0, 20)}...`
+                    : product.description || "No description available."}
                 </p>
                 <p className="text-sm text-gray-500 mt-1 mb-2">
                   {product.category}
