@@ -198,6 +198,11 @@ const OrginalNavbar = () => {
     setIsMobileSearchOpen(!isMobileSearchOpen);
   };
 
+  const truncateText = (text, maxLength = 7) => {
+    if (!text) return '';
+    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+  };
+
 
   return (
     <>
@@ -207,7 +212,7 @@ const OrginalNavbar = () => {
         {/* Logo and Address Section */}
         <div className="flex items-center justify-between w-full md:w-auto">
           <Link to="/">
-            <img src={logo} alt="Logo" className="h-24 ml-3" />
+            <img src={logo} alt="Logo" className="h-28 ml-3" />
           </Link>
           {user.isAuthenticated && (
             <span
@@ -217,9 +222,9 @@ const OrginalNavbar = () => {
             >
               {selectedAddress.userName ? (
                 <>
-                  <div>{selectedAddress.userName}</div>
-                  <div>{selectedAddress.addressLine}</div>
-                  <div>{selectedAddress.state}</div>
+                  <div>{truncateText(selectedAddress.userName)}</div>
+                  <div>{truncateText(selectedAddress.addressLine)}</div>
+                  <div>{truncateText(selectedAddress.state)}</div>
                 </>
               ) : (
                 "Select Address"
