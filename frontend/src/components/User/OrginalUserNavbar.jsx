@@ -212,7 +212,7 @@ const OrginalNavbar = () => {
         {/* Logo and Address Section */}
         <div className="flex items-center justify-between w-full md:w-auto">
           <Link to="/">
-            <img src={logo} alt="Logo" className="h-28 ml-3" />
+            <img src={logo} alt="Logo" className="h-24 w-56 ml-3" />
           </Link>
           {user.isAuthenticated && (
             <span
