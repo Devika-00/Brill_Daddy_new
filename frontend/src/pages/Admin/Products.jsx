@@ -25,9 +25,9 @@ const Product = () => {
     mainImage: "",
     smallImages: [],
     quantity: "",
+    existingMainImage: null,
+    existingSmallImages: [],
   });
-
-  console.log(newProduct, "BBBBBBBBBBBBBBBBBBBB");
 
   const [errors, setErrors] = useState({
     name: "",
@@ -121,7 +121,8 @@ const Product = () => {
     if (!newProduct.name) formErrors.name = "Product name is required.";
     if (!newProduct.description)
       formErrors.description = "Description is required.";
-    if (!newProduct.productPrice) formErrors.productPrice = "Price is required.";
+    if (!newProduct.productPrice)
+      formErrors.productPrice = "Price is required.";
     if (!newProduct.salePrice)
       formErrors.salePrice = "Sales price is required.";
     if (!newProduct.discount) formErrors.discount = "Discount is required.";
@@ -143,7 +144,9 @@ const Product = () => {
   const handleAddProductSubmit = async () => {
     if (!validateForm()) return;
     // Ensure sales price is valid
-    if (parseFloat(newProduct.salePrice) >= parseFloat(newProduct.productPrice)) {
+    if (
+      parseFloat(newProduct.salePrice) >= parseFloat(newProduct.productPrice)
+    ) {
       alert("Sales price should be less than price");
       return;
     }
@@ -211,13 +214,43 @@ const Product = () => {
 
   const handleEditProduct = (product) => {
     setSelectedProduct(product);
-    setNewProduct({ ...product, mainImage: "", smallImages: [] }); // Reset images for upload
+    setNewProduct({
+      ...product,
+      mainImage: "",
+      smallImages: [],
+      existingMainImage: product.images[0]?.thumbnailUrl || null,
+      existingSmallImages: product.images[0]?.imageUrl || [],
+    }); // Reset images for upload
     setIsEditModalOpen(true);
+  };
+
+  const handleRemoveMainImage = () => {
+    setNewProduct((prev) => ({
+      ...prev,
+      mainImage: "",
+      existingMainImage: null,
+    }));
+  };
+
+  // New method to remove small image
+  const handleRemoveSmallImage = (index) => {
+    setNewProduct((prev) => {
+      // Create a copy of existing small images
+      const updatedExistingSmallImages = [...prev.existingSmallImages];
+      updatedExistingSmallImages.splice(index, 1);
+
+      return {
+        ...prev,
+        existingSmallImages: updatedExistingSmallImages,
+      };
+    });
   };
 
   const handleEditProductSubmit = async () => {
     // Ensure sales price is valid
-    if (parseFloat(newProduct.salePrice) >= parseFloat(newProduct.productPrice)) {
+    if (
+      parseFloat(newProduct.salePrice) >= parseFloat(newProduct.productPrice)
+    ) {
       alert("Sales price should be less than price");
       return;
     }
@@ -233,19 +266,29 @@ const Product = () => {
       quantity: newProduct.quantity,
       color: newProduct.color,
       discount: newProduct.discount,
+      images: {
+        thumbnailUrl: newProduct.existingMainImage,
+        imageUrl: newProduct.existingSmallImages,
+      },
     };
 
     // Handle image uploads if new images are provided
     if (newProduct.mainImage) {
-      updatedProduct.images.thumbnailUrl = await uploadImagesToCloudinary(
-        newProduct.mainImage
-      );
+      const mainImageUrl = await uploadImagesToCloudinary(newProduct.mainImage);
+      updatedProduct.images.thumbnailUrl = mainImageUrl;
     }
 
+    // Handle small images upload
     if (newProduct.smallImages.length > 0) {
-      updatedProduct.images.imageUrl = await Promise.all(
+      const smallImagesUrls = await Promise.all(
         newProduct.smallImages.map((image) => uploadImagesToCloudinary(image))
       );
+
+      // Combine existing and new small images
+      updatedProduct.images.imageUrl = [
+        ...newProduct.existingSmallImages,
+        ...smallImagesUrls,
+      ];
     }
 
     try {
@@ -485,7 +528,10 @@ const Product = () => {
                   type="number"
                   value={newProduct.productPrice}
                   onChange={(e) =>
-                    setNewProduct({ ...newProduct, productPrice: e.target.value })
+                    setNewProduct({
+                      ...newProduct,
+                      productPrice: e.target.value,
+                    })
                   }
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Price"
@@ -785,15 +831,26 @@ const Product = () => {
                     />
 
                     {/* Display Thumbnail URL under the first input */}
-                    {newProduct?.images[0]?.thumbnailUrl && (
-                      <div className="mt-2">
+                    {(newProduct.existingMainImage || newProduct.mainImage) && (
+                      <div className="mt-2 relative w-20 h-20">
                         <img
-                          src={newProduct?.images[0]?.thumbnailUrl}
+                          src={
+                            newProduct.mainImage
+                              ? URL.createObjectURL(newProduct.mainImage)
+                              : newProduct.existingMainImage
+                          }
                           alt="Thumbnail"
-                          className="h-20 w-20 object-cover"
+                          className="h-full w-full object-cover"
                         />
+                        <button
+                          onClick={handleRemoveMainImage}
+                          className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transform translate-x-1/2 -translate-y-1/2"
+                        >
+                          ×
+                        </button>
                       </div>
                     )}
+
                     <p className="font-semibold text-gray-500 ml-1">
                       sub Image
                     </p>
@@ -806,15 +863,46 @@ const Product = () => {
                     />
 
                     {/* Display Image URLs under the second input */}
-                    {newProduct.images && newProduct.images.length > 0 && (
-                      <div className="mt-2 grid grid-cols-2 gap-2">
-                        {newProduct?.images[0]?.imageUrl.map((image, index) => (
-                          <img
-                            key={index}
-                            src={image}
-                            alt={`Image ${index + 1}`}
-                            className="h-20 w-20 object-cover"
-                          />
+                    {(newProduct.existingSmallImages.length > 0 ||
+                      newProduct.smallImages.length > 0) && (
+                      <div className="mt-2 grid grid-cols-3 gap-2">
+                        {newProduct.existingSmallImages.map((image, index) => (
+                          <div key={index} className="relative w-20 h-20">
+                            <img
+                              src={image}
+                              alt={`Image ${index + 1}`}
+                              className="h-full w-full object-cover"
+                            />
+                            <button
+                              onClick={() => handleRemoveSmallImage(index)}
+                              className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transform translate-x-1/2 -translate-y-1/2"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                        {newProduct.smallImages.map((image, index) => (
+                          <div key={`new-${index}`} className="relative">
+                            <img
+                              src={URL.createObjectURL(image)}
+                              alt={`New Image ${index + 1}`}
+                              className="h-full w-full object-cover"
+                            />
+                            <button
+                              onClick={() => {
+                                // Create a new state update to remove the specific new image
+                                setNewProduct((prev) => ({
+                                  ...prev,
+                                  smallImages: prev.smallImages.filter(
+                                    (_, i) => i !== index
+                                  ),
+                                }));
+                              }}
+                              className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transform translate-x-1/2 -translate-y-1/2"
+                            >
+                              ×
+                            </button>
+                          </div>
                         ))}
                       </div>
                     )}

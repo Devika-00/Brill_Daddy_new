@@ -218,8 +218,6 @@ const editProduct = async (req, res) => {
         const { id } = req.params; // Get the product ID from the request parameters
         const { name, description, productPrice, salePrice, category, brand, quantity, discount, color, images } = req.body;
 
-        console.log(req.body,"AAAAAAAAAAAAAAAAAAAAAAAAAA")
-
         // Ensure sales price is valid
         if (parseFloat(salePrice) >= parseFloat(productPrice)) {
             return res.status(400).json({ message: "Sales price should be less than price" });
@@ -229,36 +227,44 @@ const editProduct = async (req, res) => {
         const updateData = {
             name,
             description,
-            productPrice: productPrice,
-            salePrice: salePrice,
+            productPrice,
+            salePrice,
             category,
             brand,
             quantity,
             discount,
             color,
-            images:images
+            images:[],
         };
 
-        if (images) {
-            const newImageIds = []; // Array to hold new image IDs
+        if (images && images.thumbnailUrl) {
+          // Check if existing images are to be preserved
+          const existingProduct = await Product.findById(id);
 
-            for (const img of images) {
-                const newImages = new Images({
-                    thumbnailUrl: img.thumbnailUrl,
-                    imageUrl: img.imageUrl,
-                });
+          // Preserve existing small images if not replaced
+          const existingSmallImages = images.imageUrl || 
+              (existingProduct.images[0] && existingProduct.images[0].imageUrl) || 
+              [];
 
-                const savedImage = await newImages.save(); // Save each new image
-                newImageIds.push(savedImage._id); // Store the saved image ID
-            }
+          // Create or update image document
+          const imageDocument = {
+              thumbnailUrl: images.thumbnailUrl,
+              imageUrl: existingSmallImages
+          };
 
-            updateData.images = newImageIds; // Update the product's images
-     
-        }
+          // Create new Images document or update existing
+          const savedImage = await Images.findOneAndUpdate(
+              { _id: existingProduct.images[0]?._id }, // If exists
+              imageDocument,
+              { upsert: true, new: true }
+          );
+
+          updateData.images = [savedImage._id];
+      }
 
 
         // Find the product and update it in one operation
-        const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+        const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).populate('images');;
 
 
         if (!updatedProduct) {
