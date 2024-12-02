@@ -128,7 +128,7 @@ const deleteBrand = async (req,res) =>{
 
 const addProduct = async (req,res) =>{
     try {
-        const { name, description, price, salesPrice, category, brand, quantity, discount, color, images } = req.body;
+        const { name, description, productPrice, salesPrice, category, brand, quantity, discount, color, images } = req.body;
 
         
         // Create an entry for the images
@@ -143,7 +143,7 @@ const addProduct = async (req,res) =>{
         const newProduct = new Product({
           name,
           description,
-          productPrice: price,
+          productPrice: productPrice,
           salePrice: salesPrice,
           category,
           brand,
@@ -216,10 +216,12 @@ const deleteProducts = async (req, res) =>{
 const editProduct = async (req, res) => {
     try {
         const { id } = req.params; // Get the product ID from the request parameters
-        const { name, description, price, salesPrice, category, brand, quantity, discount, color, images } = req.body;
+        const { name, description, productPrice, salePrice, category, brand, quantity, discount, color, images } = req.body;
+
+        console.log(req.body,"AAAAAAAAAAAAAAAAAAAAAAAAAA")
 
         // Ensure sales price is valid
-        if (parseFloat(salesPrice) >= parseFloat(price)) {
+        if (parseFloat(salePrice) >= parseFloat(productPrice)) {
             return res.status(400).json({ message: "Sales price should be less than price" });
         }
 
@@ -227,8 +229,8 @@ const editProduct = async (req, res) => {
         const updateData = {
             name,
             description,
-            productPrice: price,
-            salePrice: salesPrice,
+            productPrice: productPrice,
+            salePrice: salePrice,
             category,
             brand,
             quantity,
@@ -323,13 +325,13 @@ const getOrders = async (req, res) => {
   const addVouchers = async (req, res) => {
     try {
         console.log(req.body, "Request Body"); // Log incoming request body
-        const { voucher_name, details, product_name, price, productPrice, imageUrl, date, time, endDate, endTime } = req.body;
+        const { voucher_name, details, product_name,  productPrice, imageUrl, date, time, endDate, endTime } = req.body;
 
         // Log the parsed fields
         console.log("Voucher Name:", voucher_name);
         console.log("Details:", details);
         console.log("Product Name:", product_name);
-        console.log("Price:", price);
+        console.log("Price:", productPrice);
         console.log("Product Price:",productPrice);
 
         // Combine date and time into a single Date object for start_time
@@ -341,7 +343,6 @@ const getOrders = async (req, res) => {
             voucher_name,
             details,
             product_name,
-            price,
             productPrice,
             imageUrl,
             start_time,
@@ -387,7 +388,7 @@ const deletevoucher = async (req, res) => {
 
 const editVoucher = async (req, res) => {
     const { id } = req.params;
-  const { voucher_name, details, product_name, price,productPrice, imageUrl, date, time, endDate, endTime } = req.body;
+  const { voucher_name, details, product_name, productPrice, imageUrl, date, time, endDate, endTime } = req.body;
 
   try {
     const start_time = new Date(`${date}T${time}`);
@@ -396,7 +397,7 @@ const editVoucher = async (req, res) => {
     // Find the voucher by ID and update its fields
     const updatedVoucher = await Voucher.findByIdAndUpdate(
       id,
-      { voucher_name, details, product_name, price,productPrice, imageUrl,start_time,end_time },
+      { voucher_name, details, product_name,productPrice, imageUrl,start_time,end_time },
       { new: true } // Return the updated document
     );
 

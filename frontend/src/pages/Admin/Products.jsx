@@ -18,8 +18,8 @@ const Product = () => {
     description: "",
     category: "",
     brand: "",
-    price: "",
-    salesPrice: "",
+    productPrice: "",
+    salePrice: "",
     discount: "",
     color: "",
     mainImage: "",
@@ -27,11 +27,13 @@ const Product = () => {
     quantity: "",
   });
 
+  console.log(newProduct, "BBBBBBBBBBBBBBBBBBBB");
+
   const [errors, setErrors] = useState({
     name: "",
     description: "",
-    price: "",
-    salesPrice: "",
+    productPrice: "",
+    salePrice: "",
     discount: "",
     category: "",
     color: "",
@@ -102,11 +104,11 @@ const Product = () => {
     }
 
     // Price, Sales Price, and Discount validation: Must be numbers (no strings or alphabets)
-    if (isNaN(newProduct.price) || newProduct.price < 0) {
-      formErrors.price = "Price must be a valid number.";
+    if (isNaN(newProduct.productPrice) || newProduct.productPrice < 0) {
+      formErrors.productPrice = "Price must be a valid number.";
     }
-    if (isNaN(newProduct.salesPrice) || newProduct.salesPrice < 0) {
-      formErrors.salesPrice = "Sales price must be a valid number.";
+    if (isNaN(newProduct.salePrice) || newProduct.salePrice < 0) {
+      formErrors.salePrice = "Sales price must be a valid number.";
     }
     if (isNaN(newProduct.discount) || newProduct.discount < 0) {
       formErrors.discount = "Discount must be a valid number.";
@@ -119,9 +121,9 @@ const Product = () => {
     if (!newProduct.name) formErrors.name = "Product name is required.";
     if (!newProduct.description)
       formErrors.description = "Description is required.";
-    if (!newProduct.price) formErrors.price = "Price is required.";
-    if (!newProduct.salesPrice)
-      formErrors.salesPrice = "Sales price is required.";
+    if (!newProduct.productPrice) formErrors.productPrice = "Price is required.";
+    if (!newProduct.salePrice)
+      formErrors.salePrice = "Sales price is required.";
     if (!newProduct.discount) formErrors.discount = "Discount is required.";
     if (!newProduct.category) formErrors.category = "Category is required.";
     if (!newProduct.brand) formErrors.brand = "Brand is required.";
@@ -141,7 +143,7 @@ const Product = () => {
   const handleAddProductSubmit = async () => {
     if (!validateForm()) return;
     // Ensure sales price is valid
-    if (parseFloat(newProduct.salesPrice) >= parseFloat(newProduct.price)) {
+    if (parseFloat(newProduct.salePrice) >= parseFloat(newProduct.productPrice)) {
       alert("Sales price should be less than price");
       return;
     }
@@ -159,8 +161,8 @@ const Product = () => {
     const productWithImages = {
       name: newProduct.name,
       description: newProduct.description,
-      price: newProduct.price,
-      salesPrice: newProduct.salesPrice,
+      productPrice: newProduct.productPrice,
+      salePrice: newProduct.salePrice,
       category: newProduct.category,
       brand: newProduct.brand,
       quantity: newProduct.quantity,
@@ -188,8 +190,8 @@ const Product = () => {
           description: "",
           category: "",
           brand: "",
-          price: "",
-          salesPrice: "",
+          productPrice: "",
+          salePrice: "",
           discount: "",
           color: "",
           mainImage: "",
@@ -215,7 +217,7 @@ const Product = () => {
 
   const handleEditProductSubmit = async () => {
     // Ensure sales price is valid
-    if (parseFloat(newProduct.salesPrice) >= parseFloat(newProduct.price)) {
+    if (parseFloat(newProduct.salePrice) >= parseFloat(newProduct.productPrice)) {
       alert("Sales price should be less than price");
       return;
     }
@@ -224,8 +226,8 @@ const Product = () => {
       ...selectedProduct,
       name: newProduct.name,
       description: newProduct.description,
-      price: newProduct.price,
-      salesPrice: newProduct.salesPrice,
+      productPrice: newProduct.productPrice,
+      salePrice: newProduct.salePrice,
       category: newProduct.category,
       brand: newProduct.brand,
       quantity: newProduct.quantity,
@@ -252,7 +254,7 @@ const Product = () => {
         `${SERVER_URL}/admin/updateProducts/${selectedProduct._id}`,
         updatedProduct
       );
-      console.log(response, "evide entha avastha");
+
       if (response.status === 200) {
         // Update the product list after successful update
         setProducts(
@@ -267,8 +269,8 @@ const Product = () => {
           description: "",
           category: "",
           brand: "",
-          price: "",
-          salesPrice: "",
+          productPrice: "", // Explicitly set these
+          salePrice: "",
           discount: "",
           color: "",
           mainImage: "",
@@ -481,27 +483,27 @@ const Product = () => {
                 )}
                 <input
                   type="number"
-                  value={newProduct.price}
+                  value={newProduct.productPrice}
                   onChange={(e) =>
-                    setNewProduct({ ...newProduct, price: e.target.value })
+                    setNewProduct({ ...newProduct, productPrice: e.target.value })
                   }
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Price"
                 />
-                {errors.price && (
-                  <p className="text-red-500 text-xs">{errors.price}</p>
+                {errors.productPrice && (
+                  <p className="text-red-500 text-xs">{errors.productPrice}</p>
                 )}
                 <input
                   type="number"
-                  value={newProduct.salesPrice}
+                  value={newProduct.salePrice}
                   onChange={(e) =>
-                    setNewProduct({ ...newProduct, salesPrice: e.target.value })
+                    setNewProduct({ ...newProduct, salePrice: e.target.value })
                   }
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Sales Price"
                 />
-                {errors.salesPrice && (
-                  <p className="text-red-500 text-xs">{errors.salesPrice}</p>
+                {errors.salePrice && (
+                  <p className="text-red-500 text-xs">{errors.salePrice}</p>
                 )}
                 <input
                   type="number"
@@ -714,7 +716,10 @@ const Product = () => {
                       placeholder="Price"
                       value={newProduct.productPrice}
                       onChange={(e) =>
-                        setNewProduct({ ...newProduct, price: e.target.value })
+                        setNewProduct({
+                          ...newProduct,
+                          productPrice: e.target.value,
+                        })
                       }
                       className="border p-2 rounded"
                     />
@@ -724,11 +729,11 @@ const Product = () => {
                     <input
                       type="number"
                       placeholder="Sales Price"
-                      value={newProduct.salesPrice}
+                      value={newProduct.salePrice}
                       onChange={(e) =>
                         setNewProduct({
                           ...newProduct,
-                          salesPrice: e.target.value,
+                          salePrice: e.target.value,
                         })
                       }
                       className="border p-2 rounded"
