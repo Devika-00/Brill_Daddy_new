@@ -13,7 +13,7 @@ const Sidebar = () => {
           {/* Logo Section */}
           <div className="flex items-center justify-between px-7">
             <h1 className={`text-2xl font-bold ${isOpen ? '' : 'hidden'}`}></h1>
-            <img src={logo} alt="Logo" className="h-10 " />
+            <img src={logo} alt="Logo" className="h-14" />
             <button 
               onClick={() => setIsOpen(!isOpen)} 
               className="focus:outline-none text-gray-500">

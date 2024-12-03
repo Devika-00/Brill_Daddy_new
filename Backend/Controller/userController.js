@@ -947,11 +947,31 @@ const getSingleUserDetails = async (req, res) => {
 };
 
 
+const getWinningBid = async (req, res) => {
+  try {
+    const { voucherId } = req.params;
+
+    // Find the winning bid for the specified voucher
+    const winningBid = await Winner.findOne({ voucherId }).populate('winningBidId');
+
+    if (!winningBid) {
+      return res.status(404).json({ message: "No winning bid found for this voucher." });
+    }
+
+    // Return the winning bid data
+    res.status(200).json(winningBid);
+  } catch (error) {
+    console.error('Error fetching winning bid:', error);
+    res.status(500).json({ message: "Server error while fetching winning bid." });
+  }
+};
+
+
 
 
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
   updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity, getWinningDetails, getParticularVoucher,
-  getUserBids, getVoucherBidAmount, getSingleUserDetails
+  getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid
 }

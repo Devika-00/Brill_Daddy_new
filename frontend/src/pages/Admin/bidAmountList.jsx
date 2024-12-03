@@ -11,6 +11,7 @@ const BidListPage = () => {
   const [loading, setLoading] = useState(true);
   const [loadingBids, setLoadingBids] = useState(false);
   const [openVoucher, setOpenVoucher] = useState(null);
+  const [winningBids, setWinningBids] = useState({});
 
   // Fetch vouchers data
   const fetchVouchers = async () => {
@@ -22,7 +23,21 @@ const BidListPage = () => {
     }
   };
 
-  // Fetch bids for a specific voucher
+  const fetchWinningBidForVoucher = async (voucherId) => {
+    try {
+      const response = await axios.get(
+        `${SERVER_URL}/user/winningBid/${voucherId}`
+      );
+
+      setWinningBids((prev) => ({
+        ...prev,
+        [voucherId]: response.data, // Store winning bid info
+      }));
+    } catch (error) {
+      console.error("Error fetching winning bid:", error);
+    }
+  };
+
   const fetchBidsForVoucher = async (voucherId) => {
     setLoadingBids(true);
     try {
@@ -37,11 +52,11 @@ const BidListPage = () => {
         if (!userDetails[userId]) {
           try {
             const userResponse = await axios.get(
-              `${SERVER_URL}/user/getUser/${userId}` // Assuming this API returns user details
+              `${SERVER_URL}/user/getUser/${userId}`
             );
             setUserDetails((prev) => ({
               ...prev,
-              [userId]: userResponse.data.username, // Store username by userId
+              [userId]: userResponse.data.username,
             }));
           } catch (error) {
             console.error("Error fetching user details:", error);
@@ -53,6 +68,9 @@ const BidListPage = () => {
         ...prev,
         [voucherId]: bidsData, // Store bids specific to voucher
       }));
+
+      // Fetch winning bid for the voucher
+      fetchWinningBidForVoucher(voucherId);
     } catch (error) {
       console.error("Error fetching bids:", error);
     } finally {
@@ -60,7 +78,6 @@ const BidListPage = () => {
     }
   };
 
-  // Fetch all data on mount
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -70,8 +87,6 @@ const BidListPage = () => {
     fetchData();
   }, []);
 
-  console.log(userDetails,"aaaaaaaaaaaaaaaaaaaa")
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -79,6 +94,9 @@ const BidListPage = () => {
       </div>
     );
   }
+
+  console.log(winningBids, "aaaaaaaa");
+  console.log(bids, "ccccccccccccccccccccccccc");
 
   return (
     <div className="flex h-screen">
@@ -101,8 +119,12 @@ const BidListPage = () => {
                 <div className="flex">
                   {/* Left: Details */}
                   <div className="flex-1">
-                    <h2 className="text-xl font-semibold">{voucher.voucher_name}</h2>
-                    <p className="text-sm text-gray-500">{voucher.product_name}</p>
+                    <h2 className="text-xl font-semibold">
+                      {voucher.voucher_name}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {voucher.product_name}
+                    </p>
                     <p className="text-sm text-gray-500">₹{voucher.price}</p>
                     <button
                       className="mt-4 bg-gray-500 text-white px-2 py-2 rounded-md hover:bg-gray-600 text-sm"
@@ -117,7 +139,9 @@ const BidListPage = () => {
                         }
                       }}
                     >
-                      {openVoucher === voucher._id ? "Close" : "View Bid Amounts"}
+                      {openVoucher === voucher._id
+                        ? "Close"
+                        : "View Bid Amounts"}
                     </button>
                   </div>
 
@@ -138,17 +162,25 @@ const BidListPage = () => {
                       <p>Loading bids...</p>
                     ) : bids[voucher._id] && bids[voucher._id].length > 0 ? (
                       <div className="space-y-2">
-                        {bids[voucher._id].map((bid) => (
-                          <div
-                            key={bid._id}
-                            className="flex justify-between text-gray-700"
-                          >
-                            {/* Display username and bidAmount */}
-                            <span>{userDetails[bid.userId]}</span>
-                            <span>{bid.bidId}</span>
-                            <span>₹{bid.bidAmount}</span>
-                          </div>
-                        ))}
+                        {bids[voucher._id].map((bid) => {
+                          const isWinningBid =
+                            winningBids[voucher._id]?.winningBidId?.bidId ===
+                            bid.bidId;
+                          return (
+                            <div
+                              key={bid._id}
+                              className={`flex justify-between text-gray-700 ${
+                                isWinningBid
+                                  ? "bg-yellow-200 font-semibold rounded-lg px-1"
+                                  : ""
+                              }`}
+                            >
+                              <span>{userDetails[bid.userId]}</span>
+                              <span>{bid.bidId}</span>
+                              <span>₹{bid.bidAmount}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="text-gray-500">No bids available.</p>
