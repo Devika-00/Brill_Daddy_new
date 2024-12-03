@@ -128,7 +128,7 @@ const deleteBrand = async (req,res) =>{
 
 const addProduct = async (req,res) =>{
     try {
-        const { name, description, productPrice, salesPrice, category, brand, quantity, discount, color, images } = req.body;
+        const { name, description, productPrice, salePrice, category, brand, quantity, discount, color, images } = req.body;
 
         
         // Create an entry for the images
@@ -144,7 +144,7 @@ const addProduct = async (req,res) =>{
           name,
           description,
           productPrice: productPrice,
-          salePrice: salesPrice,
+          salePrice: salePrice,
           category,
           brand,
           quantity,

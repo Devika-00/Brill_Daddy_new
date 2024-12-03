@@ -5,7 +5,8 @@ import Sidebar from "../../components/Admin/Sidebar";
 import { SERVER_URL } from "../../Constants";
 
 const BidListPage = () => {
-  const [bids, setBids] = useState({});
+  const [bids, setBids] = useState({}); // Store bids for each voucher
+  const [userDetails, setUserDetails] = useState({}); // Store user details for each userId
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingBids, setLoadingBids] = useState(false);
@@ -28,9 +29,29 @@ const BidListPage = () => {
       const response = await axios.get(
         `${SERVER_URL}/user/vouchers/bidamount/${voucherId}`
       );
+      const bidsData = response.data;
+
+      // Fetch user details for each bid
+      for (const bid of bidsData) {
+        const userId = bid.userId;
+        if (!userDetails[userId]) {
+          try {
+            const userResponse = await axios.get(
+              `${SERVER_URL}/user/getUser/${userId}` // Assuming this API returns user details
+            );
+            setUserDetails((prev) => ({
+              ...prev,
+              [userId]: userResponse.data.username, // Store username by userId
+            }));
+          } catch (error) {
+            console.error("Error fetching user details:", error);
+          }
+        }
+      }
+
       setBids((prev) => ({
         ...prev,
-        [voucherId]: response.data, // Store bids specific to voucher
+        [voucherId]: bidsData, // Store bids specific to voucher
       }));
     } catch (error) {
       console.error("Error fetching bids:", error);
@@ -48,6 +69,8 @@ const BidListPage = () => {
     };
     fetchData();
   }, []);
+
+  console.log(userDetails,"aaaaaaaaaaaaaaaaaaaa")
 
   if (loading) {
     return (
@@ -114,14 +137,19 @@ const BidListPage = () => {
                     {loadingBids ? (
                       <p>Loading bids...</p>
                     ) : bids[voucher._id] && bids[voucher._id].length > 0 ? (
-                      <ul className="list-disc pl-6">
+                      <div className="space-y-2">
                         {bids[voucher._id].map((bid) => (
-                          <li key={bid._id} className="text-gray-700">
-                            {/* Bid ID: {bid.bidId} | Amount: ₹{bid.bidAmount} */}
-                            Amount : ₹{bid.bidAmount}
-                          </li>
+                          <div
+                            key={bid._id}
+                            className="flex justify-between text-gray-700"
+                          >
+                            {/* Display username and bidAmount */}
+                            <span>{userDetails[bid.userId]}</span>
+                            <span>{bid.bidId}</span>
+                            <span>₹{bid.bidAmount}</span>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     ) : (
                       <p className="text-gray-500">No bids available.</p>
                     )}
