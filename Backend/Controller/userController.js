@@ -900,11 +900,36 @@ const getUserBids = async (req, res) => {
 };
 
 
+const getVoucherBidAmount = async (req, res) => {
+  const { voucherId } = req.params;
+
+  try {
+    // Validate voucherId (if necessary)
+    if (!voucherId) {
+      return res.status(400).json({ message: "Voucher ID is required." });
+    }
+
+    const bids = await Bid.find({ voucherId }).sort({ createdAt: -1 });
+
+    // Respond with bids
+    if (bids.length === 0) {
+      return res.status(404).json({ message: "No bids found for this voucher." });
+    }
+
+    res.status(200).json(bids);
+  } catch (error) {
+    console.error("Error fetching bids:", error);
+    res.status(500).json({ message: "Server error. Please try again later." });
+  }
+};
+
+
+
 
 
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
   updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity, getWinningDetails, getParticularVoucher,
-  getUserBids,
+  getUserBids, getVoucherBidAmount,
 }

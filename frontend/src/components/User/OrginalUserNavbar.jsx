@@ -64,7 +64,7 @@ const OrginalNavbar = () => {
           const userDetailsResponse = await axios.get(`${SERVER_URL}/user/getUserDetails`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          const addressId = userDetailsResponse.data.currentAddress; // Assuming this returns the address ID
+          const addressId = userDetailsResponse.data.currentAddress; 
           if (addressId) {
             const addressResponse = await axios.get(`${SERVER_URL}/user/address/${addressId}`);
             setSelectedAddress(addressResponse.data);
@@ -127,18 +127,18 @@ const OrginalNavbar = () => {
 
   const handleAddressSelect = (address) => {
     setCurrentAddress(address);
-    setSelectedAddress(address); // Update selectedAddress when a new address is selected
+    setSelectedAddress(address); 
   };
   
   const handleSaveAddress = async () => {
     if (currentAddress) {
       try {
         const response = await axios.put(`${SERVER_URL}/user/updateAddress/${user.id}`, {
-          addressId: currentAddress._id, // Send only the address ID to the backend
+          addressId: currentAddress._id, 
         });
         if (response.status === 200) {
-          setSelectedAddress(currentAddress); // Update the UI with the new address
-          setShowAddressModal(false); // Close the modal
+          setSelectedAddress(currentAddress); 
+          setShowAddressModal(false); 
         }
       } catch (error) {
         console.error("Error updating address:", error);

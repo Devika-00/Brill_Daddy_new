@@ -33,6 +33,7 @@ import PaymentPage from "../pages/User/Payment";
 import Wallet from "../pages/User/Wallet";
 import WinnerAlbumPage from "../pages/User/WinAlbum";
 import BidProductsPage from "../pages/User/BidProducts";
+import BidAmountList from "../pages/Admin/bidAmountList";
 
 const MainRouter = () => {
   return (
@@ -78,6 +79,7 @@ const MainRouter = () => {
         <Route path="/orders" element={<Orders />} />
         <Route path="/vouchers" element={<Voucher />} />
         <Route path="/adminlogin" element={<Login />} />
+        <Route path="/bidAmounts" element={<BidAmountList />} />
 
         <Route path="*" element={<NotFoundPage />} />
 
