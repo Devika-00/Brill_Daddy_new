@@ -146,6 +146,7 @@ const OrginalNavbar = () => {
     }
   };
 
+
   const handleWalletClick = () => {
     navigate("/wallet"); // Navigate to wallet page
   };
@@ -306,10 +307,52 @@ const OrginalNavbar = () => {
               />
               
               {showModal && (
-                <div className="absolute bg-white border border-gray-300 rounded shadow-md w-48 mt-96 z-20">
-                  {/* Modal options remain the same as in the original component */}
-                </div>
-              )}
+                  <div className="absolute bg-white border border-gray-300 rounded shadow-md w-48 mt-96 z-20">
+                    <div className="px-4 py-2 font-bold">Your Account</div>
+                    <a
+                      onClick={() => handleOptionSelect("Your Account")}
+                      className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      Account
+                    </a>
+                    <a
+                      onClick={() => handleOptionSelect("Your Orders")}
+                      className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      Your Orders
+                    </a>
+                    <a
+                      onClick={() => handleOptionSelect("Your Wishlist")}
+                      className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      Your Wishlist
+                    </a>
+                    <a
+                      onClick={() => handleOptionSelect("Keep Shopping")}
+                      className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      Keep Shopping
+                    </a>
+                    <a
+                      onClick={() => handleOptionSelect("Shopping List")}
+                      className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      Shopping List
+                    </a>
+                    <a
+                      onClick={() => handleOptionSelect("Home")}
+                      className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      Home
+                    </a>
+                    <a
+                      onClick={() => handleOptionSelect("Sign Out")}
+                      className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      Logout 
+                    </a>
+                  </div>
+                )}
             </div>
           ) : (
             <div className="flex items-center">
