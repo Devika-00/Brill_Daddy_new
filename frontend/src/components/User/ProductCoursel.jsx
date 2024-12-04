@@ -21,15 +21,15 @@ const ProductCarousel = ({ categoriesAndProducts, formatCurrency }) => {
       setIsMobile(window.innerWidth < 768);
     };
 
-    // Add event listener
-    window.addEventListener('resize', handleResize);
-
     // Initial setup of visible products
     const initialVisibleProducts = {};
     Object.keys(categoriesAndProducts).forEach((category) => {
       initialVisibleProducts[category] = 0;
     });
     setVisibleProducts(initialVisibleProducts);
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
 
     // Cleanup event listener
     return () => window.removeEventListener('resize', handleResize);
@@ -57,7 +57,7 @@ const ProductCarousel = ({ categoriesAndProducts, formatCurrency }) => {
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
+    <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl overflow-x-hidden">
       {Object.entries(categoriesAndProducts).map(([category, products]) => (
         <div key={category} className="mb-8 sm:mb-10">
           {/* Category Header */}
@@ -69,7 +69,7 @@ const ProductCarousel = ({ categoriesAndProducts, formatCurrency }) => {
 
           {/* Carousel Container */}
           <div className="relative">
-            <div className="flex items-center justify-center px-4">
+            <div className="flex items-center justify-center">
               {/* Left Arrow - Show on all screens */}
               {visibleProducts[category] > 0 && (
                 <button
@@ -81,7 +81,7 @@ const ProductCarousel = ({ categoriesAndProducts, formatCurrency }) => {
               )}
 
               {/* Products Container */}
-              <div className="w-full overflow-x-auto sm:overflow-visible">
+              <div className="w-full overflow-hidden">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
                   {products
                     .slice(
