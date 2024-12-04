@@ -35,13 +35,14 @@ const NavbarWithMenu = () => {
   };
 
   const handleHomeClick = () => {
-    navigate("/"); // Redirect to the events page
+    navigate("/"); // Redirect to the home page
   };
 
   return (
     <>
       <div className="bg-blue-900 text-white font-bold flex justify-between items-center p-2">
-        <div className="flex items-center">
+        <div className="flex items-center space-x-4">
+          {/* All Menu Button */}
           <button
             onClick={toggleCategories}
             className="flex items-center focus:outline-none ml-5"
@@ -50,26 +51,26 @@ const NavbarWithMenu = () => {
             <span>All</span>
           </button>
 
-          <div className="hidden md:flex space-x-6 ml-10">
-            <span
-              className="flex items-center cursor-pointer hover:text-gray-300"
-              onClick={handleHomeClick}
-            >
-              <FaHome className="mr-1" />
-              Home
-            </span>
-            <span
-              className="cursor-pointer hover:text-gray-300"
-              onClick={handleEventsClick} // Add click handler for Events
-            >
-              Events
-            </span>
-          </div>
+          {/* Home and Events for both mobile and desktop */}
+          <span
+            className="flex items-center cursor-pointer hover:text-gray-300"
+            onClick={handleHomeClick}
+          >
+            <FaHome className="mr-1 ml-3" />
+            Home
+          </span>
+          <span
+            className="cursor-pointer hover:text-gray-300"
+            onClick={handleEventsClick}
+          >
+            Events
+          </span>
         </div>
       </div>
 
+      {/* Categories Dropdown */}
       {showCategories && (
-        <div className="absolute top-24 left-0 bg-white w-64 h-full shadow-lg z-50">
+        <div className="absolute top-16 left-0 bg-white w-64 h-full shadow-lg z-50">
           <div className="p-4">
             <button
               onClick={toggleCategories}
