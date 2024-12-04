@@ -6,25 +6,17 @@ import Footer from "../../components/User/Footer";
 import { FaArrowLeft, FaArrowRight, FaHeart } from "react-icons/fa";
 import { SERVER_URL } from "../../Constants";
 import axios from "axios";
-import ImageOne from "../../assets/Group1.png";
-import ImageTagLine from "../../assets/Group 4.png";
-import ImageTwo from "../../assets/Group2.png";
 import { Clock, Package, Tag, Gift } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
 import ChatBotButton from "../../components/User/chatBot";
 import ProductCarousel from "../../components/User/ProductCoursel";
 import VouchersCarousel from "../../components/User/VoucherCoursel";
+import ResponsiveCarousel from "../../components/User/AddCoursel";
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return "";
-
-  // Convert to string and split decimal parts
   const [integerPart, decimalPart] = value.toString().split(".");
-
-  // Add commas to integer part
   const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-  // Recombine with decimal part if exists
   return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
 };
 
@@ -73,26 +65,6 @@ const HomePage = () => {
   const userId = user.id;
   const token = user.token;
 
-  const carouselImages = [
-    ImageOne,
-    ImageTagLine,
-    ImageTwo,
-    ImageTagLine,
-    ImageOne,
-    ImageTagLine,
-    ImageTwo,
-    ImageTagLine,
-    ImageOne,
-    ImageTagLine,
-    ImageTwo,
-    ImageTagLine,
-    ImageOne,
-    ImageTagLine,
-    ImageTwo,
-    ImageTagLine,
-  ];
-
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [wishlist, setWishlist] = useState({});
   const [dialogMessage, setDialogMessage] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
@@ -100,8 +72,6 @@ const HomePage = () => {
   const [products, setProducts] = useState([]);
   const [electronicProducts, setElectronicProducts] = useState([]);
   const [categoriesAndProducts, setCategoriesAndProducts] = useState({});
-
-  const [currentVoucherIndex, setCurrentVoucherIndex] = useState(0);
 
   const navigate = useNavigate();
 
@@ -241,15 +211,6 @@ const HomePage = () => {
     navigate("/wishlist");
   };
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setCurrentImageIndex(
-        (prevIndex) => (prevIndex + 1) % carouselImages.length
-      );
-    }, 3000); // Change image every 3 seconds
-
-    return () => clearInterval(intervalId); // Cleanup on unmount
-  }, []);
 
   const handleCategoryClick = (categoryName) => {
     navigate(`/shopCategory?category=${encodeURIComponent(categoryName)}`);
@@ -327,15 +288,7 @@ const HomePage = () => {
     return () => clearInterval(intervalId);
   }, [userId]);
 
-  // Set up automatic sliding every 2 seconds
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCurrentVoucherIndex((prevIndex) => (prevIndex + 1) % vouchers.length);
-  //   }, 2000);
-
-  //   // Cleanup interval on component unmount
-  //   return () => clearInterval(interval);
-  // }, [vouchers.length]);
+  
 
   const startCountdown = (endTime) => {
     const updateCountdown = () => {
@@ -369,13 +322,7 @@ const HomePage = () => {
   //   }
   // };
 
-  // const handleClaimVoucher = (voucher) => {
-  //   if (user.isAuthenticated) {
-  //     navigate("/event");
-  //   } else {
-  //     navigate("/login");
-  //   }
-  // };
+  
 
   const handleViewMore = () => {
     setVisibleCount((prevCount) => prevCount + 10); // Increase the count to show more products
@@ -396,21 +343,7 @@ const HomePage = () => {
       )}
 
       {/* Image Carousel */}
-      <div className="relative w-full overflow-hidden">
-        <div
-          className="flex transition-transform duration-500"
-          style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
-        >
-          {carouselImages.map((image, index) => (
-            <img
-              key={index}
-              src={image}
-              alt={`Carousel ${index}`}
-              className="w-screen h-44 mt-2"
-            />
-          ))}
-        </div>
-      </div>
+      <ResponsiveCarousel/>
 
       <div className="p-6 mx-auto max-w-7xl">
         {/* Flex Layout for Side-by-Side Design */}
