@@ -38,8 +38,8 @@ const Footer = () => {
                 Orders
               </span>
               <Link to="/terms" className="text-sm hover:underline transition-colors duration-300">Terms & Conditions</Link>
-              <Link to="/privacy" className="text-sm hover:underline transition-colors duration-300">Privacy Policy</Link>
-              <Link to="/faqs" className="text-sm hover:underline transition-colors duration-300">FAQs</Link>
+              <Link to="/privacyPolicy" className="text-sm hover:underline transition-colors duration-300">Privacy Policy</Link>
+              <Link to="/refundPolicy" className="text-sm hover:underline transition-colors duration-300">Refund Policy</Link>
             </div>
           </div>
 

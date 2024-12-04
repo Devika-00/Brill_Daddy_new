@@ -34,6 +34,8 @@ import Wallet from "../pages/User/Wallet";
 import WinnerAlbumPage from "../pages/User/WinAlbum";
 import BidProductsPage from "../pages/User/BidProducts";
 import BidAmountList from "../pages/Admin/bidAmountList";
+import PrivacyPolicy from "../pages/User/PrivacyPolicy";
+import RefundPolicy from "../pages/User/RefundPolicy";
 
 const MainRouter = () => {
   return (
@@ -43,6 +45,8 @@ const MainRouter = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/singleProduct/:id" element={<SingleProduct />} />
         <Route path="/shop" element={<Shop />} />
+        <Route path="/privacyPolicy" element={<PrivacyPolicy />} />
+        <Route path="/refundPolicy" element={<RefundPolicy />} />
         
         <Route element={<PublicRoute />}>
         <Route path="/register" element={<Register />} />
@@ -66,6 +70,7 @@ const MainRouter = () => {
         <Route path="/shopCategory" element={<ShopCategory />} />
         <Route path="/orderSuccessful" element={<OrderSuccessful />} />
         <Route path="/payment/:voucherId" element={<PaymentPage />} />
+       
         </Route>
 
 

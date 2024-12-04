@@ -319,7 +319,7 @@ const OrderDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white py-4 scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white py-0 overflow-hidden">
       <OrginalNavbar />
       <NavbarWithMenu />
 

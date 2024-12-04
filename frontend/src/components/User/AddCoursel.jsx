@@ -46,7 +46,7 @@ const ResponsiveCarousel = () => {
   }, []);
 
   return (
-    <div className="relative w-full overflow-hidden">
+    <div className="relative w-full overflow-hidden ">
       {/* Carousel Wrapper */}
       <div
         className="flex transition-transform duration-500"
