@@ -13,6 +13,7 @@ import { Clock, Package, Tag, Gift } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
 import ChatBotButton from "../../components/User/chatBot";
 import ProductCarousel from "../../components/User/ProductCoursel";
+import VouchersCarousel from "../../components/User/VoucherCoursel";
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return "";
@@ -285,17 +286,6 @@ const HomePage = () => {
     }));
   };
 
-  const voucher = {
-    _id: "1",
-    image: "https://via.placeholder.com/150",
-    name: "Holiday Sale Voucher",
-    description: "Exclusive 15% off for the holiday season!",
-    eligible_rebid_users: ["123"],
-    rebid_active: true,
-  };
-
-  const isEligibleForFree =
-    voucher.eligible_rebid_users.includes(userId) && voucher.rebid_active;
 
   useEffect(() => {
     const fetchVouchers = async () => {
@@ -338,14 +328,14 @@ const HomePage = () => {
   }, [userId]);
 
   // Set up automatic sliding every 2 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentVoucherIndex((prevIndex) => (prevIndex + 1) % vouchers.length);
-    }, 2000);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setCurrentVoucherIndex((prevIndex) => (prevIndex + 1) % vouchers.length);
+  //   }, 2000);
 
-    // Cleanup interval on component unmount
-    return () => clearInterval(interval);
-  }, [vouchers.length]);
+  //   // Cleanup interval on component unmount
+  //   return () => clearInterval(interval);
+  // }, [vouchers.length]);
 
   const startCountdown = (endTime) => {
     const updateCountdown = () => {
@@ -379,13 +369,13 @@ const HomePage = () => {
   //   }
   // };
 
-  const handleClaimVoucher = (voucher) => {
-    if (user.isAuthenticated) {
-      navigate("/event");
-    } else {
-      navigate("/login");
-    }
-  };
+  // const handleClaimVoucher = (voucher) => {
+  //   if (user.isAuthenticated) {
+  //     navigate("/event");
+  //   } else {
+  //     navigate("/login");
+  //   }
+  // };
 
   const handleViewMore = () => {
     setVisibleCount((prevCount) => prevCount + 10); // Increase the count to show more products
@@ -524,100 +514,7 @@ const HomePage = () => {
           </div>
 
           {/* Right: Voucher Section */}
-          <div className="flex-1 space-y-4 ">
-            <h2 className="text-xl font-bold text-blue-950 mb-9 ml-10">
-              Exclusive Vouchers
-            </h2>
-            <div className="relative w-[430px] h-[520px] overflow-hidden ml-10 mr-10 ">
-              {vouchers.length > 0 && (
-                <div
-                  className="transition-transform duration-500 ease-in-out"
-                  style={{
-                    transform: `translateX(-${currentVoucherIndex * 100}%)`,
-                    display: "flex",
-                    width: `${vouchers.length * 14.5}%`,
-                  }}
-                >
-                  {vouchers.map((voucher, index) => (
-                    <div
-                      key={voucher._id}
-                      className="w-full flex-shrink-0 bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden"
-                      style={{ width: "100%" }}
-                      onClick={() => handleClaimVoucher(voucher)}
-                    >
-                      {/* Free Badge */}
-                      {voucher.price === 0 && (
-                        <div className="absolute top-2 left-4 z-10">
-                          <div className="bg-green-600 text-white font-bold px-4 py-1 rounded-md shadow-lg">
-                            FREE
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Image Section */}
-                      <div className="relative w-full h-72">
-                        <img
-                          src={voucher.imageUrl}
-                          alt={voucher.voucher_name || "Voucher"}
-                          className="w-full h-full object-cover rounded-t-lg"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      </div>
-
-                      {/* Content Section */}
-                      <div className="p-6 text-white">
-                        <h3 className="text-lg font-bold mb-2">
-                          {voucher.voucher_name || "Special Offer"}
-                        </h3>
-                        <div className="bg-white/10 rounded-lg p-3 space-y-2 mb-4">
-                          <div className="flex items-center">
-                            <Package className="w-4 h-4 mr-2" />
-                            <span>
-                              {voucher.product_name || "Premium Product"}
-                            </span>
-                          </div>
-                          <div className="flex items-center">
-                            <Tag className="w-4 h-4 mr-2" />
-                            <span>Worth ₹{voucher.productPrice || "1000"}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center text-white/90">
-                            <Clock className="w-4 h-4 mr-2" />
-                            <span className="text-sm">
-                              Valid until{" "}
-                              {voucher.end_time
-                                ? new Date(
-                                    voucher.end_time
-                                  ).toLocaleDateString()
-                                : "Dec 31, 2024"}
-                            </span>
-                          </div>
-                          <button
-                            className="bg-gradient-to-r from-green-600 to-blue-500 text-white px-6 py-2 rounded-lg shadow-lg hover:from-green-500 hover:to-blue-600 hover:scale-105 transition-transform duration-300 flex items-center"
-                            onClick={() => handleClaimVoucher(voucher)}
-                          >
-                            <Gift className="w-4 h-4 mr-2" />
-                            Claim now
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="text-center">
-              <Link
-                to="/event"
-                className="text-indigo-600 hover:text-indigo-800 font-medium hover:underline cursor-pointer inline-flex items-center"
-              >
-                <span className="text-xl">Show all vouchers</span>
-                <FaArrowRight className="ml-2 w-4 h-2" />
-              </Link>
-            </div>
-          </div>
+          <VouchersCarousel vouchers={vouchers}/>
         </div>
       </div>
 
@@ -696,14 +593,11 @@ const HomePage = () => {
         </Link>
       </div>
 
-  
-      
-
-          {/* Carousel Container */}
-          <ProductCarousel 
-  categoriesAndProducts={categoriesAndProducts} 
-  formatCurrency={formatCurrency} 
-/>
+      {/* Carousel Container */}
+      <ProductCarousel
+        categoriesAndProducts={categoriesAndProducts}
+        formatCurrency={formatCurrency}
+      />
 
       <Footer />
       <div className="fixed bottom-8 right-8 z-50">
