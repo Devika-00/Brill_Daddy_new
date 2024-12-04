@@ -12,6 +12,7 @@ import ImageTwo from "../../assets/Group2.png";
 import { Clock, Package, Tag, Gift } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
 import ChatBotButton from "../../components/User/chatBot";
+import ProductCarousel from "../../components/User/ProductCoursel";
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return "";
@@ -695,82 +696,14 @@ const HomePage = () => {
         </Link>
       </div>
 
-      {/* Products Section */}
-      <div className=" mx-auto max-w-7xl">
-        {Object.entries(categoriesAndProducts).map(([category, products]) => (
-          <div key={category} className="mb-7">
-            {/* Category Header */}
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-blue-900 mb-4 ml-20">
-                {category}
-              </h2>
-            </div>
+  
+      
 
-            {/* Carousel Container */}
-            <div className="relative">
-              <div className="flex items-center justify-center">
-                {/* Left Arrow */}
-                {visibleProducts[category] > 0 && (
-                  <button
-                    onClick={() => scrollLeft(category)}
-                    className="absolute left-0 z-10 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transform -translate-y-1/2 top-1/2"
-                  >
-                    <FaArrowLeft className="text-gray-600" />
-                  </button>
-                )}
-
-                {/* Products Container */}
-                <div className="grid grid-cols-5 gap-8 mx-4">
-                  {products
-                    .slice(
-                      visibleProducts[category],
-                      visibleProducts[category] + productsPerView
-                    )
-                    .map((product) => (
-                      <Link
-                        key={product._id}
-                        to={`/singleProduct/${product._id}`}
-                      >
-                        <div className="bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105 duration-300 relative">
-                          <img
-                            src={product.imageUrl}
-                            alt={product.name}
-                            className="w-full h-48 object-cover"
-                          />
-                          <div className="p-4">
-                            <h2 className="text-lg font-bold text-gray-700">
-                              {product.name}
-                            </h2>
-                            <p className="text-gray-500 mt-2 line-through">
-                              ₹{formatCurrency(product.productPrice)}
-                            </p>
-                            <span className="text-lg text-bold text-green-500 mr-2">
-                              ₹{formatCurrency(product.salePrice)}
-                            </span>
-                            <span className="text-blue-600 font-medium">
-                              {product.discount}% off
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                </div>
-
-                {/* Right Arrow */}
-                {products.length >
-                  visibleProducts[category] + productsPerView && (
-                  <button
-                    onClick={() => scrollRight(category)}
-                    className="absolute right-0 z-10 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transform -translate-y-1/2 top-1/2"
-                  >
-                    <FaArrowRight className="text-gray-600" />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+          {/* Carousel Container */}
+          <ProductCarousel 
+  categoriesAndProducts={categoriesAndProducts} 
+  formatCurrency={formatCurrency} 
+/>
 
       <Footer />
       <div className="fixed bottom-8 right-8 z-50">

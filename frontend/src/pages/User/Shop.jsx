@@ -225,22 +225,22 @@ const Shop = () => {
     currentPage * itemsPerPage
   );
 
-  console.log(products, "llllllllll");
-
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
 
 
   
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
+    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
-      <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+  
+      <div className="container mx-auto px-4 py-6 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar */}
           <aside className="hidden lg:block p-4 bg-white shadow-md rounded-lg">
             <div className="mb-6">
-              <h3 className="text-xl font-semibold mb-3">Search Products</h3>
+              <h3 className="text-lg font-semibold mb-3">Search Products</h3>
               <div className="flex items-center border border-gray-300 rounded-lg px-3">
                 <FaSearch className="text-gray-500 mr-2" />
                 <input
@@ -252,9 +252,8 @@ const Shop = () => {
                 />
               </div>
             </div>
-
             <div className="mb-6">
-              <h3 className="text-xl font-semibold mb-3">Categories</h3>
+              <h3 className="text-lg font-semibold mb-3">Categories</h3>
               <ul>
                 <button
                   onClick={() => handleCategoryClick("")}
@@ -279,95 +278,80 @@ const Shop = () => {
               </ul>
             </div>
           </aside>
-
+  
+          {/* Main Content */}
           <section className="lg:col-span-3">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <label className="mr-2 font-medium">Sort By:</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none"
-                >
-                  <option value="default">Relevant</option>
-                  <option value="az">A to Z</option>
-                  <option value="za">Z to A</option>
-                  <option value="priceasc">Price: Low to High</option>
-                  <option value="pricedesc">Price: High to Low</option>
-                </select>
-              </div>
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+              <label className="font-medium mb-3 md:mb-0">Sort By:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none"
+              >
+                <option value="default">Relevant</option>
+                <option value="az">A to Z</option>
+                <option value="za">Z to A</option>
+                <option value="priceasc">Price: Low to High</option>
+                <option value="pricedesc">Price: High to Low</option>
+              </select>
             </div>
-
+  
             {displayedProducts.length === 0 ? (
               <div className="text-center text-lg font-semibold text-gray-500 mt-10">
                 No Products Available
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {displayedProducts.map((product) => (
                     <div
                       key={product._id}
-                      className="relative bg-white p-6 rounded-lg shadow-lg"
+                      className="relative bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition"
                       onMouseEnter={() => handleMouseEnter(product._id)}
                       onMouseLeave={handleMouseLeave}
-                      
                     >
                       <button
                         className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${
-                          wishlist[product._id]
-                            ? "text-red-500"
-                            : "text-gray-500"
+                          wishlist[product._id] ? "text-red-500" : "text-gray-500"
                         }`}
-                        onClick={(e) => toggleFavorite(product._id, e)} // Pass event object to toggleFavorite
+                        onClick={(e) => toggleFavorite(product._id, e)}
                       >
-                        <FaHeart
-                          className={
+                        <FaHeart className={
                             wishlist[product._id] ? "fill-current" : ""
-                          }
-                        />
+                          }/>
                       </button>
-
                       <div
-                      onClick={() =>
-                        navigate(`/singleProduct/${product._id}`)
-                      } 
-                      onMouseEnter={() => handleMouseEnter(product._id)}
-                      className="cursor-pointer"
-                    >
-                      <img
-                    src={
-                      product.imageSubUrl?.[
-                        productImageIndices[product._id] || 0
-                      ] || product.imageUrl
-                    }
-                    alt={product.name}
-                    className="w-full h-48 object-cover"
-                  />
-                    </div>
-
-                      <div>
-                        <h4 className="text-lg font-semibold mb-2 truncate">
-                          {product.name}
-                        </h4>
-                        <p className="text-gray-500 mb-4">
-                          Category: {product.category}
-                        </p>
-                        <div className="flex justify-between items-center">
-                          <span className="text-lg font-bold text-blue-600">
-                            ₹{formatCurrency(product.productPrice)}
+                        onClick={() => navigate(`/singleProduct/${product._id}`)}
+                        className="cursor-pointer"
+                      >
+                        <img
+                          src={
+                            product.imageSubUrl?.[
+                              productImageIndices[product._id] || 0
+                            ] || product.imageUrl
+                          }
+                          alt={product.name}
+                          className="w-48 h-56 object-cover rounded-md"
+                        />
+                      </div>
+                      <h4 className="text-lg font-semibold mt-3 truncate">
+                        {product.name}
+                      </h4>
+                      <p className="text-gray-500">Category: {product.category}</p>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-lg font-bold text-blue-600">
+                          ₹{formatCurrency(product.productPrice)}
+                        </span>
+                        {product.salePrice !== product.productPrice && (
+                          <span className="line-through text-gray-400">
+                            ₹{formatCurrency(product.salePrice)}
                           </span>
-                          {product.salePrice !== product.productPrice && (
-                            <span className="line-through text-gray-400">
-                              ₹{formatCurrency(product.salePrice)}
-                            </span>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
-
+  
                 {displayedProducts.length > 0 && totalPages > 1 && (
                   <div className="mt-8 flex justify-center">
                     <ul className="inline-flex items-center">
@@ -384,7 +368,7 @@ const Shop = () => {
                         <li key={page + 1}>
                           <button
                             onClick={() => setCurrentPage(page + 1)}
-                            className={`px-4 py-2 bg-white border border-gray-300 ${
+                            className={`px-4 py-2 border ${
                               currentPage === page + 1
                                 ? "bg-blue-500 text-white"
                                 : "hover:bg-gray-200"
@@ -411,6 +395,7 @@ const Shop = () => {
           </section>
         </div>
       </div>
+  
       <Footer />
       <div className="fixed bottom-8 right-8 z-50">
         <ChatBotButton />
