@@ -8,50 +8,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../Redux/Store/store";
 import ChatBotButton from "../../components/User/chatBot";
-
-const CountdownTimer = ({ voucher }) => {
-  const [timeLeft, setTimeLeft] = useState({});
-  useEffect(() => {
-    const calculateTimeLeft = () => {
-      // Determine the correct end time based on rebid_active
-      const endTime = voucher.rebid_active
-        ? new Date(voucher.rebid_end_time).getTime()
-        : new Date(voucher.end_time).getTime();
-        
-      const difference = endTime - new Date().getTime();
-
-      if (difference > 0) {
-        return {
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60)
-        };
-      }
-      return null;
-    };
-
-    const updateTimer = () => {
-      const timeLeft = calculateTimeLeft();
-      setTimeLeft(timeLeft);
-    };
-
-    updateTimer(); // Initial call
-    const timer = setInterval(updateTimer, 1000);
-
-    return () => clearInterval(timer);
-  }, [voucher]);
-
-
-  if (!timeLeft) return null;
-
-  return (
-    <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-sm text-white px-3 py-2 rounded-lg font-mono text-sm">
-      {timeLeft.days > 0 && `${timeLeft.days}d `}
-      {`${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`}
-    </div>
-  );
-};
+import CountdownTimer from "../../components/User/CountDownTimer";
 
 const EventPage = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -167,9 +124,6 @@ const EventPage = () => {
                           <p className="text-sm text-gray-500">
                             Name: {winner.userId.username}
                           </p>
-                          {/* <p className="text-sm text-gray-500">
-                            State: {winner.userId.state}
-                          </p> */}
                         </div>
                         <Sparkles className="w-5 h-5 text-yellow-500" />
                       </div>
