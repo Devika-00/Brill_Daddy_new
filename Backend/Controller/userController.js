@@ -16,6 +16,8 @@ const Voucher = require("../Models/voucherModel");
 const Wallet = require("../Models/walletModel");
 const Winner = require("../Models/winnerModel");
 const Bid = require("../Models/bidModel");
+const axios = require('axios');
+
 
 const getProducts = async (req,res) =>{
     try {
@@ -85,7 +87,7 @@ const fetchSingleProduct = async (req, res) =>{
 const registerUser = async (req, res) => {
     try {
        
-      const { username, email, phone } = req.body;
+      const { username, email, phone, location } = req.body;
   
       if (!username || !email || !phone) {
         return res.status(400).json({ message: 'All fields are required' });
@@ -95,8 +97,27 @@ const registerUser = async (req, res) => {
       if (existingUser) {
         return res.status(409).json({ message: 'Email or phone number already in use' });
       }
+
+       // Fetch human-readable address using a geocoding API
+       const apiKey = 'AIzaSyAPqZgIUS_du5n_W_Aaw4hQkaxNouifWaM'; // Replace with your Google Maps API key
+       const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.latitude},${location.longitude}&key=${apiKey}`;
+       let registerAddress = 'Unknown Address';
+
+       try {
+           const response = await axios.get(geocodeUrl);
+           if (response.data.status === 200 && response.data.results.length > 0) {
+               registerAddress = response.data.results[0].formatted_address;
+           }
+       } catch (geocodeError) {
+           console.error('Error fetching address from geocoding API:', geocodeError.message);
+       }
   
-      const newUser = new User({ username, email, phone });
+      const newUser = new User({ username, email, phone, location: {
+        latitude: location.latitude,
+        longitude: location.longitude,
+      },
+      registerAddress,
+     });
       await newUser.save();
   
       res.status(201).json({ message: 'User registered successfully' });

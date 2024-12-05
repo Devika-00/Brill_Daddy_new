@@ -164,7 +164,7 @@ const VouchersCarousel = ({ vouchers }) => {
             <button
               key={index}
               onClick={() => setCurrentVoucherIndex(index)}
-              className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+              className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
                 index === currentVoucherIndex 
                   ? 'bg-indigo-600' 
                   : 'bg-gray-300'
