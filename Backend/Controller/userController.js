@@ -17,6 +17,8 @@ const Wallet = require("../Models/walletModel");
 const Winner = require("../Models/winnerModel");
 const Bid = require("../Models/bidModel");
 const axios = require('axios');
+const Razorpay = require('razorpay');
+
 
 
 const getProducts = async (req,res) =>{
@@ -944,6 +946,45 @@ const getVoucherBidAmount = async (req, res) => {
   }
 };
 
+const createOrder = async (req, res) => {
+  const razorpay = new Razorpay({
+    key_id: 'rzp_test_Je6Htj61yVkGEb',
+    key_secret: 'TbAjlRbnAiKGc8lTYGhM8yOK',
+});
+const { amount, currency = "INR", receipt } = req.body;
+
+try {
+    const order = await razorpay.orders.create({
+        amount: amount * 100, 
+        currency,
+        receipt,
+    });
+    res.status(200).json({ success: true, order });
+} catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error });
+}
+
+};
+
+
+const verifyPayment = async (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+  const body = razorpay_order_id + "|" + razorpay_payment_id;
+  const expectedSignature = crypto
+      .createHmac('sha256', 'TbAjlRbnAiKGc8lTYGhM8yOK')
+      .update(body.toString())
+      .digest('hex');
+
+  if (expectedSignature === razorpay_signature) {
+      // Update the database to mark the order as paid
+      res.status(200).json({ success: true });
+  } else {
+      res.status(400).json({ success: false, error: "Invalid signature" });
+  }
+};
+
 
 const getSingleUserDetails = async (req, res) => {
   try {
@@ -994,5 +1035,5 @@ const getWinningBid = async (req, res) => {
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
   updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity, getWinningDetails, getParticularVoucher,
-  getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid
+  getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid, createOrder, verifyPayment
 }
