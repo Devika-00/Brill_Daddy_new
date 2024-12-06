@@ -479,8 +479,32 @@ const getDashboardCounts = async (req, res) => {
   }
 };
 
+const refundUserList = async (req, res) => {
+  try {
+    const refundOrders = await Order.find({
+        $or: [
+            { 
+                paymentMethod: 'Razorpay', 
+                'cartItems.status': { $in: ['Cancelled', 'Returned'] }
+            },
+            { 
+                paymentMethod: 'COD', 
+                'cartItems.status': 'Returned' 
+            }
+        ]
+    })
+    .populate('userId', 'username email phone')
+    .populate('cartItems.productId', 'name')
+    .populate('selectedAddressId', 'addressLine city state zip');
+
+    res.status(200).json(refundOrders);
+} catch (error) {
+    res.status(500).json({ error: error.message });
+}
+};
+
 
 
 module.exports = {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
-    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts
+    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts, refundUserList
 }

@@ -8,7 +8,7 @@ const Bid = require('../Models/bidModel');
 const User = require('../Models/userModel');
 
 const {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
-    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts
+    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts, refundUserList
 } = require("../Controller/adminController")
 
 // Admin login route
@@ -166,5 +166,7 @@ adminRoute.post("/addvoucher",addVouchers);
 adminRoute.get("/voucher",getAllVoucher);
 adminRoute.delete("/voucher/:id",deletevoucher);
 adminRoute.put("/voucher/:id",editVoucher);
+
+adminRoute.get("/refundUsers",refundUserList);
 
 module.exports = adminRoute;

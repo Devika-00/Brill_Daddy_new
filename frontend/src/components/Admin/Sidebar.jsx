@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaHome, FaUsers, FaBoxOpen, FaClipboardList, FaGift, FaTags, FaStar, FaAward } from 'react-icons/fa'; 
+import { FaHome, FaUsers, FaBoxOpen, FaClipboardList, FaGift, FaTags, FaStar, FaAward, FaMoneyBill } from 'react-icons/fa'; 
 import logo from "../../assets/logo.png"
 
 const Sidebar = () => {
@@ -7,7 +7,7 @@ const Sidebar = () => {
 
   return (
     <div className={`flex ${isOpen ? 'w-56' : 'w-20'} bg-gray-200 h-screen transition-width duration-300`}>
-      <div className="flex flex-col justify-start w-full h-full text-gray-500">
+      <div className="flex flex-col justify-start w-full h-screen text-gray-500">
         {/* Top Section */}
         <div className="flex flex-col space-y-4 mt-6">
           {/* Logo Section */}
@@ -65,6 +65,10 @@ const Sidebar = () => {
             <a href="/bidAmounts" className="flex items-center space-x-4 p-2 hover:bg-gray-300 rounded-lg">
               <FaAward className="text-xl" /> {/* Voucher icon */}
               <span className={`${isOpen ? '' : 'hidden'}`}>Bid Amount</span>
+            </a>
+            <a href="/refundUsers" className="flex items-center space-x-4 p-2 hover:bg-gray-300 rounded-lg">
+              <FaMoneyBill className="text-xl" /> {/* Voucher icon */}
+              <span className={`${isOpen ? '' : 'hidden'}`}>Refund Users</span>
             </a>
           </nav>
         </div>

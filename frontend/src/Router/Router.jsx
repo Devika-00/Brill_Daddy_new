@@ -36,6 +36,7 @@ import BidProductsPage from "../pages/User/BidProducts";
 import BidAmountList from "../pages/Admin/bidAmountList";
 import PrivacyPolicy from "../pages/User/PrivacyPolicy";
 import RefundPolicy from "../pages/User/RefundPolicy";
+import RefundUsers from "../pages/Admin/RefundUsers";
 
 const MainRouter = () => {
   return (
@@ -85,6 +86,7 @@ const MainRouter = () => {
         <Route path="/vouchers" element={<Voucher />} />
         <Route path="/adminlogin" element={<Login />} />
         <Route path="/bidAmounts" element={<BidAmountList />} />
+        <Route path="/refundUsers" element={<RefundUsers />} />
 
         <Route path="*" element={<NotFoundPage />} />
 
