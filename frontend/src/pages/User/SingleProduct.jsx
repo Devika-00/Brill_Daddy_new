@@ -18,6 +18,7 @@ import { SERVER_URL } from "../../Constants";
 import { useAppSelector } from "../../Redux/Store/store";
 import { FaHeart } from "react-icons/fa";
 import ChatBotButton from "../../components/User/chatBot";
+import RelatedProductsCarousel from "../../components/User/ReleatedProductCarseoul";
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return '';
@@ -35,6 +36,7 @@ const formatCurrency = (value) => {
 const SingleProduct = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
   const [mainImage, setMainImage] = useState("");
   const [selectedThumbnail, setSelectedThumbnail] = useState(0);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
@@ -59,8 +61,42 @@ const SingleProduct = () => {
         if (response.data.images && response.data.images.length > 0) {
           setMainImage(response.data.images[0].thumbnailUrl);
         }
+        fetchRelatedProducts(response.data.category);
       } catch (error) {
         console.error("Error fetching product:", error);
+      }
+    };
+
+    const fetchRelatedProducts = async (category) => {
+      try {
+        const response = await axios.get(
+          `${SERVER_URL}/user/relatedProducts?category=${category}&exclude=${id}`
+        );
+
+        const relatedProductsWithImages = await Promise.all(
+          response.data.map(async (product) => {
+            if (product.images && product.images.length > 0) {
+              try {
+                const imageResponse = await axios.get(
+                  `${SERVER_URL}/user/images/${product.images[0]}`
+                );
+                return {
+                  ...product,
+                  imageUrl: imageResponse.data.imageUrl,
+                  thumbnailUrl: imageResponse.data.thumbnailUrl
+                };
+              } catch (imageError) {
+                console.error(`Error fetching image for product ${product._id}:`, imageError);
+                return product;
+              }
+            }
+            return product;
+          })
+        );
+
+        setRelatedProducts(relatedProductsWithImages);
+      } catch (error) {
+        console.error("Error fetching related products:", error);
       }
     };
 
@@ -256,6 +292,8 @@ const SingleProduct = () => {
     );
   }
 
+  console.log(relatedProducts,"aaaaaaaaaaaaaaaaaaaaaaaa");
+
   return (
     <>
       <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
@@ -422,6 +460,12 @@ const SingleProduct = () => {
             </div>
           </div>
         </div>
+
+        <RelatedProductsCarousel 
+  relatedProducts={relatedProducts}
+  formatCurrency={formatCurrency}
+  navigate={navigate}
+/>
   
         <Footer />
         <div className="fixed bottom-8 right-8 z-50">

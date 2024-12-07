@@ -1028,6 +1028,15 @@ const getWinningBid = async (req, res) => {
   }
 };
 
+const fetchRelatedProducts = async (req, res) => {
+  const { category, exclude } = req.query;
+  const products = await Product.find({
+    category,
+    _id: { $ne: exclude },
+  });
+  res.json(products);
+};
+
 
 
 
@@ -1035,5 +1044,5 @@ const getWinningBid = async (req, res) => {
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
   updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity, getWinningDetails, getParticularVoucher,
-  getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid, createOrder, verifyPayment
+  getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid, createOrder, verifyPayment, fetchRelatedProducts
 }
