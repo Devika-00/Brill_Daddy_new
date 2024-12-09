@@ -8,7 +8,7 @@ const Bid = require('../Models/bidModel');
 const User = require('../Models/userModel');
 
 const {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
-    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts, refundUserList
+    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts, refundUserList, updateStatusRefund
 } = require("../Controller/adminController")
 
 // Admin login route
@@ -79,14 +79,16 @@ adminRoute.put('/cancel-order/:orderId', async (req, res) => {
     // Update the status of the specific product to 'Cancelled'
     productToCancel.status = 'Cancelled';
 
+    if (order.paymentMethod === 'Razorpay') {
+      productToCancel.refundAmountStatus = 'Pending';
+    }
+
     // Set the cancellation details for the order
     order.cancellation = {
       reason: cancelReason,  // Reason for cancellation
       cancelledAt: new Date(), // Cancellation timestamp
       status: 'Cancelled',  // Mark as cancelled
     };
-
-    
 
     // Save the order with the updated details
     await order.save();
@@ -123,6 +125,10 @@ adminRoute.put('/cancel-order/:orderId', async (req, res) => {
     
         // Update the status of the specific product to 'Cancelled'
         productToReturn.status = 'Returned';
+
+        if (order.paymentMethod === 'Razorpay'|| order.paymentMethod === 'COD' ) {
+          productToReturn.refundAmountStatus = 'Pending';
+        }
     
     
         // Save the order with the updated details
@@ -168,5 +174,6 @@ adminRoute.delete("/voucher/:id",deletevoucher);
 adminRoute.put("/voucher/:id",editVoucher);
 
 adminRoute.get("/refundUsers",refundUserList);
+adminRoute.put("/updateRefundStatus",updateStatusRefund)
 
 module.exports = adminRoute;

@@ -161,10 +161,9 @@ const OrderDetails = () => {
   };
 
   const confirmCancelOrder = async () => {
-    const productId = order.cartItems[0]?.productId._id; // Assuming you want to cancel the first product in the order
+    const productId = order.cartItems[0]?.productId._id; 
 
     try {
-      // Send cancellation details to update the order directly
       const response = await axios.put(
         `${SERVER_URL}/admin/cancel-order/` + order._id,
         {

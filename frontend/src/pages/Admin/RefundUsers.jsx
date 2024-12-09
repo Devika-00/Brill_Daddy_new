@@ -24,15 +24,24 @@ const RefundUsers = () => {
     fetchRefundUsers();
   }, []);
 
-  const handleActionChange = (orderId, productId, newAction) => {
-    // Implement the logic to update refund status (e.g., send API request)
-    console.log(
-      `Order ID: ${orderId}, Product ID: ${productId}, New Action: ${newAction}`
-    );
-    // Example API call:
-    // axios.put(`${SERVER_URL}/admin/updateRefundStatus`, { orderId, productId, newAction })
-    //   .then(response => console.log('Status updated successfully'))
-    //   .catch(error => console.error('Error updating status:', error));
+  const handleActionChange = async (orderId, productId, newAction) => {
+    try {
+      // Implement the API call to update refund status
+      const response = await axios.put(
+        `${SERVER_URL}/admin/updateRefundStatus`,
+        {
+          orderId,
+          productId,
+          newAction,
+        }
+      );
+
+      window.location.reload();
+
+      console.log("Refund status updated successfully");
+    } catch (error) {
+      console.error("Error updating refund status:", error);
+    }
   };
 
   if (loading) {
@@ -60,7 +69,7 @@ const RefundUsers = () => {
                     <th className="border px-4 py-2">Product</th>
                     <th className="border px-4 py-2">Status</th>
                     <th className="border px-4 py-2">Payment Method</th>
-                    {/* <th className="border px-4 py-2">Action</th> */}
+                    <th className="border px-4 py-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -102,6 +111,46 @@ const RefundUsers = () => {
                           <td className="border px-4 py-2">{item.status}</td>
                           <td className="border px-4 py-2">
                             {order.paymentMethod}
+                          </td>
+                          <td className="border px-4 py-2">
+                            <select
+                              value={
+                                item.refundAmountStatus || " "
+                              }
+                              onChange={(e) =>
+                                handleActionChange(
+                                  order._id,
+                                  item.productId._id,
+                                  e.target.value
+                                )
+                              }
+                              className={`w-full p-1 rounded ${
+                                item.refundAmountStatus === "Completed"
+                                  ? "text-green-600"
+                                  : item.refundAmountStatus === "Pending"
+                                  ? "text-red-600"
+                                  : "text-yellow-600"
+                              }`}
+                            >
+                              <option
+                                value={item.refundAmountStatus}
+                                className="text-yellow-600"
+                              >
+                                {item.refundAmountStatus}
+                              </option>
+                              <option
+                                value="Refund Pending"
+                                className="text-red-600"
+                              >
+                                Refund Pending
+                              </option>
+                              <option
+                                value="Refund Completed"
+                                className="text-green-600"
+                              >
+                                Refund Completed
+                              </option>
+                            </select>
                           </td>
                         </tr>
                       ))

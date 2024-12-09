@@ -503,8 +503,62 @@ const refundUserList = async (req, res) => {
 }
 };
 
+const updateStatusRefund = async (req, res) => {
+  try {
+    const { orderId, productId, newAction } = req.body;
+
+
+  const allowedActions = ['Refund Pending', 'Refund Completed'];
+  if (!allowedActions.includes(newAction)) {
+    return res.status(400).json({ message: 'Invalid action provided' });
+  }
+
+  const refundStatus = newAction === 'Refund Pending' ? 'Pending' : 'Completed';
+
+
+  // Find the order and update the specific cart item's refund status
+  const updatedOrder = await Order.findOneAndUpdate(
+    { 
+      _id: orderId, 
+      'cartItems.productId': productId 
+    },
+    { 
+      $set: { 
+        'cartItems.$.refundAmountStatus': refundStatus 
+      } 
+    },
+    { 
+      new: true,  // Return the updated document
+      runValidators: true  // Ensure schema validations are run
+    }
+  ).populate('userId cartItems.productId');
+
+
+  // If no order found
+  if (!updatedOrder) {
+    return res.status(404).json({ message: 'Order or Product not found' });
+  }
+
+  res.status(200).json({
+    message: 'Refund status updated successfully',
+    order: {
+      orderId,
+      productId,
+      refundStatus,
+    }
+  });
+
+} catch (error) {
+  console.error('Error updating refund status:', error);
+  res.status(500).json({ 
+    message: 'Internal server error', 
+    error: error.message 
+  });
+}
+};
+
 
 
 module.exports = {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
-    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts, refundUserList
+    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts, refundUserList, updateStatusRefund
 }
