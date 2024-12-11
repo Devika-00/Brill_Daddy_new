@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaHome, FaUsers, FaBoxOpen, FaClipboardList, FaGift, FaTags, FaStar, FaAward, FaMoneyBill } from 'react-icons/fa'; 
+import { FaHome, FaUsers, FaBoxOpen, FaClipboardList, FaGift, FaTags, FaStar, FaAward, FaMoneyBill, FaImage } from 'react-icons/fa'; 
 import logo from "../../assets/logo.png"
 
 const Sidebar = () => {
@@ -69,6 +69,10 @@ const Sidebar = () => {
             <a href="/refundUsers" className="flex items-center space-x-4 p-2 hover:bg-gray-300 rounded-lg">
               <FaMoneyBill className="text-xl" /> {/* Voucher icon */}
               <span className={`${isOpen ? '' : 'hidden'}`}>Refund Users</span>
+            </a>
+            <a href="/imageCarousel" className="flex items-center space-x-4 p-2 hover:bg-gray-300 rounded-lg">
+              <FaImage className="text-xl" /> {/* Voucher icon */}
+              <span className={`${isOpen ? '' : 'hidden'}`}>Image Carousel</span>
             </a>
           </nav>
         </div>

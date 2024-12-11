@@ -37,6 +37,7 @@ import BidAmountList from "../pages/Admin/bidAmountList";
 import PrivacyPolicy from "../pages/User/PrivacyPolicy";
 import RefundPolicy from "../pages/User/RefundPolicy";
 import RefundUsers from "../pages/Admin/RefundUsers";
+import ImageCarousels from "../pages/Admin/imageCarousel";
 
 const MainRouter = () => {
   return (
@@ -71,6 +72,7 @@ const MainRouter = () => {
         <Route path="/shopCategory" element={<ShopCategory />} />
         <Route path="/orderSuccessful" element={<OrderSuccessful />} />
         <Route path="/payment/:voucherId" element={<PaymentPage />} />
+        
        
         </Route>
 
@@ -87,6 +89,7 @@ const MainRouter = () => {
         <Route path="/adminlogin" element={<Login />} />
         <Route path="/bidAmounts" element={<BidAmountList />} />
         <Route path="/refundUsers" element={<RefundUsers />} />
+        <Route path="/imageCarousel" element={<ImageCarousels />} />
 
         <Route path="*" element={<NotFoundPage />} />
 

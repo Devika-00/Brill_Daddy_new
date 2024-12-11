@@ -8,7 +8,8 @@ const Bid = require('../Models/bidModel');
 const User = require('../Models/userModel');
 
 const {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
-    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts, refundUserList, updateStatusRefund
+    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts, refundUserList, updateStatusRefund, uploadCarsouelImage,
+    fetchCarouselImages, deleteImageCarousel
 } = require("../Controller/adminController")
 
 // Admin login route
@@ -174,6 +175,8 @@ adminRoute.delete("/voucher/:id",deletevoucher);
 adminRoute.put("/voucher/:id",editVoucher);
 
 adminRoute.get("/refundUsers",refundUserList);
-adminRoute.put("/updateRefundStatus",updateStatusRefund)
-
+adminRoute.put("/updateRefundStatus",updateStatusRefund);
+adminRoute.post("/uploadImage", uploadCarsouelImage);
+adminRoute.get("/carouselImages",fetchCarouselImages);
+adminRoute.delete("/deleteImage/:imageId",deleteImageCarousel);
 module.exports = adminRoute;

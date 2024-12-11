@@ -7,6 +7,7 @@ const Order = require("../Models/orderModel");
 const Voucher = require("../Models/voucherModel");
 const User = require('../Models/userModel');
 const Bid = require('../Models/bidModel'); 
+const CarouselImage = require('../Models/carouselModel');
 
 const getAllUsers = async (req, res) => {
   try {
@@ -557,8 +558,63 @@ const updateStatusRefund = async (req, res) => {
 }
 };
 
+const uploadCarsouelImage = async (req, res) => {
+
+  try {
+    const { imageUrl } = req.body;
+
+    // Validate the request body
+    if (!imageUrl) {
+      return res.status(400).json({ message: 'Image URL is required' });
+    }
+
+    // Create a new Carousel entry
+    const newCarouselImage = new CarouselImage({
+      imageUrl, // Assuming your Carousel model has an `imageUrl` field
+    });
+
+    // Save to the database
+    await newCarouselImage.save();
+
+    res.status(200).json({ message: 'Image saved successfully', data: newCarouselImage });
+  } catch (error) {
+    console.error('Error saving image:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const fetchCarouselImages = async (req,res) =>{
+  try {
+    // Fetch all images from the database
+    const images = await CarouselImage.find().sort({ uploadedAt: -1 }); // Sort by newest first
+    res.status(200).json(images);
+  } catch (error) {
+    console.error('Error fetching carousel images:', error);
+    res.status(500).json({ error: 'Failed to fetch carousel images' });
+  }
+}
+
+const deleteImageCarousel = async (req,res) =>{
+  const { imageId } = req.params;
+  try {
+    // Find the image by ID and remove it from the database
+    const deletedImage = await CarouselImage.findByIdAndDelete(imageId);
+    
+    if (!deletedImage) {
+      return res.status(404).json({ message: 'Image not found' });
+    }
+
+    // Send a success response
+    res.status(200).json({ message: 'Image deleted successfully!' });
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    res.status(500).json({ message: 'Failed to delete image' });
+  }
+}
+
 
 
 module.exports = {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
-    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts, refundUserList, updateStatusRefund
+    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts, refundUserList, updateStatusRefund, uploadCarsouelImage,
+    fetchCarouselImages, deleteImageCarousel
 }
