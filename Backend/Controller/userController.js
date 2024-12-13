@@ -18,6 +18,7 @@ const Winner = require("../Models/winnerModel");
 const Bid = require("../Models/bidModel");
 const axios = require('axios');
 const Razorpay = require('razorpay');
+const CarouselImage = require("../Models/carouselModel");
 
 
 
@@ -1037,6 +1038,17 @@ const fetchRelatedProducts = async (req, res) => {
   res.json(products);
 };
 
+const fetchImagesCarousel = async (req, res) => {
+  try {
+    console.log("lllllllllllllll");
+    const images = await CarouselImage.find(); // Fetch all images
+    res.status(200).json(images); // Send image data as JSON
+  } catch (error) {
+    console.error("Error fetching images:", error);
+    res.status(500).json({ message: "Failed to fetch images" });
+  }
+};
+
 
 
 
@@ -1044,5 +1056,5 @@ const fetchRelatedProducts = async (req, res) => {
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
   updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity, getWinningDetails, getParticularVoucher,
-  getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid, createOrder, verifyPayment, fetchRelatedProducts
+  getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid, createOrder, verifyPayment, fetchRelatedProducts, fetchImagesCarousel
 }

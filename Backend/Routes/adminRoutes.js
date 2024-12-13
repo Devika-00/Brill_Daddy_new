@@ -56,7 +56,6 @@ adminRoute.post("/login", async (req, res) => {
 // Admin cancel order route
 adminRoute.put('/cancel-order/:orderId', async (req, res) => {
     try {
-      console.log(req.body,"kkkkkkkkkkkkkkkkk");
       
       const { userId, productId, cancelReason } = req.body;
       const { orderId } = req.params;
@@ -179,4 +178,5 @@ adminRoute.put("/updateRefundStatus",updateStatusRefund);
 adminRoute.post("/uploadImage", uploadCarsouelImage);
 adminRoute.get("/carouselImages",fetchCarouselImages);
 adminRoute.delete("/deleteImage/:imageId",deleteImageCarousel);
+
 module.exports = adminRoute;
