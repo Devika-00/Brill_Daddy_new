@@ -9,8 +9,10 @@ const { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,se
     fetchRelatedProducts, fetchImagesCarousel
  } = require("../Controller/userController");
 
+userRoute.get("/carousel", fetchImagesCarousel);
 userRoute.get("/products",getProducts);
 userRoute.get("/images/:id",fetchimages);
+
 // userRoute.get("/imagesSub/:id",fetchimagesSub);
 userRoute.get("/category",fetchCategory);
 userRoute.get("/products/:id",fetchSingleProduct);
@@ -65,7 +67,7 @@ userRoute.get("/winningBid/:voucherId",getWinningBid)
 
 userRoute.get("/wallet/:userId",getWallet);
 
-userRoute.get("/carouselImages",fetchImagesCarousel);
+
 
 
 

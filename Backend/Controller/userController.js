@@ -1040,7 +1040,7 @@ const fetchRelatedProducts = async (req, res) => {
 
 const fetchImagesCarousel = async (req, res) => {
   try {
-    console.log("lllllllllllllll");
+    console.log("Fetching carousel images ooooooooooooooooooooooooooo");
     const images = await CarouselImage.find(); // Fetch all images
     res.status(200).json(images); // Send image data as JSON
   } catch (error) {

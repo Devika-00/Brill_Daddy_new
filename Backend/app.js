@@ -22,10 +22,20 @@ app.use(
   })
 );
 
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error("Unhandled Error:", err);
+  res.status(500).json({
+    message: "Internal Server Error",
+    error: process.env.NODE_ENV === 'development' ? err.message : {}
+  });
+});
+
 app.use("/api/admin",adminRoute);
 app.use("/api/user",userRoute);
 app.use("/api/voucher",voucherRoute);
 app.use("/api/bid",bidRoute);
+
 
 const port = ENV.PORT || 5002;
 

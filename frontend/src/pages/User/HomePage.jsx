@@ -72,6 +72,7 @@ const HomePage = () => {
   const [products, setProducts] = useState([]);
   const [electronicProducts, setElectronicProducts] = useState([]);
   const [categoriesAndProducts, setCategoriesAndProducts] = useState({});
+  const [carouselImages, setCarouselImages] = useState([]);
 
   const navigate = useNavigate();
 
@@ -134,6 +135,22 @@ const HomePage = () => {
     fetchProducts();
     fetchWishlist();
   }, [userId, token]);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        console.log("reaching")
+        const response = await axios.get(`${SERVER_URL}/user/carousel`,{
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCarouselImages(response.data);
+      } catch (error) {
+        console.error("Error fetching carousel images:", error);
+      }
+    };
+
+    fetchImages();
+}, []); 
 
   const toggleFavorite = async (productId) => {
     try {
@@ -342,7 +359,7 @@ const HomePage = () => {
       )}
 
       {/* Image Carousel */}
-      <ResponsiveCarousel/>
+      <ResponsiveCarousel carouselImages={carouselImages}/>
 
       <div className="p-6 mx-auto max-w-7xl">
         {/* Flex Layout for Side-by-Side Design */}
