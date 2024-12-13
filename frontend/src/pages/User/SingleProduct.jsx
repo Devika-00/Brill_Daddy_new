@@ -314,7 +314,7 @@ const SingleProduct = () => {
                     <img
                       src={mainImage}
                       alt="Product"
-                      className={`w-full h-full object-contain transition-all duration-500 ${
+                      className={`w-96 h-96 object-contain transition-all duration-500 mt-5 ${
                         isImageZoomed ? "scale-125" : "scale-100"
                       }`}
                     />
