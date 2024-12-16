@@ -242,15 +242,15 @@ const OrginalNavbar = () => {
               <button onClick={handleLanguageDropdown} className="text-gray-700 ml-2">
                 ENG
               </button>
-              {showLanguageDropdown && (
+              {/* {showLanguageDropdown && (
                 <div className="absolute bg-white border border-gray-300 mt-1 rounded shadow-md z-20">
-                  {["Hindi", "Bengali", "Tamil", "Telugu"].map((lang) => (
+                  {[].map((lang) => (
                     <a key={lang} href="#" className="block px-4 py-2 hover:bg-gray-100">
                       {lang}
                     </a>
                   ))}
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </div>

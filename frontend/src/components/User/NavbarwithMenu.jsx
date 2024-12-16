@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 const NavbarWithMenu = () => {
   const [showCategories, setShowCategories] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [currentParentId, setCurrentParentId] = useState(null); // Track the current parent category ID
   const navigate = useNavigate();
 
   const toggleCategories = () => {
@@ -25,18 +26,66 @@ const NavbarWithMenu = () => {
     fetchCategories();
   }, []);
 
-  const handleCategoryClick = (category) => {
-    setShowCategories(false); // Close the dropdown menu
-    navigate(`/shopCategory?category=${encodeURIComponent(category.name)}`); // Redirect with category as query
+  const handleCategoryClick = (categoryId) => {
+    // Check if there are subcategories for this category
+    const hasSubcategories = categories.some(
+      (category) => category.parentCategory === categoryId
+    );
+
+    if (hasSubcategories) {
+      setCurrentParentId(categoryId); // Set the clicked category as the current parent
+    } else {
+      // Navigate to the shop page if no subcategories exist
+      setShowCategories(false); // Close the dropdown
+      const category = categories.find((cat) => cat._id === categoryId);
+      navigate(`/shopCategory?category=${encodeURIComponent(category.name)}`);
+    }
+  };
+
+  const handleBackClick = () => {
+    // Navigate back to the parent category or reset to the top-level categories
+    if (currentParentId) {
+      const parentCategory = categories.find(
+        (category) => category._id === currentParentId
+      )?.parentCategory;
+
+      setCurrentParentId(parentCategory || null);
+    }
+  };
+
+  const handleHomeClick = () => {
+    navigate("/"); // Redirect to the home page
   };
 
   const handleEventsClick = () => {
     navigate("/event"); // Redirect to the events page
   };
 
-  const handleHomeClick = () => {
-    navigate("/"); // Redirect to the home page
+  const getDisplayedCategories = () => {
+    return categories.filter(
+      (category) =>
+        (currentParentId === null && category.parentCategory === null) ||
+        category.parentCategory === currentParentId
+    );
   };
+
+  const renderCategoryList = (categoriesToRender) => {
+    return (
+      <ul>
+        {categoriesToRender.map((category) => (
+          <li
+            key={category._id}
+            className="p-2 hover:bg-gray-100 cursor-pointer"
+            onClick={() => handleCategoryClick(category._id)}
+          >
+            {category.name}
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
+  const displayedCategories = getDisplayedCategories();
 
   return (
     <>
@@ -79,18 +128,22 @@ const NavbarWithMenu = () => {
               <FaTimes />
             </button>
 
-            <h2 className="text-xl font-bold mb-4">Categories</h2>
-            <ul>
-              {categories.map((category, index) => (
-                <li
-                  key={index}
-                  className="p-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => handleCategoryClick(category)}
-                >
-                  {category.name}
-                </li>
-              ))}
-            </ul>
+            <h2 className="text-xl font-bold mb-4">
+              {currentParentId
+                ? categories.find((cat) => cat._id === currentParentId)?.name
+                : "Categories"}
+            </h2>
+
+            {currentParentId && (
+              <button
+                onClick={handleBackClick}
+                className="text-blue-500 text-sm mb-4"
+              >
+                &larr; Back
+              </button>
+            )}
+
+            {renderCategoryList(displayedCategories)}
           </div>
         </div>
       )}

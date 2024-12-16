@@ -28,20 +28,26 @@ const getAllUsers = async (req, res) => {
 };
 
 
-const addCategory = async (req,res) =>{
-    try {
-        const {name, description} = req.body;
-        const category = new Category({name,description});
+const addCategory = async (req, res) => {
+  try {
+      const { name, description, parentCategory } = req.body;
 
-        const savedCategory = await category.save();
+      // Create a new category object
+      const categoryData = { name, description };
+      if (parentCategory) {
+          categoryData.parentCategory = parentCategory; // Add parent category if provided
+      }
 
-        res.status(201).json(savedCategory);
-        
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-}
+      const category = new Category(categoryData);
+      const savedCategory = await category.save();
+
+      res.status(201).json(savedCategory);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+  }
+};
+
 
 
 const getcategories = async (req,res) =>{
