@@ -12,13 +12,8 @@ import ChatBotButton from "../../components/User/chatBot";
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return "";
 
-  // Convert to string and split decimal parts
   const [integerPart, decimalPart] = value.toString().split(".");
-
-  // Add commas to integer part
   const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-  // Recombine with decimal part if exists
   return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
 };
 
@@ -27,6 +22,7 @@ const Shop = () => {
   const [sortBy, setSortBy] = useState("default");
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [currentParentId, setCurrentParentId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [wishlist, setWishlist] = useState({});
@@ -80,27 +76,19 @@ const Shop = () => {
 
     const fetchWishlist = async () => {
       try {
-        console.log("Retrieved token:", token); // Log token
-        console.log("Retrieved userId:", userId); // Log userId
         if (!userId || !token) return;
 
         const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // Check if wishlist is empty and only process if not empty
         if (response.data.length > 0) {
           const wishlistItems = response.data.reduce((acc, item) => {
             acc[item.productId._id] = item.wishlistStatus === "added";
             return acc;
           }, {});
-          console.log(
-            "Wishlist fetched:",
-            JSON.stringify(wishlistItems, null, 2)
-          );
           setWishlist(wishlistItems);
         } else {
-          console.log("Wishlist is empty, no products found.");
           setWishlist({});
         }
       } catch (error) {
@@ -112,7 +100,6 @@ const Shop = () => {
     fetchCategories();
     fetchWishlist();
   }, [userId, token]);
-
 
   useEffect(() => {
     const initialImageIndices = products.reduce((acc, product) => {
@@ -143,11 +130,6 @@ const Shop = () => {
   const handleMouseEnter = (productId) => setHoveredProduct(productId);
   const handleMouseLeave = () => setHoveredProduct(null);
 
-  const handleCategoryClick = (category) => {
-    setSelectedCategory(category);
-    setCurrentPage(1);
-  };
-
   const toggleFavorite = async (productId, e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -158,10 +140,7 @@ const Shop = () => {
         return;
       }
 
-      const headers = {
-        Authorization: `Bearer ${token}`,
-      };
-
+      const headers = { Authorization: `Bearer ${token}` };
       const requestBody = {
         productId,
         userId,
@@ -176,7 +155,6 @@ const Shop = () => {
             data: requestBody,
           }
         );
-
         if (response.status === 200) {
           setWishlist((prev) => ({ ...prev, [productId]: false }));
           alert("Product removed from wishlist!");
@@ -187,7 +165,6 @@ const Shop = () => {
           requestBody,
           { headers }
         );
-
         if (response.status === 201) {
           setWishlist((prev) => ({ ...prev, [productId]: true }));
           alert("Product added to wishlist!");
@@ -227,6 +204,46 @@ const Shop = () => {
 
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
 
+  const handleCategoryClick = (categoryId) => {
+    const category = categories.find((cat) => cat._id === categoryId);
+    if (category) {
+      setSelectedCategory(category.name);
+      setCurrentParentId(categoryId); // Update to the clicked category
+    }
+  };
+
+  const handleBackClick = () => {
+    if (currentParentId) {
+      const parentCategory = categories.find(
+        (category) => category._id === currentParentId
+      )?.parentCategory;
+  
+      setCurrentParentId(parentCategory || null);
+    }
+  };
+
+  const getDisplayedCategories = () => {
+    return categories.filter(
+      (category) =>
+        category.parentCategory === currentParentId // Match parent category
+    );
+  };
+
+  const renderCategoryList = (categoriesToRender) => (
+    <ul>
+      {categoriesToRender.map((category) => (
+        <li
+          key={category._id}
+          className="p-2 hover:bg-gray-100 cursor-pointer"
+          onClick={() => handleCategoryClick(category._id)}
+        >
+          {category.name}
+        </li>
+      ))}
+    </ul>
+  );
+
+  const displayedCategories = getDisplayedCategories();
 
   
 
@@ -234,10 +251,8 @@ const Shop = () => {
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
-  
       <div className="container mx-auto px-4 py-6 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
           <aside className="hidden lg:block p-4 bg-white shadow-md rounded-lg">
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-3">Search Products</h3>
@@ -253,33 +268,22 @@ const Shop = () => {
               </div>
             </div>
             <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-3">Categories</h3>
-              <ul>
+              <h2 className="text-xl font-bold mb-4">
+                {currentParentId
+                  ? categories.find((cat) => cat._id === currentParentId)?.name
+                  : "Categories"}
+              </h2>
+              {currentParentId && (
                 <button
-                  onClick={() => handleCategoryClick("")}
-                  className={`text-gray-700 mb-2 ${
-                    !selectedCategory && "font-bold"
-                  }`}
+                  onClick={handleBackClick}
+                  className="text-blue-500 text-sm mb-4"
                 >
-                  Show All
+                  &larr; Back
                 </button>
-                {categories.map((category) => (
-                  <li key={category._id} className="mb-2">
-                    <button
-                      onClick={() => handleCategoryClick(category.name)}
-                      className={`text-gray-700 hover:text-blue-600 transition ${
-                        selectedCategory === category.name ? "font-bold" : ""
-                      }`}
-                    >
-                      {category.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              )}
+              {renderCategoryList(getDisplayedCategories())}
             </div>
           </aside>
-  
-          {/* Main Content */}
           <section className="lg:col-span-3">
             <div className="flex flex-col md:flex-row justify-between items-center mb-6">
               <label className="font-medium mb-3 md:mb-0">Sort By:</label>
@@ -295,7 +299,6 @@ const Shop = () => {
                 <option value="pricedesc">Price: High to Low</option>
               </select>
             </div>
-  
             {displayedProducts.length === 0 ? (
               <div className="text-center text-lg font-semibold text-gray-500 mt-10">
                 No Products Available
@@ -312,16 +315,20 @@ const Shop = () => {
                     >
                       <button
                         className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${
-                          wishlist[product._id] ? "text-red-500" : "text-gray-500"
+                          wishlist[product._id]
+                            ? "text-red-500"
+                            : "text-gray-500"
                         }`}
                         onClick={(e) => toggleFavorite(product._id, e)}
                       >
-                        <FaHeart className={
-                            wishlist[product._id] ? "fill-current" : ""
-                          }/>
+                        <FaHeart
+                          className={wishlist[product._id] ? "fill-current" : ""}
+                        />
                       </button>
                       <div
-                        onClick={() => navigate(`/singleProduct/${product._id}`)}
+                        onClick={() =>
+                          navigate(`/singleProduct/${product._id}`)
+                        }
                         className="cursor-pointer"
                       >
                         <img
@@ -337,7 +344,9 @@ const Shop = () => {
                       <h4 className="text-lg font-semibold mt-3 truncate">
                         {product.name}
                       </h4>
-                      <p className="text-gray-500">Category: {product.category}</p>
+                      <p className="text-gray-500">
+                        Category: {product.category}
+                      </p>
                       <div className="flex justify-between items-center mt-2">
                         <span className="text-lg font-bold text-blue-600">
                           ₹{formatCurrency(product.productPrice)}
@@ -351,7 +360,6 @@ const Shop = () => {
                     </div>
                   ))}
                 </div>
-  
                 {displayedProducts.length > 0 && totalPages > 1 && (
                   <div className="mt-8 flex justify-center">
                     <ul className="inline-flex items-center">
@@ -395,7 +403,6 @@ const Shop = () => {
           </section>
         </div>
       </div>
-  
       <Footer />
       <div className="fixed bottom-8 right-8 z-50">
         <ChatBotButton />
