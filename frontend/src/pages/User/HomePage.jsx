@@ -372,7 +372,7 @@ const HomePage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Fashion Category Card */}
               <div
-                onClick={() => handleCategoryClick("fashion")}
+                onClick={() => handleCategoryClick("Fashion")}
                 className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
               >
                 <div className="relative h-40">
@@ -393,7 +393,7 @@ const HomePage = () => {
 
               {/* Electronics Category Card */}
               <div
-                onClick={() => handleCategoryClick("electronics")}
+                onClick={() => handleCategoryClick("Electronics and Home Appliances")}
                 className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
               >
                 <div className="relative h-40">
@@ -406,7 +406,7 @@ const HomePage = () => {
                 </div>
                 <div className="p-4">
                   <h3 className="text-base font-bold text-gray-700">
-                    Electronics
+                    Electronics and Home Appliances
                   </h3>
                   <p className="text-sm text-gray-500 mt-2">
                     Latest gadgets and devices at unbeatable prices.
@@ -416,12 +416,12 @@ const HomePage = () => {
 
               {/* Home Appliances Category Card */}
               <div
-                onClick={() => handleCategoryClick("homeAppliances")}
+                onClick={() => handleCategoryClick("Jwellery")}
                 className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
               >
                 <div className="relative h-40">
                   <img
-                    src="https://media.istockphoto.com/id/1211554164/photo/3d-render-of-home-appliances-collection-set.jpg?s=612x612&w=0&k=20&c=blm3IyPyZo5ElWLOjI-hFMG-NrKQ0G76JpWGyNttF8s="
+                    src="https://d25xd2afqp2r8a.cloudfront.net/blog/14f491d8-2176-40a2-85fd-5c97cfa81c42.jpg"
                     alt="Home Appliances"
                     className="w-full h-full object-cover"
                   />
@@ -429,7 +429,7 @@ const HomePage = () => {
                 </div>
                 <div className="p-4">
                   <h3 className="text-base font-bold text-gray-700">
-                    Home Appliances
+                    Jwellery
                   </h3>
                   <p className="text-sm text-gray-500 mt-2">
                     High-quality appliances for a better home experience.
@@ -439,12 +439,12 @@ const HomePage = () => {
 
               {/* Vehicles Category Card */}
               <div
-                onClick={() => handleCategoryClick("vehicles")}
+                onClick={() => handleCategoryClick("Decor and Dine")}
                 className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
               >
                 <div className="relative h-40">
                   <img
-                    src="https://www.gtainside.com/downloads/picr/2021-10/1635019704_sound%20pack.jpg"
+                    src="https://images.pexels.com/photos/1099816/pexels-photo-1099816.jpeg?cs=srgb&dl=pexels-sammsara-luxury-modern-home-372468-1099816.jpg&fm=jpg"
                     alt="Vehicles"
                     className="w-full h-full object-cover"
                   />
@@ -452,7 +452,7 @@ const HomePage = () => {
                 </div>
                 <div className="p-4">
                   <h3 className="text-base font-bold text-gray-700">
-                    Vehicles
+                    Decore and Dine
                   </h3>
                   <p className="text-sm text-gray-500 mt-2">
                     Find the best vehicles and accessories for your needs.
@@ -511,9 +511,9 @@ const HomePage = () => {
                     ? `${product.description.slice(0, 20)}...`
                     : product.description || "No description available."}
                 </p>
-                <p className="text-sm text-gray-500 mt-1 mb-2">
+                {/* <p className="text-sm text-gray-500 mt-1 mb-2">
                   {product.category}
-                </p>
+                </p> */}
 
                 <div className="flex items-center">
                   <p className="text-gray-500 line-through mr-2">
