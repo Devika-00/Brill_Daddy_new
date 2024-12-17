@@ -231,6 +231,16 @@ const Shop = () => {
 
   const renderCategoryList = (categoriesToRender) => (
     <ul>
+      <li
+        key="show-all"
+        className="p-2 hover:bg-gray-100 cursor-pointer font-semibold"
+        onClick={() => {
+          setSelectedCategory("");
+          setCurrentParentId(null);
+        }}
+      >
+        Show All
+      </li>
       {categoriesToRender.map((category) => (
         <li
           key={category._id}
@@ -242,7 +252,6 @@ const Shop = () => {
       ))}
     </ul>
   );
-
   const displayedCategories = getDisplayedCategories();
 
   
