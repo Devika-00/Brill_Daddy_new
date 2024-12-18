@@ -46,6 +46,7 @@ const WishlistPage = () => {
         };
 
         const response = await axios.get(`${SERVER_URL}/user/wishlist`, { headers });
+        
 
         if (response.status === 200) {
           const items = Array.isArray(response.data) ? response.data : [];
@@ -149,6 +150,7 @@ const WishlistPage = () => {
   const handleGoToCart = () => {
     navigate("/cart");
   };
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">

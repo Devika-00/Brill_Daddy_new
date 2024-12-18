@@ -213,7 +213,7 @@ const OrginalNavbar = () => {
         {/* Logo and Address Section */}
         <div className="flex items-center justify-between w-full md:w-auto">
           <Link to="/">
-            <img src={logo} alt="Logo" className="h-24 w-56 ml-3" />
+            <img src={logo} alt="Logo" className="h-16 w-80 ml-3" />
           </Link>
           {user.isAuthenticated && (
             <span
@@ -295,15 +295,15 @@ const OrginalNavbar = () => {
               </span>
               <FaHeart 
                 onClick={handleHeartClick} 
-                className="text-red-700 ml-4 cursor-pointer hover:text-red-500 text-2xl mr-8" 
+                className="text-red-700 ml-3 cursor-pointer hover:text-red-500 text-2xl mr-5" 
               />
               <FaWallet 
                 onClick={handleWalletClick} 
-                className="text-yellow-700 ml-4 cursor-pointer hover:text-yellow-500 text-2xl mr-8" 
+                className="text-yellow-700 ml-3 cursor-pointer hover:text-yellow-500 text-2xl mr-5" 
               />
               <FaShoppingCart 
                 onClick={handleCartClick} 
-                className="text-green-700 ml-4 cursor-pointer hover:text-green-500 text-2xl mr-4" 
+                className="text-green-700 ml-3 cursor-pointer hover:text-green-500 text-2xl mr-3" 
               />
               
               {showModal && (
