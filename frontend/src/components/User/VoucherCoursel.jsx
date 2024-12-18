@@ -7,9 +7,11 @@ import { useAppSelector } from "../../Redux/Store/store";
 const VouchersCarousel = ({ vouchers }) => {
   const [currentVoucherIndex, setCurrentVoucherIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 640);
-  const [hoveredCard, setHoveredCard] = useState(null);
 
   const user = useAppSelector((state) => state.user);
+  const userId = user.id;
+  const token = user.token;
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,12 +28,13 @@ const VouchersCarousel = ({ vouchers }) => {
       setCurrentVoucherIndex((prevIndex) => (prevIndex + 1) % vouchers.length);
     }, 2000);
 
+    // Cleanup interval on component unmount
     return () => clearInterval(interval);
   }, [vouchers.length]);
 
-  const handleClaimVoucher = (voucher) => {
+  const handleClaimVoucher = () => {
     if (user.isAuthenticated) {
-      navigate("/event", { state: { voucher } });
+      navigate("/event");
     } else {
       navigate("/login");
     }
@@ -71,38 +74,29 @@ const VouchersCarousel = ({ vouchers }) => {
               {vouchers.map((voucher, index) => (
                 <div
                   key={voucher._id}
-                  className="w-full flex-shrink-0 bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden relative group"
+                  className="w-full flex-shrink-0 bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden"
                   style={{ width: "100%" }}
-                  
                 >
-                  {/* Image Section with Claim Button Overlay */}
-                  <div className="relative w-full h-52 sm:h-72 overflow-hidden">
+                  {/* Free Badge */}
+                  {voucher.price === 0 && (
+                    <div className="absolute top-2 left-4 z-10">
+                      <div className="bg-green-600 text-white font-bold px-3 py-1 rounded-md shadow-lg text-xs sm:text-sm">
+                        FREE
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Image Section */}
+                  <div className="relative w-full h-52 sm:h-72">
                     <img
                       src={voucher.imageUrl}
                       alt={voucher.voucher_name || "Voucher"}
                       className="w-full h-full object-cover rounded-t-lg"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                    
-                    {/* Claim Now Button - Absolute Positioning with High Z-Index */}
-                    <button
-                      className="absolute z-20 -right-0 top-2 transform 
-                        bg-gradient-to-r from-green-600 to-blue-500 
-                        text-white 
-                        px-8 py-3 
-                        rounded-lg 
-                        shadow-lg 
-                        text-sm font-bold
-                        hover:from-green-500 hover:to-blue-600 
-                        hover:scale-105 
-                        transition-transform duration-300 mr-2"
-                      onClick={() => handleClaimVoucher(voucher)}
-                    >
-                      Claim now
-                    </button>
                   </div>
 
-                  {/* Rest of the code remains the same */}
+                  {/* Content Section */}
                   <div className="p-2 sm:p-6 text-white">
                     <h3 className="text-base sm:text-lg font-bold mb-2">
                       {voucher.voucher_name || "Special Offer"}
@@ -131,6 +125,13 @@ const VouchersCarousel = ({ vouchers }) => {
                             : "Dec 31, 2024"}
                         </span>
                       </div>
+                      <button
+                        className="bg-gradient-to-r from-green-600 to-blue-500 text-white px-4 py-1.5 sm:px-6 sm:py-2 rounded-lg shadow-lg hover:from-green-500 hover:to-blue-600 hover:scale-105 transition-transform duration-300 flex items-center text-xs sm:text-base"
+                        onClick={() => handleClaimVoucher(voucher)}
+                      >
+                        <Gift className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                        Claim now
+                      </button>
                     </div>
                   </div>
                 </div>
