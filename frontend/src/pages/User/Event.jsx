@@ -37,6 +37,7 @@ const EventPage = () => {
     const fetchVouchers = async () => {
       try {
         const response = await axios.get(`${SERVER_URL}/voucher/getVouchers`);
+        console.log(response,"nnnnnnnnnnnnnnnnnnnnn")
         const currentTime = new Date().getTime();
 
         const validVouchers = response.data.filter((voucher) => {
@@ -91,6 +92,8 @@ const EventPage = () => {
       navigate(`/payment/${voucher._id}`, { state: { voucher } });
     }
   };
+
+  console.log(vouchers,"aaaaaaaaaaaaaaaaaa")
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">

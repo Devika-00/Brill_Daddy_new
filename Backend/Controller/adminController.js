@@ -338,14 +338,9 @@ const getOrders = async (req, res) => {
   const addVouchers = async (req, res) => {
     try {
         console.log(req.body, "Request Body"); // Log incoming request body
-        const { voucher_name, details, product_name,  productPrice, imageUrl, date, time, endDate, endTime } = req.body;
+        const { voucher_name, details, product_name, price,  productPrice, imageUrl, date, time, endDate, endTime } = req.body;
 
-        // Log the parsed fields
-        console.log("Voucher Name:", voucher_name);
-        console.log("Details:", details);
-        console.log("Product Name:", product_name);
-        console.log("Price:", productPrice);
-        console.log("Product Price:",productPrice);
+        
 
         // Combine date and time into a single Date object for start_time
         const start_time = new Date(`${date}T${time}`);
@@ -357,6 +352,7 @@ const getOrders = async (req, res) => {
             details,
             product_name,
             productPrice,
+            price,
             imageUrl,
             start_time,
             end_time,
