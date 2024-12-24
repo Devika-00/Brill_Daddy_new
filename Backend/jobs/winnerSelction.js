@@ -5,6 +5,7 @@ const Winner = require("../Models/winnerModel");
 const cron = require("node-cron");
 const { getSocketInstance } = require("../socket/socketInstance");
 const Notification = require("../Models/notificationModel");
+const User = require("../Models/userModel");
 
 // Helper function to refund non-winning bidders
 async function refundNonWinningBidders(bids, lowestUniqueBidAmount, voucher) {
@@ -42,11 +43,19 @@ async function notifyNonWinners(voucher, winner, bids) {
       return;
     }
 
+    const winnerUser = await User.findById(winner.userId);
+    if (!winnerUser) {
+      console.error("Winner user not found");
+      return;
+    }
+
+    const winnerName = winnerUser.username
+
     for (const bid of bids) {
       // Skip if bid is invalid or matches winner
       if (!bid.userId || bid.userId === winner.userId) continue;
 
-      const message = `The winner of the voucher "${voucher.voucher_name}" is User ${winner.userId} with a bid of ${winner.bidAmount}. Better luck next time!`;
+      const message = `The winner of the voucher "${voucher.voucher_name}" is ${winnerName} with a Amount of ₹${winner.bidAmount}. Better luck next time!`;
       
       console.log(`Sending notification to user ${bid.userId}:`, message);
 
