@@ -22,7 +22,7 @@ const Login = () => {
   const [resendEnabled, setResendEnabled] = useState(false);
   const [loadingOtp, setLoadingOtp] = useState(false);
   const [loadingLogin, setLoadingLogin] = useState(false);
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState(120);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
@@ -100,7 +100,7 @@ const Login = () => {
     if (isOtpSent && otpSentTime) {
       const timerInterval = setInterval(() => {
         const elapsed = new Date() - otpSentTime;
-        const remainingTime = Math.max(30 - Math.floor(elapsed / 1000), 0);
+        const remainingTime = Math.max(120 - Math.floor(elapsed / 1000), 0);
         setTimer(remainingTime);
 
         if (remainingTime === 0) {
@@ -113,7 +113,7 @@ const Login = () => {
 
   const handleResendOtp = () => {
     setResendEnabled(false);
-    setTimer(30); // Reset the timer immediately
+    setTimer(120); // Reset the timer immediately
     setOtpSentTime(new Date()); // Update the OTP sent time to restart the timer
     handleOtpRequest(); // Send the OTP
   };
