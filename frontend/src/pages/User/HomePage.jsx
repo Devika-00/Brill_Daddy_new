@@ -372,21 +372,21 @@ const HomePage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Fashion Category Card */}
               <div
-                onClick={() => handleCategoryClick("Fashion")}
+                onClick={() => handleCategoryClick("Stationary")}
                 className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300 cursor-pointer"
               >
                 <div className="relative h-40">
                   <img
-                    src="https://st3.depositphotos.com/3591429/14866/i/450/depositphotos_148668333-stock-photo-credit-card-and-fashion-graphic.jpg"
+                    src="https://media.istockphoto.com/id/485725200/photo/school-and-office-accessories-on-wooden-background.jpg?s=612x612&w=0&k=20&c=PWgiIA-7_QDC_PXnEhwZqDLDDzrNMIxxJjBeD4h4oLM="
                     alt="Fashion"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                 </div>
                 <div className="p-4">
-                  <h3 className="text-base font-bold text-gray-700">Fashion</h3>
+                  <h3 className="text-base font-bold text-gray-700">Stationary</h3>
                   <p className="text-sm text-gray-500 mt-2">
-                    Stylish clothing and accessories for every season.
+                    All Stationary items under this
                   </p>
                 </div>
               </div>
