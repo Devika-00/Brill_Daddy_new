@@ -146,7 +146,7 @@ const EventDetail = () => {
                             Name: {winner.userId.username}
                           </p>
                           <p className="text-sm text-gray-500">
-                            State: {winner.userId.state}
+                            State: {winner.userId.currentAddress.state}
                           </p>
                         </div>
                         <Sparkles className="w-5 h-5 text-yellow-500" />

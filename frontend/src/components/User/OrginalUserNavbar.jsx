@@ -199,7 +199,7 @@ const OrginalNavbar = () => {
     setIsMobileSearchOpen(!isMobileSearchOpen);
   };
 
-  const truncateText = (text, maxLength = 7) => {
+  const truncateText = (text, maxLength = 6) => {
     if (!text) return '';
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
   };

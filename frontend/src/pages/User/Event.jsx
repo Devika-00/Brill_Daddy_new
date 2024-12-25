@@ -93,7 +93,8 @@ const EventPage = () => {
     }
   };
 
-  console.log(vouchers,"aaaaaaaaaaaaaaaaaa")
+  console.log(vouchers,"aaaaaaaaaaaaaaaaaa");
+  console.log(winners,"bbbbbbbbbbbbbbbb");
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
@@ -126,6 +127,9 @@ const EventPage = () => {
                           </p>
                           <p className="text-sm text-gray-500">
                             Name: {winner.userId.username}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            State: {winner.userId.currentAddress.state}
                           </p>
                         </div>
                         <Sparkles className="w-5 h-5 text-yellow-500" />
