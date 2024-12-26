@@ -48,7 +48,7 @@ const EventPage = () => {
           return (isEligibleUser && isRebidActive) || isActiveVoucher;
         });
 
-        const freeVouchers = validVouchers.filter((voucher) => voucher.price === 0).slice(0, 2);
+        const freeVouchers = validVouchers.filter((voucher) => voucher.price === 0);
         const paidVouchers = validVouchers.filter((voucher) => voucher.price !== 0);
 
         setVouchers([...freeVouchers, ...paidVouchers]);

@@ -68,13 +68,13 @@ const VouchersCarousel = ({ vouchers }) => {
               onClick={() => handleClaimVoucher()}
               style={{
                 transform: `translateX(-${currentVoucherIndex * 100}%)`,
-                width: `${vouchers.length * 20}%`,
+                width: `${vouchers.length * 14.5}%`,
               }}
             >
               {vouchers.map((voucher, index) => (
                 <div
                   key={voucher._id}
-                  className="w-full flex-shrink-0 bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden"
+                  className="w-full flex-shrink-0 bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-lg overflow-hidden "
                   style={{ width: "100%" }}
                 >
                   {/* Free Badge */}
@@ -87,7 +87,7 @@ const VouchersCarousel = ({ vouchers }) => {
                   )}
 
                   {/* Image Section */}
-                  <div className="relative w-full h-52 sm:h-72">
+                  <div className="relative w-full h-40 sm:h-72">
                     <img
                       src={voucher.imageUrl}
                       alt={voucher.voucher_name || "Voucher"}

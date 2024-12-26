@@ -285,7 +285,6 @@ const HomePage = () => {
 
         const freeVouchers = validVouchers
           .filter((voucher) => voucher.price === 0)
-          .slice(0, 3); // Show 3 vouchers
         const paidVouchers = validVouchers.filter(
           (voucher) => voucher.price !== 0
         );
