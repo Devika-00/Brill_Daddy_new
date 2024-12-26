@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import LogoFace from '../../assets/LogoFace.jpg';
+import LogoFace from '../../assets/logoface.jpg';
 
 
 const ChatBotButton = () => {
