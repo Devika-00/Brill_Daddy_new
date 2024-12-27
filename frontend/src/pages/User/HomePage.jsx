@@ -4,7 +4,7 @@ import OrginalNavbar from "../../components/User/OrginalUserNavbar";
 import NavbarWithMenu from "../../components/User/NavbarwithMenu";
 import Footer from "../../components/User/Footer";
 import { FaArrowLeft, FaArrowRight, FaHeart } from "react-icons/fa";
-import { SERVER_URL } from "../../Constants";
+import { SERVER_URL, getApiUrl } from "../../Constants";
 import axios from "axios";
 import { Clock, Package, Tag, Gift } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
@@ -83,7 +83,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/user/products`);
+        const response = await axios.get(getApiUrl('/user/products'));
         const products = response.data;
 
         // Fetch images for each product
@@ -276,7 +276,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchVouchers = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/voucher/getVouchers`);
+        const response = await axios.get(getApiUrl('/voucher/getVouchers'));
         const currentTime = new Date().getTime();
 
         const validVouchers = response.data.filter((voucher) => {
