@@ -28,24 +28,19 @@ const server = http.createServer(app);
 
 // Socket.IO configuration
 const io = new Server(server, {
-  cors: {
-    origin: [
-      'http://localhost:5000',
-      'https://brilldaddy.com'
-    ],
-    methods: ["GET", "POST"],
-    credentials: true,
-    transports: ['websocket', 'polling']
-  },
-  path: '/socket.io'
+  cors: corsOptions,
+  path: '/socket.io',
+  serveClient: false
 });
 
-// Socket connection handler
-io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+// Define chat namespace
+const chatNamespace = io.of('/chat');
+
+chatNamespace.on('connection', (socket) => {
+  console.log('Client connected to chat:', socket.id);
   
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    console.log('Client disconnected from chat:', socket.id);
   });
 });
 
@@ -56,7 +51,8 @@ const corsOptions = {
   origin: [
     'http://localhost:5173',
     'http://localhost:5000',
-    'https://brilldaddy.com'
+    'https://brilldaddy.com',
+    'https://www.brilldaddy.com'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -66,11 +62,18 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Move error handler after routes
-app.use("/api/admin", adminRoute);
-app.use("/api/user", userRoute);
-app.use("/api/voucher", voucherRoute);
-app.use("/api/bid", bidRoute);
+// API routes
+if (process.env.NODE_ENV === 'production') {
+  app.use('/', adminRoute);
+  app.use('/', userRoute);
+  app.use('/', voucherRoute);
+  app.use('/', bidRoute);
+} else {
+  app.use('/api/admin', adminRoute);
+  app.use('/api/user', userRoute);
+  app.use('/api/voucher', voucherRoute);
+  app.use('/api/bid', bidRoute);
+}
 
 // Use helmet middleware with fallback
 app.use(helmet);
