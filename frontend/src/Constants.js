@@ -1,26 +1,17 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export const SERVER_URL = API_URL;
-
 export const getApiUrl = (endpoint) => {
-  if (!endpoint) {
-    throw new Error('Endpoint is required');
-  }
+  // Remove any leading slashes from endpoint
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
   
-  // Remove any leading/trailing slashes and clean up the endpoint
-  const cleanEndpoint = endpoint
-    .replace(/^\/+|\/+$/g, '')     // Remove leading/trailing slashes
-    .replace(/^api\/?/i, '')       // Remove 'api/' prefix if present
-    .replace(/^api\/api\/?/i, ''); // Remove 'api/api/' prefix if present
+  // Remove /api prefix if it exists in endpoint
+  const cleanedEndpoint = cleanEndpoint.replace(/^api\//, '');
   
-  // In production, don't add /api prefix
-  if (process.env.NODE_ENV === 'production') {
-    return `${SERVER_URL}/${cleanEndpoint}`;
-  }
-  
-  // For development, add single /api prefix
-  return `${SERVER_URL}/api/${cleanEndpoint}`;
+  // Construct final URL
+  return `${API_URL}/api/${cleanedEndpoint}`;
 };
+
+export const SERVER_URL = API_URL;
 
 // Configure axios defaults
 import axios from 'axios';
