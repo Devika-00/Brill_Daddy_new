@@ -60,10 +60,10 @@ app.use(express.urlencoded({ extended: true }));
 
 // API routes
 if (process.env.NODE_ENV === 'production') {
-  app.use('/', adminRoute);
-  app.use('/', userRoute);
-  app.use('/', voucherRoute);
-  app.use('/', bidRoute);
+  app.use('/admin', adminRoute);
+  app.use('/user', userRoute);
+  app.use('/voucher', voucherRoute);
+  app.use('/bid', bidRoute);
 } else {
   app.use('/api/admin', adminRoute);
   app.use('/api/user', userRoute);
@@ -71,7 +71,21 @@ if (process.env.NODE_ENV === 'production') {
   app.use('/api/bid', bidRoute);
 }
 
-// Global error handler should be last
+// Add this before your error handler
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`404 - Not Found: ${req.method} ${req.originalUrl}`);
+    res.status(404).json({
+      error: 'Not Found',
+      message: `The requested URL ${req.originalUrl} was not found`,
+      method: req.method,
+      path: req.path,
+      originalUrl: req.originalUrl
+    });
+  });
+}
+
+// Your existing error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({

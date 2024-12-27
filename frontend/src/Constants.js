@@ -11,12 +11,20 @@ export const getApiUrl = (endpoint) => {
   // Ensure endpoint starts with /
   const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   
+  // Remove any duplicate /api prefixes
+  const cleanEndpoint = formattedEndpoint.replace(/\/api\/api\//, '/api/');
+  
   // In production, don't add /api prefix since it's handled by the server
   if (process.env.NODE_ENV === 'production') {
-    return `${SERVER_URL}${formattedEndpoint}`;
+    return `${SERVER_URL}${cleanEndpoint}`;
   }
   
-  return `${SERVER_URL}/api${formattedEndpoint}`;
+  // For development, ensure we only have one /api prefix
+  if (cleanEndpoint.startsWith('/api/')) {
+    return `${SERVER_URL}${cleanEndpoint}`;
+  }
+  
+  return `${SERVER_URL}/api${cleanEndpoint}`;
 };
 
 // Add axios default config

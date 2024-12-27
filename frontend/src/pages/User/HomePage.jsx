@@ -83,7 +83,12 @@ const HomePage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(getApiUrl('/user/products'));
+        const response = await axios.get(getApiUrl('user/products'), {
+          timeout: 5000,
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         const products = response.data;
 
         // Fetch images for each product
@@ -111,12 +116,7 @@ const HomePage = () => {
 
         setProducts(productsWithImages);
       } catch (error) {
-        console.error('Error details:', {
-          message: error.message,
-          status: error.response?.status,
-          data: error.response?.data
-        });
-        
+        console.error("Error details:", error);
       }
     };
 
@@ -276,10 +276,10 @@ const HomePage = () => {
   useEffect(() => {
     const fetchVouchers = async () => {
       try {
-        const response = await axios.get(getApiUrl('/voucher/getVouchers'), {
-          timeout: 5000, // Add timeout
+        const response = await axios.get(getApiUrl('voucher/getVouchers'), {
+          timeout: 5000,
           headers: {
-            'Authorization': `Bearer ${token}` // Add token if required
+            'Authorization': `Bearer ${token}`
           }
         });
         const currentTime = new Date().getTime();
@@ -301,11 +301,7 @@ const HomePage = () => {
 
         setVouchers([...freeVouchers, ...paidVouchers]);
       } catch (error) {
-        console.error("Failed to fetch vouchers:", {
-          message: error.message,
-          code: error.code,
-          response: error.response?.data
-        });
+        console.error("Failed to fetch vouchers:", error);
       }
     };
 
