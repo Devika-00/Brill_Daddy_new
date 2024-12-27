@@ -7,11 +7,11 @@ export const getApiUrl = (endpoint) => {
     throw new Error('Endpoint is required');
   }
   
-  // Remove leading and trailing slashes and any duplicate /api prefixes
+  // Remove any leading/trailing slashes and clean up the endpoint
   const cleanEndpoint = endpoint
-    .replace(/^\/+|\/+$/g, '')
-    .replace(/^api\/+/, '')
-    .replace(/^api\/api\/+/, '');
+    .replace(/^\/+|\/+$/g, '')     // Remove leading/trailing slashes
+    .replace(/^api\/?/i, '')       // Remove 'api/' prefix if present
+    .replace(/^api\/api\/?/i, ''); // Remove 'api/api/' prefix if present
   
   // In production, don't add /api prefix
   if (process.env.NODE_ENV === 'production') {

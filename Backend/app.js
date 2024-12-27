@@ -44,11 +44,20 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Mount routes directly on apiRouter without /api prefix
-apiRouter.use('/admin', adminRoute);
-apiRouter.use('/user', userRoute);
-apiRouter.use('/voucher', voucherRoute);
-apiRouter.use('/bid', bidRoute);
+// Mount routes directly (without apiRouter)
+if (process.env.NODE_ENV === 'production') {
+  // In production, mount at root
+  app.use('/admin', adminRoute);
+  app.use('/user', userRoute);
+  app.use('/voucher', voucherRoute);
+  app.use('/bid', bidRoute);
+} else {
+  // In development, mount under /api
+  app.use('/api/admin', adminRoute);
+  app.use('/api/user', userRoute);
+  app.use('/api/voucher', voucherRoute);
+  app.use('/api/bid', bidRoute);
+}
 
 // Development logging
 if (process.env.NODE_ENV !== 'production') {
@@ -56,13 +65,6 @@ if (process.env.NODE_ENV !== 'production') {
     console.log(`${req.method} ${req.originalUrl}`);
     next();
   });
-}
-
-// Mount all routes
-if (process.env.NODE_ENV === 'production') {
-  app.use('/', apiRouter);
-} else {
-  app.use('/api', apiRouter);
 }
 
 // Socket.IO configuration

@@ -115,11 +115,7 @@ const HomePage = () => {
 
         setProducts(productsWithImages);
       } catch (error) {
-        console.error("Error details:", {
-          message: error.message,
-          status: error.response?.status,
-          data: error.response?.data
-        });
+        console.error("Error details:", error);
       }
     };
 
@@ -303,11 +299,7 @@ const HomePage = () => {
 
         setVouchers([...freeVouchers, ...paidVouchers]);
       } catch (error) {
-        console.error("Failed to fetch vouchers:", {
-          message: error.message,
-          status: error.response?.status,
-          data: error.response?.data
-        });
+        console.error("Failed to fetch vouchers:", error);
       }
     };
 
