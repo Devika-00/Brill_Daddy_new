@@ -115,7 +115,7 @@ const HomePage = () => {
 
         setProducts(productsWithImages);
       } catch (error) {
-        console.error("Error details:", error);
+        console.error("Error fetching products:", error);
       }
     };
 

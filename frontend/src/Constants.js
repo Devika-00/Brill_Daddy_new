@@ -1,17 +1,21 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export const getApiUrl = (endpoint) => {
-  // Remove any leading slashes from endpoint
-  const cleanEndpoint = endpoint.replace(/^\/+/, '');
-  
-  // Remove /api prefix if it exists in endpoint
-  const cleanedEndpoint = cleanEndpoint.replace(/^api\//, '');
-  
-  // Construct final URL
-  return `${API_URL}/api/${cleanedEndpoint}`;
-};
-
 export const SERVER_URL = API_URL;
+
+export const getApiUrl = (endpoint) => {
+  if (!endpoint) {
+    throw new Error('Endpoint is required');
+  }
+  
+  // Remove leading/trailing slashes and clean up endpoint
+  const cleanEndpoint = endpoint
+    .replace(/^\/+|\/+$/g, '')     // Remove leading/trailing slashes
+    .replace(/^api\/+/, '')        // Remove api/ prefix if present
+    .replace(/^api\/api\/+/, '');  // Remove api/api/ prefix if present
+  
+  // Always return URL with single /api prefix
+  return `${API_URL}/api/${cleanEndpoint}`;
+};
 
 // Configure axios defaults
 import axios from 'axios';
@@ -30,21 +34,13 @@ axios.interceptors.request.use(config => {
 // Add response interceptor for error handling
 axios.interceptors.response.use(
   response => response,
-  async error => {
-    const { config, message } = error;
-    
-    if (!config || !config.retry) {
-      return Promise.reject(error);
-    }
-    
-    config.retry -= 1;
-    
-    if (error.code === 'ERR_NETWORK') {
-      console.error('Network error occurred. Retrying...');
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return axios(config);
-    }
-    
+  error => {
+    console.error('API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      data: error.response?.data
+    });
     return Promise.reject(error);
   }
 ); 

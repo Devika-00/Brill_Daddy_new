@@ -21,50 +21,22 @@ const server = http.createServer(app);
 // Security middleware
 app.use(helmet());
 
-// Create API router before using it
-const apiRouter = express.Router();
-
-const corsOptions = {
+// CORS middleware
+app.use(cors({
   origin: [
     'http://localhost:5173',
-    'http://localhost:5000',
+    'http://localhost:4173',
     'https://brilldaddy.com',
     'https://www.brilldaddy.com'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range']
-};
-
-// Apply CORS middleware
-app.use(cors({
-  origin: [
-    'http://localhost:5173',  // Vite dev server
-    'http://localhost:4173',  // Vite preview
-    'https://brilldaddy.com'  // Production domain
-  ],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Body parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Mount routes directly (without apiRouter)
-if (process.env.NODE_ENV === 'production') {
-  // In production, mount at root
-  app.use('/admin', adminRoute);
-  app.use('/user', userRoute);
-  app.use('/voucher', voucherRoute);
-  app.use('/bid', bidRoute);
-} else {
-  // In development, mount under /api
-  app.use('/api/admin', adminRoute);
-  app.use('/api/user', userRoute);
-  app.use('/api/voucher', voucherRoute);
-  app.use('/api/bid', bidRoute);
-}
 
 // Development logging
 if (process.env.NODE_ENV !== 'production') {
@@ -74,11 +46,30 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+// API Routes
+const apiRouter = express.Router();
+
+// Mount routes on apiRouter
+apiRouter.use('/admin', adminRoute);
+apiRouter.use('/user', userRoute);
+apiRouter.use('/voucher', voucherRoute);
+apiRouter.use('/bid', bidRoute);
+
+// Mount apiRouter under /api
+app.use('/api', apiRouter);
+
 // Socket.IO configuration
 const io = new Server(server, {
-  cors: corsOptions,
-  path: '/socket.io',
-  serveClient: false
+  cors: {
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:4173',
+      'https://brilldaddy.com',
+      'https://www.brilldaddy.com'
+    ],
+    credentials: true
+  },
+  path: '/socket.io'
 });
 
 // Define chat namespace
