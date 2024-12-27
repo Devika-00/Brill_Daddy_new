@@ -11,21 +11,15 @@ const bidRoute = require("./Routes/bidRoutes");
 const { Server } = require("socket.io");
 const path = require("path");
 const http = require("http");
-
-// Try to require helmet, use a fallback if not available
-let helmet;
-try {
-  helmet = require('helmet');
-} catch (e) {
-  console.warn('Helmet package not found, skipping security headers');
-  helmet = () => (req, res, next) => next();
-}
+const helmet = require('helmet');
 
 require("./jobs/winnerSelction");
 
 const app = express();
 const server = http.createServer(app);
 
+// Security middleware
+app.use(helmet());
 
 const corsOptions = {
   origin: [
@@ -76,9 +70,6 @@ if (process.env.NODE_ENV === 'production') {
   app.use('/api/voucher', voucherRoute);
   app.use('/api/bid', bidRoute);
 }
-
-// Use helmet middleware with fallback
-app.use(helmet);
 
 // Global error handler should be last
 app.use((err, req, res, next) => {
