@@ -54,6 +54,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const corsOptions = {
   origin: [
+    'http://localhost:5173',
     'http://localhost:5000',
     'https://brilldaddy.com'
   ],
@@ -65,7 +66,16 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Global error handler
+// Move error handler after routes
+app.use("/api/admin", adminRoute);
+app.use("/api/user", userRoute);
+app.use("/api/voucher", voucherRoute);
+app.use("/api/bid", bidRoute);
+
+// Use helmet middleware with fallback
+app.use(helmet);
+
+// Global error handler should be last
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
@@ -77,14 +87,6 @@ app.use((err, req, res, next) => {
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
-
-app.use("/api/admin", adminRoute);
-app.use("/api/user", userRoute);
-app.use("/api/voucher", voucherRoute);
-app.use("/api/bid", bidRoute);
-
-// Use helmet middleware with fallback
-app.use(helmet);
 
 const port = ENV.PORT || 5002;
 
