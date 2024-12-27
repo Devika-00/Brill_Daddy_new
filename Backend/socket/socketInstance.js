@@ -3,13 +3,14 @@ const { Server } = require("socket.io");
 let io;
 
 const initSocket = (server) => {
-  io = new Server(server, {
+  io =  new Server(server, {
     cors: {
-      origin: "http://localhost:5173",
-      methods: ["GET", "POST", "PUT", "DELETE"],
-      credentials: true,
-    },
-    pingTimeout: 60000,
+      origin: process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:5000'
+        : ['https://brilldaddy.com', 'https://www.brilldaddy.com'],
+      methods: ["GET", "POST"],
+      credentials: true
+    }
   });
 
   io.on("connection", (socket) => {
