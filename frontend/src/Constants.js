@@ -13,7 +13,12 @@ export const getApiUrl = (endpoint) => {
     .replace(/^api\/+/, '')        // Remove api/ prefix if present
     .replace(/^api\/api\/+/, '');  // Remove api/api/ prefix if present
   
-  // Always return URL with single /api prefix
+  // In production, don't add /api prefix since it's in the base URL
+  if (process.env.NODE_ENV === 'production') {
+    return `${API_URL}/api/${cleanEndpoint}`;
+  }
+  
+  // For development, add /api prefix
   return `${API_URL}/api/${cleanEndpoint}`;
 };
 
