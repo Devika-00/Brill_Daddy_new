@@ -83,7 +83,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(getApiUrl('/user/products'), {
+        const response = await axios.get(getApiUrl('user/products'), {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -279,7 +279,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchVouchers = async () => {
       try {
-        const response = await axios.get(getApiUrl('/voucher/getVouchers'), {
+        const response = await axios.get(getApiUrl('voucher/getVouchers'), {
           headers: {
             'Authorization': `Bearer ${token}`
           }

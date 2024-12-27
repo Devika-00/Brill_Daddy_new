@@ -83,8 +83,8 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// 404 handler
-app.use((req, res, next) => {
+// 404 handler - move this after all routes
+app.use((req, res) => {
   console.log(`404 - Not Found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
     error: 'Not Found',

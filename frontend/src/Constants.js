@@ -7,22 +7,21 @@ export const getApiUrl = (endpoint) => {
     throw new Error('Endpoint is required');
   }
   
-  // Ensure endpoint starts with /
-  const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  // Remove leading slash if present
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
   
   // In production, don't add /api prefix
   if (process.env.NODE_ENV === 'production') {
-    return `${SERVER_URL}${formattedEndpoint}`;
+    return `${SERVER_URL}/${cleanEndpoint}`;
   }
   
-  // For development, ensure we have /api prefix
-  return `${SERVER_URL}/api${formattedEndpoint}`;
+  // For development, add single /api prefix
+  return `${SERVER_URL}/api/${cleanEndpoint}`;
 };
 
-// Add axios default config
+// Configure axios defaults
 import axios from 'axios';
 
-// Configure axios defaults
 axios.defaults.timeout = 5000;
 axios.defaults.withCredentials = true;
 
