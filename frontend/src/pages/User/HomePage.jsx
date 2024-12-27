@@ -84,9 +84,8 @@ const HomePage = () => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(getApiUrl('user/products'), {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          withCredentials: true,
+          timeout: 10000
         });
         const products = response.data;
 
@@ -115,7 +114,11 @@ const HomePage = () => {
 
         setProducts(productsWithImages);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching products:", {
+          message: error.message,
+          code: error.code,
+          response: error.response?.data
+        });
       }
     };
 
