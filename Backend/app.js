@@ -21,6 +21,9 @@ const server = http.createServer(app);
 // Security middleware
 app.use(helmet());
 
+// Create API router before using it
+const apiRouter = express.Router();
+
 const corsOptions = {
   origin: [
     'http://localhost:5173',
@@ -36,6 +39,31 @@ const corsOptions = {
 
 // Apply CORS middleware
 app.use(cors(corsOptions));
+
+// Body parser middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Mount routes directly on apiRouter without /api prefix
+apiRouter.use('/admin', adminRoute);
+apiRouter.use('/user', userRoute);
+apiRouter.use('/voucher', voucherRoute);
+apiRouter.use('/bid', bidRoute);
+
+// Development logging
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.originalUrl}`);
+    next();
+  });
+}
+
+// Mount all routes
+if (process.env.NODE_ENV === 'production') {
+  app.use('/', apiRouter);
+} else {
+  app.use('/api', apiRouter);
+}
 
 // Socket.IO configuration
 const io = new Server(server, {
@@ -54,34 +82,6 @@ chatNamespace.on('connection', (socket) => {
     console.log('Client disconnected from chat:', socket.id);
   });
 });
-
-// Add body parser middleware before routes
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// API routes with better organization
-const apiRouter = express.Router();
-
-// Mount routes on the API router without /api prefix
-apiRouter.use('/admin', adminRoute);
-apiRouter.use('/user', userRoute);
-apiRouter.use('/voucher', voucherRoute);
-apiRouter.use('/bid', bidRoute);
-
-// Add request logging middleware in development
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.originalUrl}`);
-    next();
-  });
-}
-
-// Mount all routes under /api in development, at root in production
-if (process.env.NODE_ENV === 'production') {
-  app.use('/', apiRouter);
-} else {
-  app.use('/api', apiRouter);
-}
 
 // 404 handler - move this after all routes
 app.use((req, res) => {
