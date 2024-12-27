@@ -276,7 +276,12 @@ const HomePage = () => {
   useEffect(() => {
     const fetchVouchers = async () => {
       try {
-        const response = await axios.get(getApiUrl('/voucher/getVouchers'));
+        const response = await axios.get(getApiUrl('/voucher/getVouchers'), {
+          timeout: 5000, // Add timeout
+          headers: {
+            'Authorization': `Bearer ${token}` // Add token if required
+          }
+        });
         const currentTime = new Date().getTime();
 
         const validVouchers = response.data.filter((voucher) => {
@@ -291,26 +296,26 @@ const HomePage = () => {
           return (isEligibleUser && isRebidActive) || isActiveVoucher;
         });
 
-        const freeVouchers = validVouchers
-          .filter((voucher) => voucher.price === 0)
-        const paidVouchers = validVouchers.filter(
-          (voucher) => voucher.price !== 0
-        );
+        const freeVouchers = validVouchers.filter((voucher) => voucher.price === 0);
+        const paidVouchers = validVouchers.filter((voucher) => voucher.price !== 0);
 
         setVouchers([...freeVouchers, ...paidVouchers]);
       } catch (error) {
-        console.error("Failed to fetch vouchers:", error);
+        console.error("Failed to fetch vouchers:", {
+          message: error.message,
+          code: error.code,
+          response: error.response?.data
+        });
       }
     };
 
     fetchVouchers();
 
-    // Set interval to fetch vouchers every minute (adjust as necessary)
-    const intervalId = setInterval(fetchVouchers, 1000);
+    // Change polling interval to 30 seconds instead of 1 second
+    const intervalId = setInterval(fetchVouchers, 30000);
 
-    // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
-  }, [userId]);
+  }, [userId, token]); // Add token to dependencies
 
   
 

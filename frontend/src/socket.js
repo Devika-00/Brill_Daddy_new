@@ -1,8 +1,6 @@
 import { io } from "socket.io-client";
 
-const SOCKET_URL = process.env.NODE_ENV === 'production'
-  ? 'https://api.brilldaddy.com'  // Remove /api from the end
-  : 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 
 export const socket = io(SOCKET_URL, {
   withCredentials: true,
@@ -11,12 +9,17 @@ export const socket = io(SOCKET_URL, {
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
-  path: '/socket.io' // Add explicit path
+  path: '/socket.io',
+  // Add namespace
+  namespace: '/chat'
 });
 
-// Handle connection events
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5;
+
 socket.on("connect", () => {
   console.log("Connected to WebSocket server:", socket.id);
+  reconnectAttempts = 0;
 });
 
 socket.on("disconnect", () => {
@@ -25,11 +28,18 @@ socket.on("disconnect", () => {
 
 socket.on("connect_error", (error) => {
   console.error("Connection error:", error);
-  // Implement exponential backoff
-  const timeout = Math.min(1000 * Math.pow(2, socket.reconnectionAttempts), 10000);
-  setTimeout(() => {
-    socket.connect();
-  }, timeout);
+  
+  if (reconnectAttempts < maxReconnectAttempts) {
+    reconnectAttempts++;
+    const timeout = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000);
+    console.log(`Attempting to reconnect in ${timeout/1000} seconds...`);
+    
+    setTimeout(() => {
+      socket.connect();
+    }, timeout);
+  } else {
+    console.error("Max reconnection attempts reached");
+  }
 });
 
 // Add specific event listeners
