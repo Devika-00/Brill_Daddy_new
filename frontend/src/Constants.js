@@ -7,8 +7,8 @@ export const getApiUrl = (endpoint) => {
     throw new Error('Endpoint is required');
   }
   
-  // Remove leading slash if present
-  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  // Remove any leading or trailing slashes
+  const cleanEndpoint = endpoint.replace(/^\/+|\/+$/g, '');
   
   // In production, don't add /api prefix
   if (process.env.NODE_ENV === 'production') {

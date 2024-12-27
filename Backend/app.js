@@ -62,18 +62,11 @@ app.use(express.urlencoded({ extended: true }));
 // API routes with better organization
 const apiRouter = express.Router();
 
-// Mount routes on the API router
+// Mount routes on the API router without /api prefix
 apiRouter.use('/admin', adminRoute);
 apiRouter.use('/user', userRoute);
 apiRouter.use('/voucher', voucherRoute);
 apiRouter.use('/bid', bidRoute);
-
-// In development, mount under /api
-if (process.env.NODE_ENV !== 'production') {
-  app.use('/api', apiRouter);
-} else {
-  app.use('/', apiRouter);
-}
 
 // Add request logging middleware in development
 if (process.env.NODE_ENV !== 'production') {
@@ -81,6 +74,13 @@ if (process.env.NODE_ENV !== 'production') {
     console.log(`${req.method} ${req.originalUrl}`);
     next();
   });
+}
+
+// Mount all routes under /api in development, at root in production
+if (process.env.NODE_ENV === 'production') {
+  app.use('/', apiRouter);
+} else {
+  app.use('/api', apiRouter);
 }
 
 // 404 handler - move this after all routes
