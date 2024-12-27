@@ -76,6 +76,9 @@ const HomePage = () => {
 
   const navigate = useNavigate();
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+  console.log(apiUrl); // It will output either the development or production API URL depending on the environment
+
   // Fetch products from the backend
   useEffect(() => {
     const fetchProducts = async () => {
@@ -343,6 +346,10 @@ const HomePage = () => {
   const handleViewMore = () => {
     setVisibleCount((prevCount) => prevCount + 10); // Increase the count to show more products
   };
+
+ 
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">

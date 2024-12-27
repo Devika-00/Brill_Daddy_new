@@ -10,6 +10,7 @@ const voucherRoute = require("./Routes/voucherRoutes");
 const bidRoute = require("./Routes/bidRoutes");
 const { initSocket } = require("./socket/socketInstance");
 const path = require("path");
+const helmet = require('helmet');
 
 const http = require("http");
 
@@ -23,12 +24,18 @@ initSocket(server);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: 'https://brilldaddy.com',
+
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:4173'
+    : 'https://brilldaddy.com',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
+};
+
+app.use(cors(corsOptions));
 
 
 
@@ -41,6 +48,8 @@ app.use((err, req, res, next) => {
   });
 });
 
+
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname,  'index.html'));
 });
@@ -49,6 +58,8 @@ app.use("/api/admin",adminRoute);
 app.use("/api/user",userRoute);
 app.use("/api/voucher",voucherRoute);
 app.use("/api/bid",bidRoute);
+
+app.use(helmet());
 
 
 const port = ENV.PORT || 5002;
