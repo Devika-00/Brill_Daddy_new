@@ -111,7 +111,12 @@ const HomePage = () => {
 
         setProducts(productsWithImages);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error('Error details:', {
+          message: error.message,
+          status: error.response?.status,
+          data: error.response?.data
+        });
+        
       }
     };
 
