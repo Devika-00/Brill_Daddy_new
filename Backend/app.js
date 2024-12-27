@@ -26,6 +26,23 @@ require("./jobs/winnerSelction");
 const app = express();
 const server = http.createServer(app);
 
+
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5000',
+    'https://brilldaddy.com',
+    'https://www.brilldaddy.com'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
 // Socket.IO configuration
 const io = new Server(server, {
   cors: corsOptions,
@@ -46,21 +63,6 @@ chatNamespace.on('connection', (socket) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-const corsOptions = {
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:5000',
-    'https://brilldaddy.com',
-    'https://www.brilldaddy.com'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range']
-};
-
-app.use(cors(corsOptions));
 
 // API routes
 if (process.env.NODE_ENV === 'production') {
