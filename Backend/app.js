@@ -55,35 +55,44 @@ chatNamespace.on('connection', (socket) => {
   });
 });
 
+// Add body parser middleware before routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API routes
-if (process.env.NODE_ENV === 'production') {
-  app.use('/admin', adminRoute);
-  app.use('/user', userRoute);
-  app.use('/voucher', voucherRoute);
-  app.use('/bid', bidRoute);
+// API routes with better organization
+const apiRouter = express.Router();
+
+// Mount routes on the API router
+apiRouter.use('/admin', adminRoute);
+apiRouter.use('/user', userRoute);
+apiRouter.use('/voucher', voucherRoute);
+apiRouter.use('/bid', bidRoute);
+
+// In development, mount under /api
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api', apiRouter);
 } else {
-  app.use('/api/admin', adminRoute);
-  app.use('/api/user', userRoute);
-  app.use('/api/voucher', voucherRoute);
-  app.use('/api/bid', bidRoute);
+  app.use('/', apiRouter);
 }
 
-// Add this before your error handler
+// Add request logging middleware in development
 if (process.env.NODE_ENV !== 'production') {
   app.use((req, res, next) => {
-    console.log(`404 - Not Found: ${req.method} ${req.originalUrl}`);
-    res.status(404).json({
-      error: 'Not Found',
-      message: `The requested URL ${req.originalUrl} was not found`,
-      method: req.method,
-      path: req.path,
-      originalUrl: req.originalUrl
-    });
+    console.log(`${req.method} ${req.originalUrl}`);
+    next();
   });
 }
+
+// 404 handler
+app.use((req, res, next) => {
+  console.log(`404 - Not Found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    error: 'Not Found',
+    message: `The requested URL ${req.originalUrl} was not found`,
+    method: req.method,
+    path: req.path
+  });
+});
 
 // Your existing error handler
 app.use((err, req, res, next) => {

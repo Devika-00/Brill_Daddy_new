@@ -83,8 +83,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(getApiUrl('user/products'), {
-          timeout: 5000,
+        const response = await axios.get(getApiUrl('/user/products'), {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -116,7 +115,11 @@ const HomePage = () => {
 
         setProducts(productsWithImages);
       } catch (error) {
-        console.error("Error details:", error);
+        console.error("Error details:", {
+          message: error.message,
+          status: error.response?.status,
+          data: error.response?.data
+        });
       }
     };
 
@@ -276,8 +279,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchVouchers = async () => {
       try {
-        const response = await axios.get(getApiUrl('voucher/getVouchers'), {
-          timeout: 5000,
+        const response = await axios.get(getApiUrl('/voucher/getVouchers'), {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -301,7 +303,11 @@ const HomePage = () => {
 
         setVouchers([...freeVouchers, ...paidVouchers]);
       } catch (error) {
-        console.error("Failed to fetch vouchers:", error);
+        console.error("Failed to fetch vouchers:", {
+          message: error.message,
+          status: error.response?.status,
+          data: error.response?.data
+        });
       }
     };
 

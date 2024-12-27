@@ -2,7 +2,6 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export const SERVER_URL = API_URL;
 
-// Add a helper function to construct API URLs with error handling
 export const getApiUrl = (endpoint) => {
   if (!endpoint) {
     throw new Error('Endpoint is required');
@@ -11,29 +10,31 @@ export const getApiUrl = (endpoint) => {
   // Ensure endpoint starts with /
   const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   
-  // Remove any duplicate /api prefixes
-  const cleanEndpoint = formattedEndpoint.replace(/\/api\/api\//, '/api/');
-  
-  // In production, don't add /api prefix since it's handled by the server
+  // In production, don't add /api prefix
   if (process.env.NODE_ENV === 'production') {
-    return `${SERVER_URL}${cleanEndpoint}`;
+    return `${SERVER_URL}${formattedEndpoint}`;
   }
   
-  // For development, ensure we only have one /api prefix
-  if (cleanEndpoint.startsWith('/api/')) {
-    return `${SERVER_URL}${cleanEndpoint}`;
-  }
-  
-  return `${SERVER_URL}/api${cleanEndpoint}`;
+  // For development, ensure we have /api prefix
+  return `${SERVER_URL}/api${formattedEndpoint}`;
 };
 
 // Add axios default config
 import axios from 'axios';
 
+// Configure axios defaults
 axios.defaults.timeout = 5000;
 axios.defaults.withCredentials = true;
 
-// Add retry logic
+// Add request interceptor to log requests in development
+axios.interceptors.request.use(config => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`Making ${config.method.toUpperCase()} request to: ${config.url}`);
+  }
+  return config;
+});
+
+// Add response interceptor for error handling
 axios.interceptors.response.use(
   response => response,
   async error => {
