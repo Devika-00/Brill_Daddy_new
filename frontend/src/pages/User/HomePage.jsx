@@ -151,7 +151,9 @@ const HomePage = () => {
     const fetchWishlist = async () => {
       try {
         if (!userId || !token) return;
-        const response = await makeApiCall('user/wishlist');
+        const response = await makeApiCall('user/wishlist',{
+          headers: { Authorization: `Bearer ${token}` },
+        });
         
         if (response.length > 0) {
           const wishlistItems = response.reduce((acc, item) => {
