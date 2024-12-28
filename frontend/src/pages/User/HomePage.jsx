@@ -76,9 +76,6 @@ const HomePage = () => {
 
   const navigate = useNavigate();
 
-  const apiUrl = import.meta.env.VITE_API_URL;
-  console.log(apiUrl); // It will output either the development or production API URL depending on the environment
-
   // Fetch products from the backend
   useEffect(() => {
     const fetchProducts = async () => {
@@ -164,70 +161,12 @@ const HomePage = () => {
 
   const toggleFavorite = async (productId) => {
     try {
-      // Ensure the user is logged in (check if userId or token exists)
-      if (!userId || !token) {
-        navigate("/login");
-        return;
-      }
-
-      // Log the token to confirm it's being retrieved correctly
-      console.log("Retrieved token:", token);
-      console.log("Retrieved userId:", userId);
-
-      const headers = {
-        Authorization: `Bearer ${token}`, // Pass token as Bearer token in headers
-      };
-
-      console.log("Toggling favorite for productId:", productId);
-
-      // Add userId to the request body when adding/removing from wishlist
-      const requestBody = {
-        productId,
-        userId,
-        wishlistStatus: wishlist[productId] ? "removed" : "added",
-      };
-
-      console.log("Current wishlist state before update:", wishlist);
-
-      if (wishlist[productId]) {
-        console.log("Removing from wishlist:", productId);
-        // Use DELETE to remove from wishlist, similar to your previous working route
-        const response = await axios.delete(
-          `${SERVER_URL}/user/wishlist/remove`,
-          {
-            headers,
-            data: requestBody,
-          }
-        );
-
-        if (response.status === 200) {
-          setWishlist((prev) => ({ ...prev, [productId]: false }));
-          setDialogMessage("Product removed from wishlist!");
-        }
-      } else {
-        console.log("Adding to wishlist:", productId);
-        // Use POST to add to wishlist
-        const response = await axios.post(
-          `${SERVER_URL}/user/wishlist`,
-          requestBody,
-          { headers }
-        );
-        if (response.status === 201) {
-          setWishlist((prev) => ({ ...prev, [productId]: true }));
-          setDialogMessage("Product added to wishlist!");
-        } else {
-          console.error("Error adding to wishlist:", response.data);
-        }
-      }
-      setShowDialog(true);
-
-      // Automatically close dialog after 2 seconds
-      setTimeout(() => {
-        setShowDialog(false);
-      }, 2000);
+      const response = await makeApiCall(`user/wishlist/${productId}`, {
+        method: 'POST'
+      });
+      // Handle response
     } catch (error) {
-      console.error("Error updating wishlist:", error);
-      alert("There was an issue adding/removing the item from your wishlist.");
+      console.error("Error toggling wishlist:", error);
     }
   };
 
