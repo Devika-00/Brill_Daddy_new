@@ -9,7 +9,6 @@ export const cloudinaryUploadPreset = "ml_default";
 const axiosInstance = axios.create({
   baseURL: SERVER_URL,
   timeout: 30000,
-  withCredentials: true,
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json'

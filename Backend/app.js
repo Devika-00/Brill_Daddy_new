@@ -1,7 +1,6 @@
 const express = require("express");
 const dotenv = require("dotenv");
 dotenv.config();
-const cors = require("cors");
 const ENV = require("./Config/ENV");
 const connectDb = require("./Config/Connection");
 const adminRoute = require("./Routes/adminRoutes");
@@ -18,37 +17,20 @@ require("./jobs/winnerSelction");
 const app = express();
 const server = http.createServer(app);
 
-// CORS configuration
-const corsOptions = {
-  origin: 'https://brilldaddy.com',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'X-Requested-With',
-    'Accept',
-    'Origin'
-  ],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
-
-app.use(cors(corsOptions));
-
-// Configure Helmet
+// Security headers
 app.use(helmet({
   crossOriginResourcePolicy: false,
   crossOriginEmbedderPolicy: false,
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'", "https://brilldaddy.com"],
-      connectSrc: ["'self'", "https://brilldaddy.com", "wss://api.brilldaddy.com"],
+      defaultSrc: ["'self'", "https://brilldaddy.com", "https://api.brilldaddy.com"],
+      connectSrc: ["'self'", "https://brilldaddy.com", "https://api.brilldaddy.com", "wss://api.brilldaddy.com"],
       imgSrc: ["'self'", "data:", "https:", "http:"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://checkout.razorpay.com"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       fontSrc: ["'self'", "data:", "https:", "http:"],
       mediaSrc: ["'self'", "data:", "https:", "http:"],
+      frameSrc: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com"]
     }
   }
 }));
@@ -65,18 +47,6 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// Add this before any routes
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-  console.log('Headers:', req.headers);
-  next();
-});
-
-// Root route should come before API routes
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
 // API Routes
 const apiRouter = express.Router();
 
@@ -86,37 +56,19 @@ apiRouter.use('/voucher', voucherRoute);
 apiRouter.use('/bid', bidRoute);
 apiRouter.use('/admin', adminRoute);
 
-// Mount apiRouter under /api
-app.use('/api', apiRouter);
-
-// Add a catch-all route for debugging
-app.use((req, res) => {
-  console.log(`404 - Not Found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({
-    error: 'Not Found',
-    message: `The requested URL ${req.originalUrl} was not found`,
-    method: req.method,
-    path: req.path
-  });
-});
-
-// Add a health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV
-  });
-});
+// Mount apiRouter under BASE_URL
+const baseUrl = ENV.BASE_URL || '/api';
+app.use(baseUrl, apiRouter);
 
 // Socket.IO configuration
 const io = new Server(server, {
-  cors: corsOptions,
   path: '/socket.io',
   transports: ['websocket', 'polling'],
   allowEIO3: true,
   pingTimeout: 60000,
-  pingInterval: 25000
+  pingInterval: 25000,
+  connectTimeout: 45000,
+  maxHttpBufferSize: 1e6
 });
 
 // Socket connection handler
@@ -132,7 +84,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Error handler remains at the end
+// Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({

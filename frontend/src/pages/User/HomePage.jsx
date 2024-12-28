@@ -11,6 +11,7 @@ import ChatBotButton from "../../components/User/chatBot";
 import ProductCarousel from "../../components/User/ProductCoursel";
 import VouchersCarousel from "../../components/User/VoucherCoursel";
 import ResponsiveCarousel from "../../components/User/AddCoursel";
+import { getSocket } from '../../utils/socket';
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return "";
@@ -289,9 +290,19 @@ const HomePage = () => {
     setVisibleCount((prevCount) => prevCount + 10); // Increase the count to show more products
   };
 
- 
+  useEffect(() => {
+    const socket = getSocket();
+    
+    // Add your socket event listeners here
+    socket.on('some_event', (data) => {
+      console.log('Received event:', data);
+    });
 
-
+    return () => {
+      // Clean up listeners when component unmounts
+      socket.off('some_event');
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
