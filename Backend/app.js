@@ -60,6 +60,14 @@ apiRouter.use('/admin', adminRoute);
 const baseUrl = ENV.BASE_URL || '/api';
 app.use(baseUrl, apiRouter);
 
+// Add health check endpoint
+app.get(`${baseUrl}/health`, (req, res) => {
+  res.json({ 
+    status: 'ok',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Socket.IO configuration
 const io = new Server(server, {
   path: '/socket.io',
