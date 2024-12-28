@@ -67,19 +67,27 @@ const io = new Server(server, {
       'https://brilldaddy.com',
       'https://www.brilldaddy.com'
     ],
-    credentials: true
+    methods: ['GET', 'POST'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization']
   },
-  path: '/socket.io'
+  path: '/socket.io',
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 
-// Define chat namespace
-const chatNamespace = io.of('/chat');
-
-chatNamespace.on('connection', (socket) => {
-  console.log('Client connected to chat:', socket.id);
+// Socket connection handler
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
   
   socket.on('disconnect', () => {
-    console.log('Client disconnected from chat:', socket.id);
+    console.log('Client disconnected:', socket.id);
+  });
+  
+  socket.on('error', (error) => {
+    console.error('Socket error:', error);
   });
 });
 
