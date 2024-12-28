@@ -12,6 +12,8 @@ import ProductCarousel from "../../components/User/ProductCoursel";
 import VouchersCarousel from "../../components/User/VoucherCoursel";
 import ResponsiveCarousel from "../../components/User/AddCoursel";
 import { getSocket } from '../../utils/socket';
+import axios from "axios";
+import { SERVER_URL } from "../../Constants";
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return "";
@@ -209,28 +211,42 @@ const HomePage = () => {
         return;
       }
 
-      await makeApiCall(`user/wishlist/${productId}`, {
-        method: 'POST',
-        data: {
-          userId,
-          productId,
-          wishlistStatus: wishlist[productId] ? "removed" : "added"
-        },
-        headers: {
-          Authorization: `Bearer ${token}`, // Include Bearer token
-        },
-      });
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+      const requestBody = {
+        productId: productId,
+        userId,
+        wishlistStatus: wishlist[productId] ? "removed" : "added",
+      };
 
-      // Update wishlist state
-      setWishlist(prev => ({
-        ...prev,
-        [productId]: !prev[productId]
-      }));
-
-      setDialogMessage(wishlist[productId] ? 
-        "Product removed from wishlist!" : 
-        "Product added to wishlist!");
-      setShowDialog(true);
+      if (wishlist[productId]) {
+        const response = await axios.delete(
+          `${SERVER_URL}/user/wishlist/remove`,
+          {
+            headers,
+            data: requestBody,
+          }
+        );
+        if (response.status === 200) {
+          setWishlist((prev) => ({ ...prev, [productId]: false }));
+          setDialogMessage("Product successfully removed from wishlist");
+          setShowDialog(true);
+          setTimeout(() => setShowDialog(false), 2000);
+        }
+      } else {
+        const response = await axios.post(
+          `${SERVER_URL}/user/wishlist`,
+          requestBody,
+          { headers }
+        );
+        if (response.status === 201) {
+          setWishlist((prev) => ({ ...prev, [productId]: true }));
+          setDialogMessage("Product successfully added to wishlist");
+          setShowDialog(true);
+          setTimeout(() => setShowDialog(false), 2000);
+        }
+      }
     } catch (error) {
       console.error("Error updating wishlist:", error);
     }
