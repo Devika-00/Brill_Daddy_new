@@ -215,7 +215,10 @@ const HomePage = () => {
           userId,
           productId,
           wishlistStatus: wishlist[productId] ? "removed" : "added"
-        }
+        },
+        headers: {
+          Authorization: `Bearer ${token}`, // Include Bearer token
+        },
       });
 
       // Update wishlist state
