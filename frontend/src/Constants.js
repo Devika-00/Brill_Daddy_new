@@ -1,6 +1,6 @@
 // Base URLs
-export const SERVER_URL = import.meta.env.VITE_API_URL || 'https://api.brilldaddy.com/api';
-export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'wss://api.brilldaddy.com';
+export const SERVER_URL = import.meta.env.VITE_API_URL;
+export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 // Configure axios defaults
 import axios from 'axios';
@@ -17,20 +17,6 @@ const axiosInstance = axios.create({
   }
 });
 
-// Export the axios instance
-export const api = axiosInstance;
-
-// Create socket instance
-export const socket = io(SOCKET_URL, {
-  path: '/socket.io',
-  transports: ['websocket', 'polling'],
-  autoConnect: true,
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  withCredentials: true
-});
-
 // Add request interceptor
 axiosInstance.interceptors.request.use(
   config => {
@@ -45,9 +31,7 @@ axiosInstance.interceptors.request.use(
 
 // Add response interceptor
 axiosInstance.interceptors.response.use(
-  response => {
-    return response.data;
-  },
+  response => response.data,
   error => {
     console.error('API Error:', {
       url: error.config?.url,
@@ -61,11 +45,27 @@ axiosInstance.interceptors.response.use(
   }
 );
 
+// Export the axios instance
+export const api = axiosInstance;
+
+// Create socket instance
+export const socket = io(SOCKET_URL, {
+  path: '/socket.io',
+  transports: ['websocket', 'polling'],
+  autoConnect: true,
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  withCredentials: true
+});
+
 // Helper function to handle network errors
 const handleNetworkError = (error, endpoint) => {
   if (!error.response) {
     console.error(`CORS or Network issue for ${endpoint}:`, error);
-    return [];
+    if (endpoint.includes('products') || endpoint.includes('vouchers') || endpoint.includes('carousel')) {
+      return [];
+    }
   }
   throw error;
 };

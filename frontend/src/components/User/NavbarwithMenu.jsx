@@ -3,6 +3,7 @@ import { FaBars, FaTimes, FaHome } from "react-icons/fa";
 import { SERVER_URL } from "../../Constants";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { makeApiCall } from "../../Constants";
 
 const NavbarWithMenu = () => {
   const [showCategories, setShowCategories] = useState(false);
@@ -17,10 +18,11 @@ const NavbarWithMenu = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios(`${SERVER_URL}/user/category`);
-        setCategories(response.data);
+        const response = await makeApiCall('user/category');
+        setCategories(response || []);
       } catch (error) {
         console.error("Error fetching categories:", error);
+        setCategories([]);
       }
     };
     fetchCategories();

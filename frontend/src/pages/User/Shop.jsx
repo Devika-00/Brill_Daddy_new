@@ -8,6 +8,7 @@ import { SERVER_URL } from "../../Constants/index";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../Redux/Store/store";
 import ChatBotButton from "../../components/User/chatBot";
+import { makeApiCall } from "../../Constants";
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return "";
@@ -46,44 +47,37 @@ const Shop = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/user/products`);
-        const productsWithImages = await Promise.all(
-          response.data.map(async (product) => {
-            if (product.images && product.images.length > 0) {
-              const imageResponse = await axios.get(
-                `${SERVER_URL}/user/images/${product.images[0]}`
-              );
-              product.imageUrl = imageResponse.data.imageUrl;
-              product.imageSubUrl = imageResponse.data.subImageUrl;
-            }
-            return product;
-          })
-        );
+        const response = await makeApiCall('user/products');
+        const productsArray = Array.isArray(response) ? response : [];
+        
+        const productsWithImages = productsArray.map(product => ({
+          ...product,
+          imageUrl: product.images?.[0] || null
+        }));
         setProducts(productsWithImages);
       } catch (error) {
         console.error("Error fetching products:", error);
+        setProducts([]);
       }
     };
 
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/user/category`);
-        setCategories(response.data);
+        const response = await makeApiCall('user/category');
+        setCategories(response || []);
       } catch (error) {
         console.error("Error fetching categories:", error);
+        setCategories([]);
       }
     };
 
     const fetchWishlist = async () => {
       try {
         if (!userId || !token) return;
-
-        const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (response.data.length > 0) {
-          const wishlistItems = response.data.reduce((acc, item) => {
+        const response = await makeApiCall('user/wishlist');
+        
+        if (response.length > 0) {
+          const wishlistItems = response.reduce((acc, item) => {
             acc[item.productId._id] = item.wishlistStatus === "added";
             return acc;
           }, {});
@@ -93,6 +87,7 @@ const Shop = () => {
         }
       } catch (error) {
         console.error("Error fetching wishlist:", error);
+        setWishlist({});
       }
     };
 

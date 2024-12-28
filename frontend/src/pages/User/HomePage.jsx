@@ -4,8 +4,7 @@ import OrginalNavbar from "../../components/User/OrginalUserNavbar";
 import NavbarWithMenu from "../../components/User/NavbarwithMenu";
 import Footer from "../../components/User/Footer";
 import { FaArrowLeft, FaArrowRight, FaHeart } from "react-icons/fa";
-import { SERVER_URL, makeApiCall } from "../../Constants";
-import axios from "axios";
+import { makeApiCall } from "../../Constants";
 import { Clock, Package, Tag, Gift } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
 import ChatBotButton from "../../components/User/chatBot";
@@ -76,65 +75,83 @@ const HomePage = () => {
 
   const navigate = useNavigate();
 
-  // Fetch products from the backend
+  // Move fetchVouchers outside useEffect
+  const fetchVouchers = async () => {
+    try {
+      const response = await makeApiCall('voucher/getVouchers');
+      const currentTime = new Date().getTime();
+
+      // Make sure response is an array before filtering
+      const vouchersArray = Array.isArray(response) ? response : [];
+      
+      const validVouchers = vouchersArray.filter((voucher) => {
+        const isEligibleUser = voucher.eligible_rebid_users?.includes(userId);
+        const isRebidActive = 
+          voucher.rebid_active && 
+          new Date(voucher.rebid_end_time).getTime() > currentTime;
+        const isActiveVoucher = 
+          new Date(voucher.start_time).getTime() <= currentTime && 
+          new Date(voucher.end_time).getTime() > currentTime;
+
+        return (isEligibleUser && isRebidActive) || isActiveVoucher;
+      });
+
+      const freeVouchers = validVouchers.filter((voucher) => voucher.price === 0);
+      const paidVouchers = validVouchers.filter((voucher) => voucher.price !== 0);
+
+      setVouchers([...freeVouchers, ...paidVouchers]);
+    } catch (error) {
+      console.error("Failed to fetch vouchers:", error);
+      setVouchers([]); // Set empty array on error
+    }
+  };
+
+  // First useEffect for all data loading and polling
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await makeApiCall('user/products');
-        // Ensure we have an array of products
         const productsArray = Array.isArray(response) ? response : [];
         
-        // Map through products only if we have an array
         const productsWithImages = productsArray.map(product => ({
           ...product,
           imageUrl: product.images?.[0] || null
         }));
-        
         setProducts(productsWithImages);
       } catch (error) {
         console.error("Error fetching products:", error);
-        setProducts([]); // Set empty array on error
+        setProducts([]);
       }
     };
 
     const fetchWishlist = async () => {
       try {
+        if (!userId || !token) return;
         const response = await makeApiCall('user/wishlist');
-        setWishlist(response || []);
+        
+        if (response.length > 0) {
+          const wishlistItems = response.reduce((acc, item) => {
+            acc[item.productId._id] = item.wishlistStatus === "added";
+            return acc;
+          }, {});
+          setWishlist(wishlistItems);
+        } else {
+          setWishlist({});
+        }
       } catch (error) {
         console.error("Error fetching wishlist:", error);
+        setWishlist({});
       }
     };
 
     const fetchImages = async () => {
       try {
         const response = await makeApiCall('user/carousel');
-        // Ensure we have an array of images
         const imagesArray = Array.isArray(response) ? response : [];
         setCarouselImages(imagesArray);
       } catch (error) {
         console.error("Error fetching carousel images:", error);
-        setCarouselImages([]); // Set empty array on error
-      }
-    };
-
-    const fetchVouchers = async () => {
-      try {
-        const response = await makeApiCall('voucher/getVouchers');
-        // Ensure we have an array of vouchers
-        const vouchersArray = Array.isArray(response) ? response : [];
-        
-        const currentTime = new Date().getTime();
-        const validVouchers = vouchersArray.filter(voucher => {
-          const startTime = new Date(voucher.start_time).getTime();
-          const endTime = new Date(voucher.end_time).getTime();
-          return startTime <= currentTime && endTime > currentTime;
-        });
-        
-        setVouchers(validVouchers);
-      } catch (error) {
-        console.error("Failed to fetch vouchers:", error);
-        setVouchers([]); // Set empty array on error
+        setCarouselImages([]);
       }
     };
 
@@ -148,7 +165,7 @@ const HomePage = () => {
     const productInterval = setInterval(fetchProducts, 60000);
     const wishlistInterval = setInterval(fetchWishlist, 60000);
     const imageInterval = setInterval(fetchImages, 60000);
-    const voucherInterval = setInterval(fetchVouchers, 60000);
+    const voucherInterval = setInterval(fetchVouchers, 30000); // Changed to 30 seconds
 
     // Cleanup
     return () => {
@@ -157,16 +174,36 @@ const HomePage = () => {
       clearInterval(imageInterval);
       clearInterval(voucherInterval);
     };
-  }, []);
+  }, [userId, token]);
 
   const toggleFavorite = async (productId) => {
     try {
-      const response = await makeApiCall(`user/wishlist/${productId}`, {
-        method: 'POST'
+      if (!userId || !token) {
+        navigate("/login");
+        return;
+      }
+
+      await makeApiCall(`user/wishlist/${productId}`, {
+        method: 'POST',
+        data: {
+          userId,
+          productId,
+          wishlistStatus: wishlist[productId] ? "removed" : "added"
+        }
       });
-      // Handle response
+
+      // Update wishlist state
+      setWishlist(prev => ({
+        ...prev,
+        [productId]: !prev[productId]
+      }));
+
+      setDialogMessage(wishlist[productId] ? 
+        "Product removed from wishlist!" : 
+        "Product added to wishlist!");
+      setShowDialog(true);
     } catch (error) {
-      console.error("Error toggling wishlist:", error);
+      console.error("Error updating wishlist:", error);
     }
   };
 
@@ -213,47 +250,6 @@ const HomePage = () => {
     }));
   };
 
-
-  useEffect(() => {
-    const fetchVouchers = async () => {
-      try {
-        const response = await axios.get(getApiUrl('voucher/getVouchers'), {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        const currentTime = new Date().getTime();
-
-        const validVouchers = response.data.filter((voucher) => {
-          const isEligibleUser = voucher.eligible_rebid_users.includes(userId);
-          const isRebidActive =
-            voucher.rebid_active &&
-            new Date(voucher.rebid_end_time).getTime() > currentTime;
-          const isActiveVoucher =
-            new Date(voucher.start_time).getTime() <= currentTime &&
-            new Date(voucher.end_time).getTime() > currentTime;
-
-          return (isEligibleUser && isRebidActive) || isActiveVoucher;
-        });
-
-        const freeVouchers = validVouchers.filter((voucher) => voucher.price === 0);
-        const paidVouchers = validVouchers.filter((voucher) => voucher.price !== 0);
-
-        setVouchers([...freeVouchers, ...paidVouchers]);
-      } catch (error) {
-        console.error("Failed to fetch vouchers:", error);
-      }
-    };
-
-    fetchVouchers();
-
-    // Change polling interval to 30 seconds instead of 1 second
-    const intervalId = setInterval(fetchVouchers, 30000);
-
-    return () => clearInterval(intervalId);
-  }, [userId, token]); // Add token to dependencies
-
-  
 
   const startCountdown = (endTime) => {
     const updateCountdown = () => {

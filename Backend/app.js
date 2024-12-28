@@ -29,9 +29,10 @@ const corsOptions = {
       'http://localhost:4173',
       'https://brilldaddy.com',
       'https://www.brilldaddy.com',
-      'https://api.brilldaddy.com',
+      'https://api.brilldaddy.com'
     ];
     
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -40,7 +41,7 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   maxAge: 600 // Cache preflight request for 10 minutes
 };
@@ -48,7 +49,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Add preflight handler before routes
-app.options('*', cors());
+app.options('*', cors(corsOptions));
 
 // Add security headers
 app.use((req, res, next) => {
@@ -100,7 +101,11 @@ app.use('/api', apiRouter);
 
 // Add a health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV
+  });
 });
 
 // 404 handler should come after all routes

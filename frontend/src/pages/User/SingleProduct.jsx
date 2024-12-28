@@ -19,6 +19,7 @@ import { useAppSelector } from "../../Redux/Store/store";
 import { FaHeart } from "react-icons/fa";
 import ChatBotButton from "../../components/User/chatBot";
 import RelatedProductsCarousel from "../../components/User/ReleatedProductCarseoul";
+import { makeApiCall } from "../../Constants";
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return '';
@@ -102,8 +103,8 @@ const SingleProduct = () => {
 
     const fetchWalletBalance = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/user/wallet/${userId}`);
-        setWalletBalance(response.data.balance);
+        const response = await makeApiCall(`user/wallet/${userId}`);
+        setWalletBalance(response.balance);
       } catch (error) {
         console.error("Error fetching wallet balance:", error);
       }
@@ -112,10 +113,8 @@ const SingleProduct = () => {
     const fetchWishlist = async () => {
       try {
         if (!userId || !token) return;
-        const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const wishlistItems = response.data.reduce((acc, item) => {
+        const response = await makeApiCall('user/wishlist');
+        const wishlistItems = response.reduce((acc, item) => {
           acc[item.productId._id] = item.wishlistStatus === "added";
           return acc;
         }, {});
@@ -127,10 +126,8 @@ const SingleProduct = () => {
 
     const fetchCartItems = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/user/cart/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setCartItems(response.data);
+        const response = await makeApiCall(`user/cart/${userId}`);
+        setCartItems(response);
       } catch (error) {
         console.error("Error fetching cart items:", error);
       }

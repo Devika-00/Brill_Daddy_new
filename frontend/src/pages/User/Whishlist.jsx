@@ -9,6 +9,7 @@ import axios from 'axios';
 import { SERVER_URL } from "../../Constants";
 import { useNavigate } from 'react-router-dom'; 
 import ChatBotButton from "../../components/User/chatBot";
+import { makeApiCall } from "../../Constants";
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return '';
@@ -36,42 +37,28 @@ const WishlistPage = () => {
   useEffect(() => {
     const fetchWishlist = async () => {
       try {
-        if (!token) {
-          console.error("No token found!");
-          return;
-        }
+        const response = await makeApiCall('user/wishlist');
+        const items = Array.isArray(response) ? response : [];
+        setWishlistItems(items);
 
-        const headers = {
-          Authorization: `Bearer ${token}`,
-        };
-
-        const response = await axios.get(`${SERVER_URL}/user/wishlist`, { headers });
-        
-
-        if (response.status === 200) {
-          const items = Array.isArray(response.data) ? response.data : [];
-          setWishlistItems(items);
-
-          // Fetch images for each product
-          const imageUrls = {};
-          await Promise.all(items.map(async (item) => {
-            const productId = item.productId._id;
-            if (item.productId.images && item.productId.images.length > 0) {
-              const imageId = item.productId.images[0];
-              try {
-                const imageResponse = await axios.get(`${SERVER_URL}/user/images/${imageId}`);
-                if (imageResponse.status === 200) {
-                  imageUrls[imageId] = imageResponse.data.imageUrl;
-                }
-              } catch (error) {
-                console.error(`Error fetching image for product ${productId}:`, error);
-              }
+        // Fetch images for each product
+        const imageUrls = {};
+        await Promise.all(items.map(async (item) => {
+          const productId = item.productId._id;
+          if (item.productId.images && item.productId.images.length > 0) {
+            const imageId = item.productId.images[0];
+            try {
+              const imageResponse = await makeApiCall(`user/images/${imageId}`);
+              imageUrls[imageId] = imageResponse.imageUrl;
+            } catch (error) {
+              console.error(`Error fetching image for product ${productId}:`, error);
             }
-          }));
-          setImageUrls(imageUrls);
-        }
+          }
+        }));
+        setImageUrls(imageUrls);
       } catch (error) {
         console.error("Error fetching wishlist:", error);
+        setWishlistItems([]);
       }
     };
 
