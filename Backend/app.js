@@ -20,7 +20,7 @@ const server = http.createServer(app);
 
 // Update CORS configuration
 const corsOptions = {
-  origin: 'https://brilldaddy.com',
+  origin: ['https://brilldaddy.com', 'https://www.brilldaddy.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type', 
@@ -28,6 +28,8 @@ const corsOptions = {
     'Origin', 
     'X-Requested-With',
     'Accept',
+    'Access-Control-Allow-Origin',
+    'Access-Control-Allow-Credentials',
     'User-Agent',
     'DNT',
     'Cache-Control',
@@ -36,38 +38,28 @@ const corsOptions = {
   ],
   credentials: true,
   optionsSuccessStatus: 204,
-  maxAge: 1728000 // 20 days
+  maxAge: 1728000, // 20 days
+  preflightContinue: false
 };
 
 app.use(cors(corsOptions));
 
-// Add preflight handler
-app.options('*', cors(corsOptions));
-
-// Configure Helmet for production
+// Configure Helmet with updated CSP
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'"],
+      defaultSrc: ["'self'", "https://brilldaddy.com", "https://api.brilldaddy.com"],
       connectSrc: ["'self'", "https://brilldaddy.com", "wss://api.brilldaddy.com", "https://api.brilldaddy.com"],
       imgSrc: ["'self'", "data:", "https:", "http:"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       fontSrc: ["'self'", "data:", "https:", "http:"],
       mediaSrc: ["'self'", "data:", "https:", "http:"],
-    },
-  },
+      frameSrc: ["'self'", "https://brilldaddy.com"]
+    }
+  }
 }));
-
-// Add security headers
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  next();
-});
 
 // Body parser middleware
 app.use(express.json());
