@@ -1,6 +1,6 @@
 // Base URLs
-export const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'ws://localhost:5000';
+export const SERVER_URL = import.meta.env.VITE_API_URL;
+export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 // Configure axios defaults
 import axios from 'axios';
@@ -36,7 +36,10 @@ axiosInstance.interceptors.request.use(config => {
 
 // Add response interceptor
 axiosInstance.interceptors.response.use(
-  response => response,
+  response => {
+    // Ensure we're returning the data property of the response
+    return response.data;
+  },
   error => {
     const errorDetails = {
       url: error.config?.url,
@@ -61,27 +64,15 @@ axiosInstance.interceptors.response.use(
 // Export the axios instance
 export const api = axiosInstance;
 
-export const getApiUrl = (endpoint) => {
-  if (!endpoint) {
-    throw new Error('Endpoint is required');
-  }
-  
-  const cleanEndpoint = endpoint
-    .replace(/^\/+|\/+$/g, '')     // Remove leading/trailing slashes
-    .replace(/^api\/+/, '');       // Remove api/ prefix if present
-  
-  return cleanEndpoint; // Return just the endpoint since baseURL is configured in axios instance
-};
-
 // Helper function to make API calls
 export const makeApiCall = async (endpoint, options = {}) => {
   try {
-    const url = getApiUrl(endpoint);
+    const url = endpoint.replace(/^\/+/, ''); // Remove leading slashes
     const response = await api.request({
       url,
       ...options
     });
-    return response.data;
+    return response; // This will be the data since we handled it in the interceptor
   } catch (error) {
     console.error(`API call failed for ${endpoint}:`, error);
     throw error;

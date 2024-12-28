@@ -37,11 +37,13 @@ const EventPage = () => {
     const fetchVouchers = async () => {
       try {
         const response = await makeApiCall('voucher/getVouchers');
-        console.log(response,"nnnnnnnnnnnnnnnnnnnnn")
         const currentTime = new Date().getTime();
 
-        const validVouchers = response.data.filter((voucher) => {
-          const isEligibleUser = voucher.eligible_rebid_users.includes(userId);
+        // Make sure response is an array before filtering
+        const voucherData = Array.isArray(response) ? response : [];
+        
+        const validVouchers = voucherData.filter((voucher) => {
+          const isEligibleUser = voucher.eligible_rebid_users?.includes(userId);
           const isRebidActive = voucher.rebid_active && new Date(voucher.rebid_end_time).getTime() > currentTime;
           const isActiveVoucher = new Date(voucher.start_time).getTime() <= currentTime && new Date(voucher.end_time).getTime() > currentTime;
           
@@ -54,16 +56,14 @@ const EventPage = () => {
         setVouchers([...freeVouchers, ...paidVouchers]);
 
         // Fetch eligible free vouchers
-        const freeVoucherResponse = await makeApiCall(
-          `voucher/getEligibleFreeVouchers`
-        );
-        setEligibleFreeVouchers(freeVoucherResponse.data.eligibleVouchers);
+        const freeVoucherResponse = await makeApiCall('voucher/getEligibleFreeVouchers');
+        setEligibleFreeVouchers(freeVoucherResponse.eligibleVouchers || []);
 
         // Fetch winners
-        const winnersResponse = await makeApiCall(
-          `voucher/getWinners`
-        );
-        const validWinners = winnersResponse.data.filter(
+        const winnersResponse = await makeApiCall('voucher/getWinners');
+        const winnersData = Array.isArray(winnersResponse) ? winnersResponse : [];
+        
+        const validWinners = winnersData.filter(
           (winner) => new Date(winner.endTime).getTime() > currentTime
         );
         setWinners(validWinners);
@@ -74,12 +74,11 @@ const EventPage = () => {
 
     fetchVouchers();
 
-    // Set interval to fetch every minute (adjust as necessary)
-    const intervalId = setInterval(fetchVouchers, 1000);
+    // Set interval to fetch every minute
+    const intervalId = setInterval(fetchVouchers, 60000);
 
-    // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
-  }, []);
+  }, [userId]);
 
  
 
