@@ -1,6 +1,6 @@
 // Base URLs
-export const SERVER_URL = import.meta.env.VITE_API_URL;
-export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+export const SERVER_URL = import.meta.env.VITE_API_URL || 'https://api.brilldaddy.com/api';
+export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'wss://api.brilldaddy.com';
 
 // Configure axios defaults
 import axios from 'axios';
@@ -9,7 +9,7 @@ import io from 'socket.io-client';
 // Create axios instance with custom config
 const axiosInstance = axios.create({
   baseURL: SERVER_URL,
-  timeout: 10000,
+  timeout: 30000,
   withCredentials: true,
   headers: {
     'Accept': 'application/json',
@@ -17,11 +17,11 @@ const axiosInstance = axios.create({
   }
 });
 
-// Export the axios instance first so it can be used by other functions
+// Export the axios instance
 export const api = axiosInstance;
 
-// Create socket instance with proper error handling
-export const socket = io(SOCKET_URL.replace('/socket.io', ''), {
+// Create socket instance
+export const socket = io(SOCKET_URL, {
   path: '/socket.io',
   transports: ['websocket', 'polling'],
   autoConnect: true,
@@ -31,62 +31,49 @@ export const socket = io(SOCKET_URL.replace('/socket.io', ''), {
   withCredentials: true
 });
 
-socket.on('connect_error', (error) => {
-  console.error('Socket connection error:', error);
-});
-
 // Add request interceptor
-axiosInstance.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  
-  return config;
-}, error => {
-  console.error('Request Error:', error);
-  return Promise.reject(error);
-});
+axiosInstance.interceptors.request.use(
+  config => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  error => Promise.reject(error)
+);
 
 // Add response interceptor
 axiosInstance.interceptors.response.use(
   response => {
-    if (Array.isArray(response.data)) {
-      return response.data;
-    } else if (response.data && typeof response.data === 'object') {
-      return response.data;
-    }
-    return [];
+    return response.data;
   },
   error => {
-    const errorDetails = {
+    console.error('API Error:', {
       url: error.config?.url,
       method: error.config?.method,
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
       message: error.message
-    };
-
-    console.error('API Error:', errorDetails);
+    });
     return Promise.reject(error);
   }
 );
 
-// Helper function to make API calls
+// Helper function to handle network errors
 const handleNetworkError = (error, endpoint) => {
-  if (!error.response && error.message === 'Network Error') {
+  if (!error.response) {
     console.error(`CORS or Network issue for ${endpoint}:`, error);
-    // You might want to add retry logic here
     return [];
   }
   throw error;
 };
 
+// Helper function to make API calls
 export const makeApiCall = async (endpoint, options = {}) => {
   try {
-    const url = endpoint.replace(/^\/+/, '');
+    const url = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
     const response = await api.request({
       url,
       ...options,
@@ -96,10 +83,6 @@ export const makeApiCall = async (endpoint, options = {}) => {
         'Content-Type': 'application/json'
       }
     });
-    
-    if (endpoint.includes('products') || endpoint.includes('vouchers') || endpoint.includes('carousel')) {
-      return Array.isArray(response) ? response : [];
-    }
     
     return response;
   } catch (error) {

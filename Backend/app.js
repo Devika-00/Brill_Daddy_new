@@ -22,18 +22,30 @@ const server = http.createServer(app);
 app.use(helmet());
 
 // CORS middleware
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:4173',
-    'https://brilldaddy.com',
-    'https://www.brilldaddy.com'
-  ],
+const corsOptions = {
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:4173',
+      'https://brilldaddy.com',
+      'https://www.brilldaddy.com',
+      'https://api.brilldaddy.com',
+    ];
+    
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range']
-}));
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 600 // Cache preflight request for 10 minutes
+};
+
+app.use(cors(corsOptions));
 
 // Add preflight handler before routes
 app.options('*', cors());
@@ -104,17 +116,7 @@ app.use((req, res) => {
 
 // Socket.IO configuration
 const io = new Server(server, {
-  cors: {
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:4173',
-      'https://brilldaddy.com',
-      'https://www.brilldaddy.com'
-    ],
-    methods: ['GET', 'POST'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization']
-  },
+  cors: corsOptions,
   path: '/socket.io',
   transports: ['websocket', 'polling'],
   allowEIO3: true,
