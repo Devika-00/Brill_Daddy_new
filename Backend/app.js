@@ -46,6 +46,18 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+// Add this before any routes
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  console.log('Headers:', req.headers);
+  next();
+});
+
+// Root route should come before API routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // API Routes
 const apiRouter = express.Router();
 
@@ -57,6 +69,22 @@ apiRouter.use('/bid', bidRoute);
 
 // Mount apiRouter under /api
 app.use('/api', apiRouter);
+
+// Add a health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// 404 handler should come after all routes
+app.use((req, res) => {
+  console.log(`404 - Not Found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    error: 'Not Found',
+    message: `The requested URL ${req.originalUrl} was not found`,
+    method: req.method,
+    path: req.path
+  });
+});
 
 // Socket.IO configuration
 const io = new Server(server, {
@@ -91,28 +119,13 @@ io.on('connection', (socket) => {
   });
 });
 
-// 404 handler - move this after all routes
-app.use((req, res) => {
-  console.log(`404 - Not Found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({
-    error: 'Not Found',
-    message: `The requested URL ${req.originalUrl} was not found`,
-    method: req.method,
-    path: req.path
-  });
-});
-
-// Your existing error handler
+// Error handler remains at the end
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
     message: 'Internal Server Error',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
-});
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const port = ENV.PORT || 5002;
