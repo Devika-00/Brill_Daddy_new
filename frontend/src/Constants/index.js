@@ -28,9 +28,24 @@ axiosInstance.interceptors.request.use(
   error => Promise.reject(error)
 );
 
+// Add response interceptor
+axiosInstance.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response) {
+      console.error(`API Error: ${error.response.status}`, error.response.data);
+    } else if (error.request) {
+      console.error('Network Error:', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const makeApiCall = async (endpoint, options = {}) => {
   try {
+    // Remove leading slash if present
     const url = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+    
     const response = await axiosInstance.request({
       url,
       ...options,

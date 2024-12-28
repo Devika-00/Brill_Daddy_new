@@ -81,24 +81,15 @@ app.get('/', (req, res) => {
 const apiRouter = express.Router();
 
 // Mount routes on apiRouter
-apiRouter.use('/admin', adminRoute);
 apiRouter.use('/user', userRoute);
 apiRouter.use('/voucher', voucherRoute);
 apiRouter.use('/bid', bidRoute);
+apiRouter.use('/admin', adminRoute);
 
 // Mount apiRouter under /api
 app.use('/api', apiRouter);
 
-// Add a health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV
-  });
-});
-
-// 404 handler should come after all routes
+// Add a catch-all route for debugging
 app.use((req, res) => {
   console.log(`404 - Not Found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
@@ -106,6 +97,15 @@ app.use((req, res) => {
     message: `The requested URL ${req.originalUrl} was not found`,
     method: req.method,
     path: req.path
+  });
+});
+
+// Add a health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV
   });
 });
 
