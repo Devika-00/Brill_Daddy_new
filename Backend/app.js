@@ -20,24 +20,23 @@ const server = http.createServer(app);
 
 // Update CORS configuration
 const corsOptions = {
-  origin: [
-    'http://localhost:5173',  // Development
-    'http://localhost:4173',  // Vite preview
-    'https://brilldaddy.com',
-    'https://www.brilldaddy.com',
-    'https://api.brilldaddy.com'
-  ],
+  origin: 'https://brilldaddy.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type', 
     'Authorization', 
     'Origin', 
     'X-Requested-With',
-    'Accept'
+    'Accept',
+    'User-Agent',
+    'DNT',
+    'Cache-Control',
+    'Keep-Alive',
+    'If-Modified-Since'
   ],
   credentials: true,
-  optionsSuccessStatus: 200,
-  maxAge: 86400 // 24 hours
+  optionsSuccessStatus: 204,
+  maxAge: 1728000 // 20 days
 };
 
 app.use(cors(corsOptions));
@@ -51,7 +50,7 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "wss://api.brilldaddy.com", "https://api.brilldaddy.com", "ws:", "wss:", "http:", "https:"],
+      connectSrc: ["'self'", "https://brilldaddy.com", "wss://api.brilldaddy.com", "https://api.brilldaddy.com"],
       imgSrc: ["'self'", "data:", "https:", "http:"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
