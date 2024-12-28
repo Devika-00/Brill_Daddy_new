@@ -4,7 +4,7 @@ import OrginalNavbar from "../../components/User/OrginalUserNavbar";
 import NavbarWithMenu from "../../components/User/NavbarwithMenu";
 import Footer from "../../components/User/Footer";
 import { FaArrowLeft, FaArrowRight, FaHeart } from "react-icons/fa";
-import { SERVER_URL, getApiUrl } from "../../Constants";
+import { SERVER_URL, makeApiCall } from "../../Constants";
 import axios from "axios";
 import { Clock, Package, Tag, Gift } from "lucide-react";
 import { useAppSelector } from "../../Redux/Store/store";
@@ -83,84 +83,61 @@ const HomePage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(getApiUrl('user/products'), {
-          withCredentials: true,
-          timeout: 10000
-        });
-        const products = response.data;
-
-        // Fetch images for each product
-        const productsWithImages = await Promise.all(
-          products.map(async (product) => {
-            if (product.images && product.images.length > 0) {
-              const imageResponse = await axios.get(
-                `${SERVER_URL}/user/images/${product.images[0]}`
-              );
-              product.imageUrl = imageResponse.data.imageUrl;
-            }
-            return product;
-          })
-        );
-
-        const groupedByCategory = productsWithImages.reduce((acc, product) => {
-          if (!acc[product.category]) {
-            acc[product.category] = [];
-          }
-          acc[product.category].push(product);
-          return acc;
-        }, {});
-
-        setCategoriesAndProducts(groupedByCategory);
-
-        setProducts(productsWithImages);
+        const response = await makeApiCall('user/products');
+        // response is already the data due to our interceptor
+        setProducts(response || []);
       } catch (error) {
-        console.error("Error fetching products:", {
-          message: error.message,
-          code: error.code,
-          response: error.response?.data
-        });
+        console.error("Error fetching products:", error);
       }
     };
 
     const fetchWishlist = async () => {
       try {
-        if (!userId || !token) return;
-
-        const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const wishlistItems = response.data.reduce((acc, item) => {
-          acc[item.productId._id] = item.wishlistStatus === "added";
-          return acc;
-        }, {});
-
-        // console.log("Wishlist fetched:", JSON.stringify(wishlistItems, null, 2));
-
-        setWishlist(wishlistItems);
+        const response = await makeApiCall('user/wishlist');
+        setWishlist(response || []);
       } catch (error) {
         console.error("Error fetching wishlist:", error);
       }
     };
 
-    fetchProducts();
-    fetchWishlist();
-  }, [userId, token]);
-
-  useEffect(() => {
     const fetchImages = async () => {
       try {
-        console.log("reaching")
-        const response = await axios.get(`${SERVER_URL}/user/carousel`,{
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setCarouselImages(response.data);
+        const response = await makeApiCall('user/carousel');
+        setCarouselImages(response || []);
       } catch (error) {
         console.error("Error fetching carousel images:", error);
       }
     };
 
+    const fetchVouchers = async () => {
+      try {
+        const response = await makeApiCall('voucher/getVouchers');
+        setVouchers(response || []);
+      } catch (error) {
+        console.error("Failed to fetch vouchers:", error);
+      }
+    };
+
+    // Initial fetch
+    fetchProducts();
+    fetchWishlist();
     fetchImages();
-}, []); 
+    fetchVouchers();
+
+    // Set up intervals
+    const productInterval = setInterval(fetchProducts, 60000);
+    const wishlistInterval = setInterval(fetchWishlist, 60000);
+    const imageInterval = setInterval(fetchImages, 60000);
+    const voucherInterval = setInterval(fetchVouchers, 60000);
+
+    // Cleanup
+    return () => {
+      clearInterval(productInterval);
+      clearInterval(wishlistInterval);
+      clearInterval(imageInterval);
+      clearInterval(voucherInterval);
+    };
+  }, []);
 
   const toggleFavorite = async (productId) => {
     try {
