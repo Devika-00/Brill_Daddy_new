@@ -12,8 +12,7 @@ const axiosInstance = axios.create({
   withCredentials: true,
   headers: {
     'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': 'https://brilldaddy.com'
+    'Content-Type': 'application/json'
   }
 });
 
@@ -24,29 +23,9 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // Add CORS headers to every request
-    config.headers['Access-Control-Allow-Credentials'] = 'true';
     return config;
   },
   error => Promise.reject(error)
-);
-
-// Add response interceptor to handle errors
-axiosInstance.interceptors.response.use(
-  response => response,
-  error => {
-    if (error.response) {
-      // Server responded with error status
-      console.error('Response error:', error.response.status, error.response.data);
-    } else if (error.request) {
-      // Request made but no response
-      console.error('Network error:', error.message);
-    } else {
-      // Error in request configuration
-      console.error('Request error:', error.message);
-    }
-    return Promise.reject(error);
-  }
 );
 
 export const makeApiCall = async (endpoint, options = {}) => {
@@ -58,8 +37,7 @@ export const makeApiCall = async (endpoint, options = {}) => {
       headers: {
         ...options.headers,
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://brilldaddy.com'
+        'Content-Type': 'application/json'
       }
     });
     
@@ -67,7 +45,7 @@ export const makeApiCall = async (endpoint, options = {}) => {
   } catch (error) {
     console.error(`API call failed for ${endpoint}:`, error);
     if (!error.response) {
-      console.error(`CORS or Network issue for ${endpoint}:`, error);
+      console.error(`Network issue for ${endpoint}:`, error);
       if (endpoint.includes('products') || endpoint.includes('vouchers') || endpoint.includes('carousel')) {
         return [];
       }

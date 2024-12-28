@@ -18,45 +18,37 @@ require("./jobs/winnerSelction");
 const app = express();
 const server = http.createServer(app);
 
-// Update CORS configuration
+// CORS configuration
 const corsOptions = {
-  origin: ['https://brilldaddy.com', 'https://www.brilldaddy.com'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  origin: 'https://brilldaddy.com',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'Origin', 
+    'Content-Type',
+    'Authorization',
     'X-Requested-With',
     'Accept',
-    'Access-Control-Allow-Origin',
-    'Access-Control-Allow-Credentials',
-    'User-Agent',
-    'DNT',
-    'Cache-Control',
-    'Keep-Alive',
-    'If-Modified-Since'
+    'Origin'
   ],
-  credentials: true,
-  optionsSuccessStatus: 204,
-  maxAge: 1728000, // 20 days
-  preflightContinue: false
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
 
-// Configure Helmet with updated CSP
+// Configure Helmet
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginResourcePolicy: false,
+  crossOriginEmbedderPolicy: false,
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'", "https://brilldaddy.com", "https://api.brilldaddy.com"],
-      connectSrc: ["'self'", "https://brilldaddy.com", "wss://api.brilldaddy.com", "https://api.brilldaddy.com"],
+      defaultSrc: ["'self'", "https://brilldaddy.com"],
+      connectSrc: ["'self'", "https://brilldaddy.com", "wss://api.brilldaddy.com"],
       imgSrc: ["'self'", "data:", "https:", "http:"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       fontSrc: ["'self'", "data:", "https:", "http:"],
       mediaSrc: ["'self'", "data:", "https:", "http:"],
-      frameSrc: ["'self'", "https://brilldaddy.com"]
     }
   }
 }));
