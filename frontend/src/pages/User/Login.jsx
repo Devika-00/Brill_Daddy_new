@@ -9,6 +9,7 @@ import { SERVER_URL } from '../../Constants';
 import { setUser } from '../../Redux/Slice/userSlice';
 import { useAppDispatch } from '../../Redux/Store/store';
 import { FaPhoneAlt, FaEnvelope } from 'react-icons/fa';
+import { makeApiCall } from "../../Constants";
 
 const Login = () => {
   const [identifier, setIdentifier] = useState('');
@@ -35,7 +36,10 @@ const Login = () => {
     setLoadingOtp(true);
 
     try {
-      const response = await axios.post(`${SERVER_URL}/user/sendOtp`, { identifier });
+      const response = await makeApiCall('user/sendOtp', {
+        method: 'POST',
+        data: { identifier },
+      });
       if (response.data.message === 'OTP sent successfully') {
         alert('OTP sent!');
         setIsOtpSent(true);

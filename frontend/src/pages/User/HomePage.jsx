@@ -114,11 +114,25 @@ const HomePage = () => {
         const response = await makeApiCall('user/products');
         const productsArray = Array.isArray(response) ? response : [];
         
-        const productsWithImages = productsArray.map(product => ({
-          ...product,
-          imageUrl: product.images?.[0] || null
-        }));
+        const productsWithImages = await Promise.all(
+          productsArray.map(async (product) => {
+            let imageUrl = null;
+    
+            if (product.images?.[0]) {
+              try {
+                const imageResponse = await makeApiCall(`user/images/${product.images[0]}`);
+                product.imageUrl = imageResponse.imageUrl 
+              } catch (imageError) {
+                console.error(`Error fetching image for product ${product._id}:`, imageError);
+              }
+            }
+            return product;
+          })
+        );
+
+    
         setProducts(productsWithImages);
+        
       } catch (error) {
         console.error("Error fetching products:", error);
         setProducts([]);
@@ -303,6 +317,8 @@ const HomePage = () => {
       socket.off('some_event');
     };
   }, []);
+
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
