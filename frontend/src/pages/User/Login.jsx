@@ -49,13 +49,14 @@ const Login = () => {
         data: { identifier },
       });
 
-      if (response.status === 200 && response.data) {
+      // Check if response exists and has the expected message
+      if (response && response.message === 'OTP sent successfully') {
         setIsOtpSent(true);
         setOtpSentTime(new Date());
         setErrorMessage('');
         alert('OTP sent successfully!');
       } else {
-        throw new Error('Invalid response from server');
+        throw new Error('Unexpected response from server');
       }
     } catch (error) {
       console.error('Error sending OTP:', error);
