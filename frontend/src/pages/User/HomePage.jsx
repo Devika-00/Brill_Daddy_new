@@ -84,10 +84,19 @@ const HomePage = () => {
     const fetchProducts = async () => {
       try {
         const response = await makeApiCall('user/products');
-        // response is already the data due to our interceptor
-        setProducts(response || []);
+        // Ensure we have an array of products
+        const productsArray = Array.isArray(response) ? response : [];
+        
+        // Map through products only if we have an array
+        const productsWithImages = productsArray.map(product => ({
+          ...product,
+          imageUrl: product.images?.[0] || null
+        }));
+        
+        setProducts(productsWithImages);
       } catch (error) {
         console.error("Error fetching products:", error);
+        setProducts([]); // Set empty array on error
       }
     };
 
@@ -103,18 +112,32 @@ const HomePage = () => {
     const fetchImages = async () => {
       try {
         const response = await makeApiCall('user/carousel');
-        setCarouselImages(response || []);
+        // Ensure we have an array of images
+        const imagesArray = Array.isArray(response) ? response : [];
+        setCarouselImages(imagesArray);
       } catch (error) {
         console.error("Error fetching carousel images:", error);
+        setCarouselImages([]); // Set empty array on error
       }
     };
 
     const fetchVouchers = async () => {
       try {
         const response = await makeApiCall('voucher/getVouchers');
-        setVouchers(response || []);
+        // Ensure we have an array of vouchers
+        const vouchersArray = Array.isArray(response) ? response : [];
+        
+        const currentTime = new Date().getTime();
+        const validVouchers = vouchersArray.filter(voucher => {
+          const startTime = new Date(voucher.start_time).getTime();
+          const endTime = new Date(voucher.end_time).getTime();
+          return startTime <= currentTime && endTime > currentTime;
+        });
+        
+        setVouchers(validVouchers);
       } catch (error) {
         console.error("Failed to fetch vouchers:", error);
+        setVouchers([]); // Set empty array on error
       }
     };
 
