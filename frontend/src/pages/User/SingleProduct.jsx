@@ -113,7 +113,9 @@ const SingleProduct = () => {
     const fetchWishlist = async () => {
       try {
         if (!userId || !token) return;
-        const response = await makeApiCall('user/wishlist');
+        const response = await makeApiCall('user/wishlist',{
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const wishlistItems = response.reduce((acc, item) => {
           acc[item.productId._id] = item.wishlistStatus === "added";
           return acc;
