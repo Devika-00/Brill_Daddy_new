@@ -329,6 +329,8 @@ const HomePage = () => {
     };
   }, []);
 
+
+console.log(products,"qqqqqmmmmzzzzzzzzzzzz");
   
 
   return (
