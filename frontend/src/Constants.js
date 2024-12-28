@@ -1,3 +1,4 @@
+// Base URLs
 export const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
 export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'ws://localhost:5002';
 
@@ -9,16 +10,10 @@ export const getApiUrl = (endpoint) => {
   // Remove leading/trailing slashes and clean up endpoint
   const cleanEndpoint = endpoint
     .replace(/^\/+|\/+$/g, '')     // Remove leading/trailing slashes
-    .replace(/^api\/+/, '')        // Remove api/ prefix if present
-    .replace(/^api\/api\/+/, '');  // Remove api/api/ prefix if present
+    .replace(/^api\/+/, '');       // Remove api/ prefix if present
   
-  // In production, don't add /api prefix since it's in the base URL
-  if (process.env.NODE_ENV === 'production') {
-    return `${API_URL}/api/${cleanEndpoint}`;
-  }
-  
-  // For development, add /api prefix
-  return `${API_URL}/api/${cleanEndpoint}`;
+  // Return the full URL without adding extra /api prefix since it's already in SERVER_URL
+  return `${SERVER_URL}/${cleanEndpoint}`;
 };
 
 // Configure axios defaults
