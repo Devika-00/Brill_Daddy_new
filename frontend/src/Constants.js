@@ -1,6 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-export const SERVER_URL = API_URL;
+export const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
+export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'ws://localhost:5002';
 
 export const getApiUrl = (endpoint) => {
   if (!endpoint) {
