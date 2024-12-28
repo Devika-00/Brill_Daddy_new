@@ -129,7 +129,16 @@ const HomePage = () => {
             return product;
           })
         );
+         
+        const groupedByCategory = productsWithImages.reduce((acc, product) => {
+          if (!acc[product.category]) {
+            acc[product.category] = [];
+          }
+          acc[product.category].push(product);
+          return acc;
+        }, {});
 
+        setCategoriesAndProducts(groupedByCategory);
     
         setProducts(productsWithImages);
         
