@@ -4,7 +4,7 @@ import OrginalNavbar from "../../components/User/OrginalUserNavbar";
 import NavbarWithMenu from "../../components/User/NavbarwithMenu";
 import Footer from "../../components/User/Footer";
 import { SERVER_URL } from "../../Constants";
-import axios from "axios";
+import { makeApiCall } from '../../Constants';
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../Redux/Store/store";
 import ChatBotButton from "../../components/User/chatBot";
@@ -36,7 +36,7 @@ const EventPage = () => {
   useEffect(() => {
     const fetchVouchers = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/voucher/getVouchers`);
+        const response = await makeApiCall('voucher/getVouchers');
         console.log(response,"nnnnnnnnnnnnnnnnnnnnn")
         const currentTime = new Date().getTime();
 
@@ -54,14 +54,14 @@ const EventPage = () => {
         setVouchers([...freeVouchers, ...paidVouchers]);
 
         // Fetch eligible free vouchers
-        const freeVoucherResponse = await axios.get(
-          `${SERVER_URL}/voucher/getEligibleFreeVouchers`
+        const freeVoucherResponse = await makeApiCall(
+          `voucher/getEligibleFreeVouchers`
         );
         setEligibleFreeVouchers(freeVoucherResponse.data.eligibleVouchers);
 
         // Fetch winners
-        const winnersResponse = await axios.get(
-          `${SERVER_URL}/voucher/getWinners`
+        const winnersResponse = await makeApiCall(
+          `voucher/getWinners`
         );
         const validWinners = winnersResponse.data.filter(
           (winner) => new Date(winner.endTime).getTime() > currentTime

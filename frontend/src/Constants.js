@@ -5,23 +5,24 @@ export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'ws://localhost:500
 // Configure axios defaults
 import axios from 'axios';
 
-// Configure axios defaults
-axios.defaults.timeout = 10000;
-axios.defaults.withCredentials = true;
-axios.defaults.headers.common['Accept'] = 'application/json';
-axios.defaults.headers.common['Content-Type'] = 'application/json';
+// Create axios instance with custom config
+const axiosInstance = axios.create({
+  baseURL: SERVER_URL,
+  timeout: 10000,
+  withCredentials: true,
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  }
+});
 
-// Add request interceptor to handle auth and logging
-axios.interceptors.request.use(config => {
-  // Get token from localStorage or your auth state
+// Add request interceptor
+axiosInstance.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
   
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
-  // Add CORS headers
-  config.headers['Access-Control-Allow-Credentials'] = true;
   
   if (process.env.NODE_ENV !== 'production') {
     console.log(`Making ${config.method.toUpperCase()} request to: ${config.url}`);
@@ -33,11 +34,10 @@ axios.interceptors.request.use(config => {
   return Promise.reject(error);
 });
 
-// Add response interceptor for error handling
-axios.interceptors.response.use(
+// Add response interceptor
+axiosInstance.interceptors.response.use(
   response => response,
   error => {
-    // More detailed error logging
     const errorDetails = {
       url: error.config?.url,
       method: error.config?.method,
@@ -50,7 +50,6 @@ axios.interceptors.response.use(
 
     console.error('API Error:', errorDetails);
 
-    // Check if error is due to CORS
     if (!error.response && error.message === 'Network Error') {
       console.error('Possible CORS or server connectivity issue');
     }
@@ -58,6 +57,9 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Export the axios instance
+export const api = axiosInstance;
 
 export const getApiUrl = (endpoint) => {
   if (!endpoint) {
@@ -68,5 +70,20 @@ export const getApiUrl = (endpoint) => {
     .replace(/^\/+|\/+$/g, '')     // Remove leading/trailing slashes
     .replace(/^api\/+/, '');       // Remove api/ prefix if present
   
-  return `${SERVER_URL}/${cleanEndpoint}`;
+  return cleanEndpoint; // Return just the endpoint since baseURL is configured in axios instance
+};
+
+// Helper function to make API calls
+export const makeApiCall = async (endpoint, options = {}) => {
+  try {
+    const url = getApiUrl(endpoint);
+    const response = await api.request({
+      url,
+      ...options
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`API call failed for ${endpoint}:`, error);
+    throw error;
+  }
 }; 
