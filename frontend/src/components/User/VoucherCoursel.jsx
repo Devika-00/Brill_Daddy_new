@@ -68,7 +68,7 @@ const VouchersCarousel = ({ vouchers }) => {
               onClick={() => handleClaimVoucher()}
               style={{
                 transform: `translateX(-${currentVoucherIndex * 100}%)`,
-                width: `${vouchers.length * 14.5}%`,
+                width: `${vouchers.length * 20}%`,
               }}
             >
               {vouchers.map((voucher, index) => (

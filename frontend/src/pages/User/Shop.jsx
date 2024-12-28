@@ -50,10 +50,24 @@ const Shop = () => {
         const response = await makeApiCall('user/products');
         const productsArray = Array.isArray(response) ? response : [];
         
-        const productsWithImages = productsArray.map(product => ({
-          ...product,
-          imageUrl: product.images?.[0] || null
-        }));
+        const productsWithImages = await Promise.all(
+          productsArray.map(async (product) => {
+            let imageUrl = null;
+    
+            if (product.images?.[0]) {
+              try {
+                const imageResponse = await makeApiCall(`user/images/${product.images[0]}`);
+                product.imageUrl = imageResponse.imageUrl;
+                product.imageSubUrl = imageResponse.subImageUrl;
+                console.log(product.imageSubUrl,"amakernd");
+
+              } catch (imageError) {
+                console.error(`Error fetching image for product ${product._id}:`, imageError);
+              }
+            }
+            return product;
+          })
+        );
         setProducts(productsWithImages);
       } catch (error) {
         console.error("Error fetching products:", error);
