@@ -37,7 +37,9 @@ const WishlistPage = () => {
   useEffect(() => {
     const fetchWishlist = async () => {
       try {
-        const response = await makeApiCall('user/wishlist');
+       const response = await makeApiCall('user/wishlist',{
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const items = Array.isArray(response) ? response : [];
         setWishlistItems(items);
 
