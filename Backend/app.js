@@ -35,20 +35,22 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Credentials', 'true');
   }
   
+  // Handle preflight
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
+  
   next();
 });
 
-// Update helmet configuration
-app.use(helmet({
+// Update helmet configuration to be less restrictive in development
+const helmetConfig = {
   crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginEmbedderPolicy: false,
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'", ...allowedOrigins, "*"],
-      connectSrc: ["'self'", ...allowedOrigins, "*"],
+      defaultSrc: ["'self'", "*"],
+      connectSrc: ["'self'", "*"],
       imgSrc: ["'self'", "data:", "https:", "http:", "*"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "*"],
       styleSrc: ["'self'", "'unsafe-inline'", "*"],
@@ -57,7 +59,9 @@ app.use(helmet({
       frameSrc: ["'self'", "*"]
     }
   }
-}));
+};
+
+app.use(helmet(helmetConfig));
 
 // Body parser middleware
 app.use(express.json());

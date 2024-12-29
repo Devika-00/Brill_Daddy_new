@@ -13,27 +13,28 @@ export default defineConfig(({ command, mode }) => {
   const isDev = mode === 'development'
   const isPreview = command === 'serve' && mode === 'production'
   
-  const apiTarget = isDev 
-    ? 'https://mollusk-creative-cockatoo.ngrok-free.app'
-    : 'https://api.brilldaddy.com'
+  const proxyConfig = {
+    '/api': {
+      target: isDev 
+        ? 'https://mollusk-creative-cockatoo.ngrok-free.app'
+        : 'https://api.brilldaddy.com',
+      changeOrigin: true,
+      secure: !isDev,
+      rewrite: (path) => path.replace(/^\/api/, '/api')
+    }
+  }
 
   return {
     plugins: [react()],
     preview: {
       port: 4173,
       strictPort: true,
+      proxy: proxyConfig
     },
     server: {
       port: 5173,
       strictPort: true,
-      proxy: isDev ? {
-        '/api': {
-          target: 'https://mollusk-creative-cockatoo.ngrok-free.app',
-          changeOrigin: true,
-          secure: false,
-          rewrite: (path) => path.replace(/^\/api/, '/api')
-        }
-      } : undefined
+      proxy: proxyConfig
     },
     resolve: {
       alias: {
@@ -45,12 +46,7 @@ export default defineConfig(({ command, mode }) => {
     },
     build: {
       outDir: 'dist',
-      assetsDir: 'assets',
-      rollupOptions: {
-        output: {
-          manualChunks: undefined
-        }
-      }
+      assetsDir: 'assets'
     }
   }
 })
