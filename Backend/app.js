@@ -17,40 +17,23 @@ require("./jobs/winnerSelction");
 const app = express();
 const server = http.createServer(app);
 
-// Define allowed origins
-const allowedOrigins = [
-  'https://brilldaddy.com',
-  'https://www.brilldaddy.com',
-  'http://localhost:5173',
-  'http://localhost:4173',
-  'https://api.brilldaddy.com',
-  'https://mollusk-creative-cockatoo.ngrok-free.app'
-];
-
-// Configure routes with specific headers
-const setHeaders = (req, res, next) => {
+// Production-only CORS configuration
+app.use((req, res, next) => {
+  const allowedOrigins = ['https://brilldaddy.com', 'https://www.brilldaddy.com'];
   const origin = req.headers.origin;
   
-  // Allow requests from any origin in development
-  if (process.env.NODE_ENV === 'development') {
-    res.header('Access-Control-Allow-Origin', origin || '*');
-  } else if (allowedOrigins.includes(origin)) {
+  if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
   }
   
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
   next();
-};
-
-// Apply headers to all routes
-app.use(setHeaders);
+});
 
 // Update helmet configuration
 app.use(helmet({

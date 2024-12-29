@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename)
 export default defineConfig(({ command, mode }) => {
   // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '')
+  const isDev = mode === 'development'
   
   return {
     plugins: [react()],
@@ -20,14 +21,14 @@ export default defineConfig(({ command, mode }) => {
     server: {
       port: 5173,
       strictPort: true,
-      proxy: {
+      proxy: isDev ? {
         '/api': {
-          target: env.VITE_API_URL || 'http://localhost:5002',
+          target: 'https://mollusk-creative-cockatoo.ngrok-free.app',
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => path.replace(/^\/api/, '')
+          rewrite: (path) => path.replace(/^\/api/, '/api')
         }
-      }
+      } : import.meta.env.VITE_API_URL
     },
     resolve: {
       alias: {
