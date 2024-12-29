@@ -11,32 +11,32 @@ export default defineConfig(({ command, mode }) => {
   // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '')
   const isDev = mode === 'development'
+  const isPreview = command === 'serve' && mode === 'production'
   
+  const apiTarget = isDev 
+    ? 'https://mollusk-creative-cockatoo.ngrok-free.app'
+    : 'https://api.brilldaddy.com'
+
+  const proxyConfig = {
+    '/api': {
+      target: apiTarget,
+      changeOrigin: true,
+      secure: !isDev,
+      rewrite: (path) => path.replace(/^\/api/, '/api')
+    }
+  }
+
   return {
     plugins: [react()],
     preview: {
       port: 4173,
       strictPort: true,
-      proxy: {
-        '/api': {
-          target: 'https://api.brilldaddy.com',
-          changeOrigin: true,
-          secure: true,
-          rewrite: (path) => path.replace(/^\/api/, '/api')
-        }
-      }
+      proxy: proxyConfig
     },
     server: {
       port: 5173,
       strictPort: true,
-      proxy: {
-        '/api': {
-          target: isDev ? 'https://mollusk-creative-cockatoo.ngrok-free.app' : 'https://api.brilldaddy.com',
-          changeOrigin: true,
-          secure: true,
-          rewrite: (path) => path.replace(/^\/api/, '/api')
-        }
-      }
+      proxy: proxyConfig
     },
     resolve: {
       alias: {
@@ -45,6 +45,15 @@ export default defineConfig(({ command, mode }) => {
     },
     define: {
       'process.env': {}
+    },
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
     }
   }
 })
