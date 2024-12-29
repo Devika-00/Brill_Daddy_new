@@ -11,19 +11,20 @@ export default defineConfig({
   preview: {
     port: 4173,
     strictPort: true,
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    }
   },
   server: {
     port: 5173,
     strictPort: true,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL,
+        target: import.meta.env.VITE_API_URL,
         changeOrigin: true,
-        secure: false
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
+  },
+  define: {
+    'process.env': {}
   }
 })

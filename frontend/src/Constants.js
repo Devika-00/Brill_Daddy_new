@@ -1,19 +1,16 @@
-// Base URLs
+import axios from 'axios';
+
 export const SERVER_URL = import.meta.env.VITE_API_URL;
 export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
-// Configure axios defaults
-import axios from 'axios';
-import io from 'socket.io-client';
-
-// Create axios instance with custom config
 const axiosInstance = axios.create({
   baseURL: SERVER_URL,
   timeout: 30000,
-  withCredentials: false,
+  withCredentials: false, // Important for CORS
   headers: {
     'Accept': 'application/json',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true', // Add this for ngrok
   }
 });
 
@@ -24,18 +21,28 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Add CORS headers
+    config.headers['Access-Control-Allow-Origin'] = '*';
     return config;
   },
   error => Promise.reject(error)
 );
 
-// Modify response interceptor
+// Add response interceptor
 axiosInstance.interceptors.response.use(
   response => response.data,
   error => {
     if (error.response) {
-      console.error('API Error:', error.response);
+      console.error(`API Error: ${error.response.status}`, error.response.data);
       if (error.response.status === 404) {
+        return [];
+      }
+    } else if (error.request) {
+      console.error('Network Error:', error.message);
+      // Return empty array for specific endpoints
+      if (error.config.url.includes('products') || 
+          error.config.url.includes('vouchers') || 
+          error.config.url.includes('carousel')) {
         return [];
       }
     }
@@ -43,48 +50,24 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// Export the axios instance
-export const api = axiosInstance;
-
-// Create socket instance
-export const socket = io(SOCKET_URL, {
-  path: '/socket.io',
-  transports: ['websocket', 'polling'],
-  autoConnect: true,
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  withCredentials: true
-});
-
-// Helper function to handle network errors
-const handleNetworkError = (error, endpoint) => {
-  if (!error.response) {
-    console.error(`CORS or Network issue for ${endpoint}:`, error);
-    if (endpoint.includes('products') || endpoint.includes('vouchers') || endpoint.includes('carousel')) {
-      return [];
-    }
-  }
-  throw error;
-};
-
-// Helper function to make API calls
 export const makeApiCall = async (endpoint, options = {}) => {
   try {
     const url = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
-    const response = await api.request({
+    const response = await axiosInstance.request({
       url,
-      ...options,
-      headers: {
-        ...options.headers,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
+      ...options
     });
-    
     return response;
   } catch (error) {
     console.error(`API call failed for ${endpoint}:`, error);
-    return handleNetworkError(error, endpoint);
+    if (!error.response) {
+      console.error(`CORS or Network issue for ${endpoint}:`, error);
+      if (endpoint.includes('products') || 
+          endpoint.includes('vouchers') || 
+          endpoint.includes('carousel')) {
+        return [];
+      }
+    }
+    throw error;
   }
 }; 

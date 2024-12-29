@@ -23,7 +23,8 @@ const allowedOrigins = [
   'https://www.brilldaddy.com',
   'http://localhost:5173',
   'http://localhost:4173',
-  'https://api.brilldaddy.com'
+  'https://api.brilldaddy.com',
+  'https://mollusk-creative-cockatoo.ngrok-free.app'
 ];
 
 // Configure routes with specific headers
