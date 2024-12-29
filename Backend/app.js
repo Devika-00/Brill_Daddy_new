@@ -17,9 +17,15 @@ require("./jobs/winnerSelction");
 const app = express();
 const server = http.createServer(app);
 
-// Production-only CORS configuration
+// CORS configuration for all environments
 app.use((req, res, next) => {
-  const allowedOrigins = ['https://brilldaddy.com', 'https://www.brilldaddy.com'];
+  const allowedOrigins = [
+    'https://brilldaddy.com',
+    'https://www.brilldaddy.com',
+    'http://localhost:5173',
+    'http://localhost:4173'
+  ];
+  
   const origin = req.headers.origin;
   
   if (allowedOrigins.includes(origin)) {

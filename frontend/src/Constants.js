@@ -1,7 +1,10 @@
 import axios from 'axios';
 
 const isDev = import.meta.env.MODE === 'development';
-export const SERVER_URL = isDev ? '/api' : import.meta.env.VITE_API_URL;
+const isPreview = window.location.hostname === 'localhost' && window.location.port === '4173';
+
+// Use proxy in development, direct URL in preview/production
+export const SERVER_URL = isDev ? '/api' : 'https://api.brilldaddy.com/api';
 export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 const axiosInstance = axios.create({

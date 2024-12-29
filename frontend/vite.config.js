@@ -28,7 +28,7 @@ export default defineConfig(({ command, mode }) => {
       strictPort: true,
       proxy: isDev ? {
         '/api': {
-          target: apiTarget,
+          target: 'https://mollusk-creative-cockatoo.ngrok-free.app',
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api/, '/api')
