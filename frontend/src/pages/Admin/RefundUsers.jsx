@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { SERVER_URL } from "../../Constants/index";
+import { SERVER_URL } from "../../Constants";
 import Navbar from "../../components/Admin/Navbar";
 import Sidebar from "../../components/Admin/Sidebar";
 
