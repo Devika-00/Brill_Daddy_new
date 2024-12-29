@@ -12,30 +12,52 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const isDev = mode === 'development'
   const isPreview = command === 'serve' && mode === 'production'
-  
+
+  const proxyTarget = isDev 
+    ? 'https://mollusk-creative-cockatoo.ngrok-free.app'
+    : 'https://api.brilldaddy.com'
+
   const proxyConfig = {
     '/api': {
-      target: isDev 
-        ? 'https://mollusk-creative-cockatoo.ngrok-free.app'
-        : 'https://api.brilldaddy.com',
+      target: proxyTarget,
       changeOrigin: true,
       secure: !isDev,
-      rewrite: (path) => path.replace(/^\/api/, '/api')
+      ws: true,
+      configure: (proxy, options) => {
+        proxy.on('error', (err, req, res) => {
+          console.log('proxy error', err);
+        });
+        proxy.on('proxyReq', (proxyReq, req, res) => {
+          // Modify the origin header
+          proxyReq.setHeader('origin', proxyTarget);
+          // Prevent caching
+          proxyReq.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+          proxyReq.setHeader('Pragma', 'no-cache');
+          proxyReq.setHeader('Expires', '0');
+          console.log('Sending Request to the Target:', req.method, req.url);
+        });
+        proxy.on('proxyRes', (proxyRes, req, res) => {
+          // Remove caching headers from response
+          proxyRes.headers['cache-control'] = 'no-cache, no-store, must-revalidate';
+          proxyRes.headers['pragma'] = 'no-cache';
+          proxyRes.headers['expires'] = '0';
+          console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+        });
+      }
     }
   }
-
+  
+  const serverConfig = {
+    port: isDev ? 5173 : 4173,
+    strictPort: true,
+    proxy: proxyConfig,
+    cors: false
+  }
+  
   return {
     plugins: [react()],
-    preview: {
-      port: 4173,
-      strictPort: true,
-      proxy: proxyConfig
-    },
-    server: {
-      port: 5173,
-      strictPort: true,
-      proxy: proxyConfig
-    },
+    preview: serverConfig,
+    server: serverConfig,
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
