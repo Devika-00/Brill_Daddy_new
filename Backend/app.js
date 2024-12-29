@@ -19,25 +19,25 @@ const server = http.createServer(app);
 
 // Add headers before any routes
 app.use((req, res, next) => {
+  // Allow requests from any origin in development
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   
-  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
   next();
 });
 
-// Security headers
+// Move helmet configuration after CORS headers
 app.use(helmet({
   crossOriginResourcePolicy: false,
   crossOriginEmbedderPolicy: false,
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'", "https://brilldaddy.com", "https://api.brilldaddy.com"],
-      connectSrc: ["'self'", "https://brilldaddy.com", "https://api.brilldaddy.com", "wss://api.brilldaddy.com"],
+      defaultSrc: ["'self'", "https://brilldaddy.com", "https://api.brilldaddy.com", "https://*.ngrok-free.app"],
+      connectSrc: ["'self'", "https://brilldaddy.com", "https://api.brilldaddy.com", "wss://api.brilldaddy.com", "https://*.ngrok-free.app"],
       imgSrc: ["'self'", "data:", "https:", "http:"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://checkout.razorpay.com"],
       styleSrc: ["'self'", "'unsafe-inline'"],
