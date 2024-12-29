@@ -17,20 +17,21 @@ export default defineConfig(({ command, mode }) => {
     preview: {
       port: 4173,
       strictPort: true,
+      proxy: {
+        '/api': {
+          target: 'https://api.brilldaddy.com',
+          changeOrigin: true,
+          secure: true,
+          rewrite: (path) => path.replace(/^\/api/, '/api')
+        }
+      }
     },
     server: {
       port: 5173,
       strictPort: true,
-      proxy: isDev ? {
+      proxy: {
         '/api': {
-          target: 'https://mollusk-creative-cockatoo.ngrok-free.app',
-          changeOrigin: true,
-          secure: false,
-          rewrite: (path) => path.replace(/^\/api/, '/api')
-        }
-      } : {
-        '/api': {
-          target: env.VITE_API_URL || 'https://api.brilldaddy.com',
+          target: isDev ? 'https://mollusk-creative-cockatoo.ngrok-free.app' : 'https://api.brilldaddy.com',
           changeOrigin: true,
           secure: true,
           rewrite: (path) => path.replace(/^\/api/, '/api')

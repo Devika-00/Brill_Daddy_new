@@ -1,13 +1,12 @@
 import axios from 'axios';
 
-const isDev = import.meta.env.MODE === 'development';
-export const SERVER_URL = isDev ? '/api' : import.meta.env.VITE_API_URL;
+export const SERVER_URL = '/api';
 export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 const axiosInstance = axios.create({
   baseURL: SERVER_URL,
   timeout: 30000,
-  withCredentials: false,
+  withCredentials: true,
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json'

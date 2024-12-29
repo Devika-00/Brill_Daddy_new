@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 export const socket = io(SOCKET_URL, {
   reconnectionAttempts: 5,
@@ -9,8 +9,7 @@ export const socket = io(SOCKET_URL, {
   path: '/socket.io',
   timeout: 10000,
   autoConnect: true,
-  secure: process.env.NODE_ENV === 'production',
-  rejectUnauthorized: false,
+  secure: true,
   withCredentials: true
 });
 
