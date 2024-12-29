@@ -4,7 +4,7 @@ import NavbarWithMenu from "../../components/User/NavbarwithMenu";
 import Footer from "../../components/User/Footer";
 import { FaHeart, FaSearch } from "react-icons/fa";
 import axios from "axios";
-import { SERVER_URL } from "../../Constants/index";
+import { SERVER_URL } from "../../Constants";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../Redux/Store/store";
 import ChatBotButton from "../../components/User/chatBot";

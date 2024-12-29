@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { SERVER_URL } from "../../Constants/index";
+import { SERVER_URL } from '../../Constants';
 import { useNavigate } from 'react-router-dom';
 import { FiMail, FiLock } from 'react-icons/fi'; // Importing icons
 
