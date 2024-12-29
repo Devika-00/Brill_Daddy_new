@@ -5,11 +5,7 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {
-      scrollbar: {
-        width: "2px", 
-      },
-    },
+    extend: {},
   },
   plugins: [
     require('tailwind-scrollbar'),
