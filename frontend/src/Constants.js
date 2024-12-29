@@ -10,18 +10,22 @@ import io from 'socket.io-client';
 const axiosInstance = axios.create({
   baseURL: SERVER_URL,
   timeout: 30000,
+  withCredentials: false,
   headers: {
     'Accept': 'application/json',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true'
   },
   validateStatus: function (status) {
-    return status >= 200 && status < 500; // Handle all status codes except server errors
+    return status >= 200 && status < 500;
   }
 });
 
 // Add request interceptor
 axiosInstance.interceptors.request.use(
   config => {
+    config.headers['ngrok-skip-browser-warning'] = 'true';
+    
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -31,9 +35,15 @@ axiosInstance.interceptors.request.use(
   error => Promise.reject(error)
 );
 
-// Add response interceptor
+// Modify response interceptor to handle ngrok responses
 axiosInstance.interceptors.response.use(
-  response => response.data,
+  response => {
+    if (response.data === undefined) {
+      console.error('Invalid response format:', response);
+      return [];
+    }
+    return response.data;
+  },
   error => {
     if (error.response) {
       console.error('API Error:', {
@@ -44,6 +54,10 @@ axiosInstance.interceptors.response.use(
         data: error.response?.data,
         message: error.message
       });
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+    } else {
+      console.error('Error setting up request:', error.message);
     }
     return Promise.reject(error);
   }
