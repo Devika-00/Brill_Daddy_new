@@ -19,7 +19,7 @@ const NavbarWithMenu = () => {
     const fetchCategories = async () => {
       try {
         const response = await makeApiCall('user/category');
-        setCategories(response || []);
+        setCategories(Array.isArray(response) ? response : []);
       } catch (error) {
         console.error("Error fetching categories:", error);
         setCategories([]);
@@ -64,10 +64,11 @@ const NavbarWithMenu = () => {
   };
 
   const getDisplayedCategories = () => {
+    if (!Array.isArray(categories)) {
+      return [];
+    }
     return categories.filter(
-      (category) =>
-        (currentParentId === null && category.parentCategory === null) ||
-        category.parentCategory === currentParentId
+      (category) => category.parentCategory === currentParentId
     );
   };
 

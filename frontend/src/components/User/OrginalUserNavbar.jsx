@@ -39,9 +39,11 @@ const OrginalNavbar = () => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(`${SERVER_URL}/user/products`);
-        setProductNames(response.data.map((product) => product.name));
+        const products = Array.isArray(response.data) ? response.data : [];
+        setProductNames(products.map((product) => product.name));
       } catch (error) {
         console.error("Error fetching product names:", error);
+        setProductNames([]);
       }
     };
 
