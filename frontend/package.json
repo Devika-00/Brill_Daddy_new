@@ -1,6 +1,6 @@
 {
   "name": "brilldady-admin-side",
-  "type": "commonjs",
+  "type": "module",
   "private": true,
   "version": "0.0.0",
   "scripts": {
