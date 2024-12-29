@@ -17,26 +17,23 @@ export default defineConfig(({ command, mode }) => {
     ? 'https://mollusk-creative-cockatoo.ngrok-free.app'
     : 'https://api.brilldaddy.com'
 
-  const proxyConfig = {
-    '/api': {
-      target: apiTarget,
-      changeOrigin: true,
-      secure: !isDev,
-      rewrite: (path) => path.replace(/^\/api/, '/api')
-    }
-  }
-
   return {
     plugins: [react()],
     preview: {
       port: 4173,
       strictPort: true,
-      proxy: proxyConfig
     },
     server: {
       port: 5173,
       strictPort: true,
-      proxy: proxyConfig
+      proxy: isDev ? {
+        '/api': {
+          target: apiTarget,
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api/, '/api')
+        }
+      } : undefined
     },
     resolve: {
       alias: {
