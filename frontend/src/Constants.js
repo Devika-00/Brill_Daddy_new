@@ -13,6 +13,9 @@ const axiosInstance = axios.create({
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json'
+  },
+  validateStatus: function (status) {
+    return status >= 200 && status < 500; // Handle all status codes except server errors
   }
 });
 
