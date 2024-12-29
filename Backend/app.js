@@ -17,36 +17,46 @@ require("./jobs/winnerSelction");
 const app = express();
 const server = http.createServer(app);
 
-// Add headers before any routes
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', '*');
-  res.header('Access-Control-Allow-Headers', '*');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
+// Define allowed origins
+const allowedOrigins = [
+  'https://brilldaddy.com',
+  'https://www.brilldaddy.com',
+  'http://localhost:5173',
+  'http://localhost:4173' // for preview mode
+];
+
+// Remove the generic CORS middleware
+// Instead, configure routes with specific headers
+const setHeaders = (req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
   }
   next();
-});
+};
 
-// Move helmet configuration after CORS headers
+// Remove helmet configuration that conflicts with CORS
 app.use(helmet({
-  crossOriginResourcePolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginEmbedderPolicy: false,
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'", "*", "data:", "https:", "http:", "ws:", "wss:"],
-      connectSrc: ["'self'", "*", "data:", "https:", "http:", "ws:", "wss:"],
-      imgSrc: ["'self'", "*", "data:", "https:", "http:"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "*"],
-      styleSrc: ["'self'", "'unsafe-inline'", "*"],
-      fontSrc: ["'self'", "*", "data:", "https:", "http:"],
-      mediaSrc: ["'self'", "*", "data:", "https:", "http:"],
-      frameSrc: ["'self'", "*"]
+      defaultSrc: ["'self'", ...allowedOrigins],
+      connectSrc: ["'self'", ...allowedOrigins],
+      imgSrc: ["'self'", "data:", "https:", "http:"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      fontSrc: ["'self'", "data:", "https:", "http:"],
+      mediaSrc: ["'self'", "data:", "https:", "http:"],
     }
   }
 }));
+
+// Apply headers to API routes
+app.use('/api', setHeaders);
 
 // Body parser middleware
 app.use(express.json());

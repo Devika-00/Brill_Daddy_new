@@ -10,22 +10,16 @@ import io from 'socket.io-client';
 const axiosInstance = axios.create({
   baseURL: SERVER_URL,
   timeout: 30000,
-  withCredentials: false,
+  withCredentials: true,
   headers: {
     'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true'
-  },
-  validateStatus: function (status) {
-    return status >= 200 && status < 500;
+    'Content-Type': 'application/json'
   }
 });
 
 // Add request interceptor
 axiosInstance.interceptors.request.use(
   config => {
-    config.headers['ngrok-skip-browser-warning'] = 'true';
-    
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -35,29 +29,24 @@ axiosInstance.interceptors.request.use(
   error => Promise.reject(error)
 );
 
-// Modify response interceptor to handle ngrok responses
+// Modify response interceptor
 axiosInstance.interceptors.response.use(
-  response => {
-    if (response.data === undefined) {
-      console.error('Invalid response format:', response);
-      return [];
-    }
-    return response.data;
-  },
+  response => response.data,
   error => {
     if (error.response) {
-      console.error('API Error:', {
-        url: error.config?.url,
-        method: error.config?.method,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        message: error.message
-      });
-    } else if (error.request) {
-      console.error('No response received:', error.request);
-    } else {
-      console.error('Error setting up request:', error.message);
+      // Handle specific error codes
+      switch (error.response.status) {
+        case 401:
+          // Handle unauthorized
+          break;
+        case 403:
+          // Handle forbidden
+          break;
+        case 404:
+          return []; // Return empty array for not found
+        default:
+          console.error('API Error:', error.response);
+      }
     }
     return Promise.reject(error);
   }
