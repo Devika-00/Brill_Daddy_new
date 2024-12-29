@@ -10,7 +10,7 @@ import io from 'socket.io-client';
 const axiosInstance = axios.create({
   baseURL: SERVER_URL,
   timeout: 30000,
-  withCredentials: true,
+  withCredentials: false,
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json'
@@ -34,18 +34,9 @@ axiosInstance.interceptors.response.use(
   response => response.data,
   error => {
     if (error.response) {
-      // Handle specific error codes
-      switch (error.response.status) {
-        case 401:
-          // Handle unauthorized
-          break;
-        case 403:
-          // Handle forbidden
-          break;
-        case 404:
-          return []; // Return empty array for not found
-        default:
-          console.error('API Error:', error.response);
+      console.error('API Error:', error.response);
+      if (error.response.status === 404) {
+        return [];
       }
     }
     return Promise.reject(error);
