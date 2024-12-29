@@ -28,7 +28,14 @@ export default defineConfig(({ command, mode }) => {
           secure: false,
           rewrite: (path) => path.replace(/^\/api/, '/api')
         }
-      } : import.meta.env.VITE_API_URL
+      } : {
+        '/api': {
+          target: env.VITE_API_URL || 'https://api.brilldaddy.com',
+          changeOrigin: true,
+          secure: true,
+          rewrite: (path) => path.replace(/^\/api/, '/api')
+        }
+      }
     },
     resolve: {
       alias: {
