@@ -478,6 +478,37 @@ const addWishlist = async (req, res) => {
   }
 };
 
+
+const addWishlistFromCart = async (req, res) => {
+  const { userId } = req.params;
+  const { productId } = req.body;
+
+  try {
+    // Check if the product is already in the wishlist
+    const existingItem = await Wishlist.findOne({ userId, productId });
+
+    if (existingItem) {
+      // Update wishlistStatus to 'added' if it already exists
+      existingItem.wishlistStatus = 'added';
+      await existingItem.save();
+      return res.status(200).json({ message: "Product added to wishlist again." });
+    }
+
+    // Create a new wishlist item
+    const wishlistItem = new Wishlist({
+      userId,
+      productId,
+      wishlistStatus: 'added',
+    });
+
+    await wishlistItem.save();
+    res.status(201).json({ message: "Product added to wishlist successfully." });
+  } catch (error) {
+    console.error("Error adding item to wishlist:", error);
+    res.status(500).json({ error: "Failed to add product to wishlist." });
+  }
+};
+
 // backend/controllers/userController.js
 const getWishlist = async (req, res) => {
   try {
@@ -1056,5 +1087,5 @@ const fetchImagesCarousel = async (req, res) => {
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
   updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity, getWinningDetails, getParticularVoucher,
-  getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid, createOrder, verifyPayment, fetchRelatedProducts, fetchImagesCarousel
+  getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid, createOrder, verifyPayment, fetchRelatedProducts, fetchImagesCarousel, addWishlistFromCart
 }

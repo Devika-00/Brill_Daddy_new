@@ -6,7 +6,7 @@ const authenticateUser = require("../middleware/authMiddleware");
 const { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems,clearCart, addWishlist,getWishlist,removeWishlist,addAddress
     ,getAddress,deleteAddress, placeOrder, getOrders, getOrderDetail, getProductSuggestions, getUserDetails, removeFromWishlist, updateQuantityOfProduct, updateAddressUser, getUserAddress, getVouchersUserSide,
     getWallet, removeCartProduct, editAddress, updateQuantity, getWinningDetails, getParticularVoucher, getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid, createOrder, verifyPayment, 
-    fetchRelatedProducts, fetchImagesCarousel
+    fetchRelatedProducts, fetchImagesCarousel, addWishlistFromCart
  } = require("../Controller/userController");
 
 userRoute.get("/carousel", fetchImagesCarousel);
@@ -35,6 +35,7 @@ userRoute.delete("/clearCart/:userId",clearCart);
 userRoute.put("/cart/:userId/:productId",updateQuantity);
 
 userRoute.post("/wishlist", authenticateUser, addWishlist);
+userRoute.post("/wishlist/:userId", authenticateUser, addWishlistFromCart);
 userRoute.delete("/wishlist/:itemId", authenticateUser, removeWishlist);
 userRoute.get("/wishlist", authenticateUser, getWishlist);
 
