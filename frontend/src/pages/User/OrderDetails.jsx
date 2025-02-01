@@ -63,11 +63,7 @@ const OrderDetails = () => {
         }
         setImageUrls(imageUrlsMap);
         // Ensure cancel button state persists across refreshes
-        const isCancelled = response.data.status === "Cancelled";
         const isDelivered = response.data.status === "Delivered";
-        setIsOrderCancelled(isCancelled);
-        setIsCancelButtonDisabled(isCancelled);
-        setIsCancelButtonDisabled(isCancelled || isDelivered);
         console.log("Final image URLs map:", imageUrlsMap);
       } catch (error) {
         console.error("Error fetching order details:", error);
@@ -151,7 +147,6 @@ const OrderDetails = () => {
       // Close the modal and handle any success actions
       setShowCancelModal(false);
       alert('Order has been cancelled.');
-      setIsOrderCancelled(true);
       setIsCancelButtonDisabled(true);
     } catch (error) {
       console.error('Error cancelling order:', error);
@@ -214,14 +209,13 @@ const OrderDetails = () => {
   if (!order) return <p>Loading...</p>;
 
   const totalAmount = order.cartItems.reduce((total, item) => {
-    return total + (item.price * item.quantity);
+    return total + (item.pric * item.quantity);
   }, 0).toFixed(2);
 
   // Order status mapping
   const statusMapping = {
     "Pending": 25,
     "Shipped": 50,
-    "Out for Delivery": 75,
     "Delivered": 100,
     "Cancelled": 100,
   };
@@ -233,8 +227,6 @@ const OrderDetails = () => {
   ? "Cancelled"
   : productStatus === "Delivered"
   ? "Delivered"
-  : productStatus === "Returned"
-  ? "Returning"
   : "In Progress";
 
   // Updated icon logic based on order status
@@ -243,23 +235,6 @@ const OrderDetails = () => {
       return <FaTimesCircle />;
     }
     return <FaCheckCircle />;
-  };
-
-  // Icon color logic based on order status
-  const getIconColor = (status) => {
-    const productStatus = order?.cartItems[0]?.status;
-    if (productStatus === "Cancelled" || progressPercentage === 0) {
-      return 'text-red-600';
-    } else if (status === "Pending" && progressPercentage >= 25) {
-      return 'text-green-600';
-    } else if (status === "Shipped" && progressPercentage >= 50) {
-      return 'text-green-600';
-    } else if (status === "Out for Delivery" && progressPercentage >= 75) {
-      return 'text-green-600';
-    } else if (status === "Delivered" && progressPercentage === 100) {
-      return 'text-green-600';
-    }
-    return 'text-gray-600';
   };
 
   const stepClasses = (step) => {
@@ -361,27 +336,11 @@ const OrderDetails = () => {
 
           <div className="px-4 py-6 md:px-8 flex flex-col items-center">
             <div className="flex items-center space-x-20 mb-4">
-              <div className={`text-3xl ${getIconColor("Pending")}`}>
-                <FaClock />
-              </div>
-              <div className={`text-3xl ${getIconColor("Shipped")}`}>
-                <FaTruck />
-              </div>
-              <div className={`text-3xl ${getIconColor("Out for Delivery")}`}>
-                <FaTruckMoving />
-              </div>
-              <div className={`text-3xl ${getIconColor("Delivered")}`}>
-                {getStatusIcon()}
-              </div>
             </div>
 
             <div className="flex flex-col items-center mb-4 w-full">
               {/* Set width to w-full for full width on all screen sizes */}
               <div className="bg-gray-200 w-full h-4 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${progressBarColor} transition-all duration-300`}
-                  style={{ width: `${progressPercentage}%` }}
-                />
               </div>
               <p className="text-xl font-semibold mt-2">Status: {orderStatusText}</p>
             </div>

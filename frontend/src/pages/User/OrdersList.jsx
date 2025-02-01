@@ -52,10 +52,6 @@ const OrdersList = () => {
         return 'text-yellow-500';
       case 'Shipped':
         return 'text-orange-500';
-      case 'Delivered':
-        return 'text-green-600';
-      case 'Cancelled':
-        return 'text-red-500';
       default:
         return 'text-gray-500';
     }
@@ -107,13 +103,7 @@ const OrdersList = () => {
 
                   {/* Delivery Info */}
                   <div className="w-1/4 text-right mr-5">
-                    <p className={`${getStatusClassName(item.status)} font-semibold`}>
-                      {item.status === 'Delivered'
-                        ? `Delivered on ${new Date(order.deliveryDate).toLocaleDateString()}`
-                        : `${item.status}`}
-                    </p>
                     <p className="text-gray-500 italic">
-                      {item.status === 'Delivered' ? 'Your item is delivered' : `Your Order is  ${item.status}`}
                     </p>
                   </div>
                 </div>

@@ -178,7 +178,7 @@ const addItemToCart = async (req, res) => {
           {
             productId,
             quantity,
-            price: walletDiscountAmount ? price - walletDiscountAmount : price,
+            price: walletDiscountAmount - walletDiscountAmount,
             walletDiscountApplied: !!walletDiscountAmount,
             walletDiscountAmount: walletDiscountAmount || 0,
           },
@@ -186,12 +186,6 @@ const addItemToCart = async (req, res) => {
       });
     } else {
       // Check for an existing item with the same productId and walletDiscountApplied status
-      const existingItem = cart.items.find(
-        (item) =>
-          item.productId.toString() === productId &&
-          item.walletDiscountApplied === !!walletDiscountAmount
-      );
-
       if (existingItem) {
         // Update quantity if the item already exists
         existingItem.quantity += quantity;
@@ -264,7 +258,7 @@ const removeCartProduct = async (req, res) => {
 
   try {
     // Find the cart for the given user
-    const cart = await Cart.findOne({ userId });
+    const cart = await Cart.findOne({ userId: _id });
 
     if (!cart) {
       return res.status(404).json({ message: 'Cart not found for user' });
@@ -402,25 +396,15 @@ const removeWishlist = async (req, res) => {
 // userController.js
 const addWishlist = async (req, res) => {
   try {
-    console.log("User ID:", req.user.userId);  // Log the user ID to confirm it's available
-
     // Ensure the userId exists in the request user object
     if (!req.user || !req.user.userId) {
       return res.status(400).json({ message: "User ID not found in token" });
     }
 
     const existingWishlistItem = await Wishlist.findOne({
-      userId: req.user.userId,
+      userId: req.user._id,
       productId: req.body.productId,
     });
-
-    // Check if the item already exists in the wishlist
-    if (existingWishlistItem) {
-      // Update the wishlistStatus if the product already exists
-      existingWishlistItem.wishlistStatus = req.body.wishlistStatus; // Update status
-      await existingWishlistItem.save();  // Save the updated item
-      return res.status(200).json(existingWishlistItem);  // Return the updated item
-    }
 
     const newWishlistItem = new Wishlist({
       userId: req.user.userId,
@@ -440,19 +424,14 @@ const addWishlist = async (req, res) => {
 const getWishlist = async (req, res) => {
   try {
     // Ensure userId is available from the token
-    if (!req.user || !req.user.userId) {
+    if (!req.user) {
       return res.status(400).json({ message: "User ID not found in token" });
     }
 
     const userId = req.user.userId;
 
-    // Check if the userId is valid as an ObjectId
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
-
     // Ensure correct instantiation of ObjectId using new keyword
-    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const userObjectId = new mongoose.Types.Object(userId);
 
     // Find wishlist items associated with the userId
     const wishlistItems = await Wishlist.find({ userId: userObjectId })
@@ -477,21 +456,6 @@ const removeFromWishlist = async (req, res) => {
   try {
     console.log("reaching");
     const { userId, productId } = req.body;
-
-    // Check if userId and productId are valid
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).json({ message: "Invalid product ID" });
-    }
-
-    // Ensure user is authenticated
-    if (!req.user || req.user.userId !== userId) {
-      return res.status(403).json({ message: "Forbidden: User not authorized" });
-    }
-
     // Remove the product from the user's wishlist
     const result = await Wishlist.findOneAndDelete({ userId: userId, productId: productId });
 
@@ -534,7 +498,7 @@ const getUserAddress = async (req, res) => {
 };
 
 const deleteAddress = async (req, res) => {
-  const addressId = req.params.id; // Get the address ID from the URL
+  const addressId = req.params._id; // Get the address ID from the URL
   const { userId } = req.body; // Get userId from the request body
 
   if (!userId) {
@@ -544,7 +508,7 @@ const deleteAddress = async (req, res) => {
   try {
     // Find the address by ID and ensure it belongs to the user
     const address = await Address.findOneAndDelete({ 
-      _id: addressId,
+      id: addressId,
       userId: userId 
     });
 
@@ -575,7 +539,7 @@ const placeOrder = async (req, res) => {
     const formattedCartItems = cartItems.map(item => ({
       productId: item.productId,
       quantity: item.quantity,
-      price: item.productId.salePrice  
+      price: item.productId.salesPrice  
     }));
 
     // Calculate total using the validated prices
@@ -591,7 +555,7 @@ const placeOrder = async (req, res) => {
       userId,
       total,
       cartItems: formattedCartItems,
-      selectedAddressId:address,
+      selectedAddressId:addressId,
       paymentMethod,
       paid,
       orderStatus: 'Pending'  // Initial status as 'Pending'
@@ -627,7 +591,7 @@ const getOrderDetail = async (req, res) => {
 
   try {
     const order = await Order.findById(req.params.orderId)
-      .populate("cartItems.productId", "name description productPrice salePrice images") // Populate product details
+      .populate("cartItem.productId", "name description productPrice salePrice images") // Populate product details
       .populate("selectedAddressId"); // Populate address details
 
     if (!order) {
@@ -658,11 +622,11 @@ const getProductSuggestions = async (req, res) => {
 const getUserDetails = async (req, res) => {
   try {
     // Use userId from the token instead of req.params.id
-    const userId = req.user.userId; // Extract userId from authenticated user
+    const userId = req.user.id; // Extract userId from authenticated user
    
 
     // Fetch user details based on the userId
-    const user = await User.findById(userId); // Use userId here
+    const user = await User.findById(id); // Use userId here
 
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -682,7 +646,7 @@ const editAddress = async (req, res) => {
   try {
     // Find and update the address by ID
     const updatedAddress = await Address.findOneAndUpdate(
-      { _id: addressId, userId: req.body.userId },
+      { id: addressId, userId: req.body.id },
       {
         userName,
         addressLine,

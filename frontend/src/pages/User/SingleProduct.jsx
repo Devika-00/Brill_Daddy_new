@@ -20,7 +20,7 @@ import { FaHeart } from "react-icons/fa";
 
 const SingleProduct = () => {
   const { id } = useParams();
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState(false);
   const [mainImage, setMainImage] = useState("");
   const [selectedThumbnail, setSelectedThumbnail] = useState(0);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
@@ -42,8 +42,8 @@ const SingleProduct = () => {
       try {
         const response = await axios.get(`${SERVER_URL}/user/products/${id}`);
         setProduct(response.data);
-        if (response.data.images && response.data.images.length > 0) {
-          setMainImage(response.data.images[0].thumbnailUrl);
+        if (response.data.images) {
+          setMainImage(response.data.images.thumbnailUrl);
         }
       } catch (error) {
         console.error("Error fetching product:", error);
@@ -103,12 +103,12 @@ const SingleProduct = () => {
         Authorization: `Bearer ${token}`,
       };
       const requestBody = {
-        productId: id,
+        productId: _id,
         userId,
         wishlistStatus: wishlist[id] ? "removed" : "added",
       };
 
-      if (wishlist[id]) {
+      if (wishlist[_id]) {
         const response = await axios.delete(
           `${SERVER_URL}/user/wishlist/remove`,
           {
@@ -117,9 +117,7 @@ const SingleProduct = () => {
           }
         );
         if (response.status === 200) {
-          setWishlist((prev) => ({ ...prev, [id]: false }));
-          setWishlistMessage("Product successfully removed from wishlist");
-          setShowDialog(true); // Show dialog box
+          setWishlist((prev) => ({ ...prev, [_id]: false }));
           setTimeout(() => setShowDialog(false), 2000);
         }
       } else {
@@ -129,9 +127,7 @@ const SingleProduct = () => {
           { headers }
         );
         if (response.status === 201) {
-          setWishlist((prev) => ({ ...prev, [id]: true }));
-          setWishlistMessage("Product successfully added to wishlist");
-          setShowDialog(true); // Show dialog box
+          setWishlist((prev) => ({ ...prev, [_id]: true }));
           setTimeout(() => setShowDialog(false), 2000);
         }
       }
@@ -144,7 +140,6 @@ const SingleProduct = () => {
   useEffect(() => {
     if (product && walletBalance > 0) {
       const tenPercentDiscount = product.salePrice * 0.1;
-      const applicableDiscount = Math.min(tenPercentDiscount, walletBalance);
       const discountedPrice = product.salePrice - applicableDiscount;
       setWalletOfferPrice(discountedPrice);
     }
@@ -163,7 +158,6 @@ const SingleProduct = () => {
       const response = await axios.post(`${SERVER_URL}/user/cart/add`, {
         userId,
         productId: product._id,
-        quantity: 1,
         price: priceToAdd,
         walletDiscountApplied: useWalletDiscount,
         walletDiscountAmount,
@@ -185,15 +179,15 @@ const SingleProduct = () => {
 
 
   const isProductInCart = cartItems.some(
-    (item) => item.productId._id === product._id
+    (item) => item.productId.id === product._id
   );
   const isProductWithDiscountInCart = cartItems.some(
     (item) =>
-      item.productId._id === product._id && item.walletDiscountApplied === true
+      item.productId.id === product.id && item.walletDiscountApplied === true
   );
   const isProductWithoutDiscountInCart = cartItems.some(
     (item) =>
-      item.productId._id === product._id && item.walletDiscountApplied === false
+      item.productId.id === product.id && item.walletDiscountApplied === false
   );
 
   // Conditional rendering of the button based on the cart status
@@ -210,7 +204,7 @@ const SingleProduct = () => {
       );
     } else if (
       isProductInCart &&
-      (isProductWithDiscountInCart || isProductWithoutDiscountInCart)
+      (isProductWithDiscountInCart)
     ) {
       // If product is in the cart (with or without a discount), show "Go to Cart" button
       return (

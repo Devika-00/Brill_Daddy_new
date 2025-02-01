@@ -43,9 +43,8 @@ const Checkout = () => {
   useEffect(() => {
     const fetchAddresses = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/user/addresses/${userId}`); 
+        const response = await axios.get(`${SERVER_URL}/user/addresse/${userId}`); 
         console.log(response.data);
-        setAddresses(response.data); // Assuming the API returns an array of addresses
       } catch (error) {
         console.error('Error fetching addresses:', error);
         alert('Failed to load addresses');
@@ -63,7 +62,6 @@ const Checkout = () => {
     }
     try {
       const response = await axios.post(`${SERVER_URL}/user/addAddress`, { 
-        ...addressData, 
         userId 
       });
 
@@ -74,7 +72,6 @@ const Checkout = () => {
         // Fetch updated addresses after saving
         const updatedAddresses = await axios.get(`${SERVER_URL}/user/addresses/${userId}`);
         setAddresses(updatedAddresses.data);
-        setShowModal(false);
         // Reset address data
         setAddressData({
           userName: '',
@@ -148,12 +145,6 @@ const Checkout = () => {
     if (name === 'state') {
       if (!/^[a-zA-Z]*$/.test(value)) {
         error = 'State should only contain letters.';
-      }
-    }
-  
-    if (name === 'pincode') {
-      if (!/^\d{1,7}$/.test(value)) {
-        error = 'Pincode must be a maximum of 7 digits and should not contain letters.';
       }
     }
   

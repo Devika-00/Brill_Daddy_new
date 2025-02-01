@@ -1,4 +1,4 @@
-//frontend/src/pages/user/Shop.jsx
+//frontend/src/pages/user/Shop.js
 import React, { useState, useEffect } from 'react';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
 import NavbarWithMenu from '../../components/User/NavbarwithMenu';
@@ -70,14 +70,12 @@ const Shop = () => {
         // Check if wishlist is empty and only process if not empty
         if (response.data.length > 0) {
           const wishlistItems = response.data.reduce((acc, item) => {
-            acc[item.productId._id] = item.wishlistStatus === 'added';
             return acc;
           }, {});
           console.log("Wishlist fetched:", JSON.stringify(wishlistItems, null, 2));
           setWishlist(wishlistItems);
         } else {
           console.log("Wishlist is empty, no products found.");
-          setWishlist({});
         }
       } catch (error) {
         console.error("Error fetching wishlist:", error);
@@ -94,10 +92,7 @@ const Shop = () => {
     setCurrentPage(1);
   };
 
-  const toggleFavorite = async (productId, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  
+  const toggleFavorite = async (productId) => {
     try {
     console.log("Retrieved token:", token);
     console.log("Retrieved userId:", userId);
@@ -128,14 +123,14 @@ const Shop = () => {
         });
   
         if (response.status === 200) {
-          setWishlist(prev => ({ ...prev, [productId]: false }));
+          setWishlist(prev => ({ ...prev, [product]: false }));
           alert("Product removed from wishlist!");
         }
       } else {
         const response = await axios.post(`${SERVER_URL}/user/wishlist`, requestBody, { headers });
   
         if (response.status === 201) {
-          setWishlist(prev => ({ ...prev, [productId]: true }));
+          setWishlist(prev => ({ ...prev, [product]: true }));
           alert("Product added to wishlist!");
         }
       }

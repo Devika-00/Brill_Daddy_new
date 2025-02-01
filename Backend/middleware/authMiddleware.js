@@ -1,7 +1,7 @@
 
 const jwt = require('jsonwebtoken');
 
-const authenticateUser = async (req, res, next) => {
+const authenticateUser = async (req, res) => {
   // Get token from Authorization header
   const token = req.header("Authorization")?.replace("Bearer ", "");  // Extract Bearer token
   
@@ -20,13 +20,8 @@ const authenticateUser = async (req, res, next) => {
     // Log the decoded token to ensure it's correctly parsed
     console.log("Decoded token:", decoded);
 
-    if (!decoded || !decoded.userId) {
-      console.error("Decoded token does not contain a valid userId");  // Log error if userId is missing
-      return res.status(400).json({ message: "Invalid token, user ID not found" });
-    }
-
     // Attach the decoded user information to the request object
-    req.user = decoded;  
+    req.users = decoded;  
     console.log("User ID from token:", req.user.userId);  // Log user ID for debugging
     next();  // Continue to the next middleware or route
   } catch (error) {
