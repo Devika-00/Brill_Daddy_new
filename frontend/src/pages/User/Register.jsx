@@ -74,6 +74,18 @@ const Register = () => {
     validateInput(id, value);
   };
 
+  const fetchLocation = async () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser.'));
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) => resolve(position.coords),
+        (error) => reject(error)
+      );
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -101,8 +113,11 @@ const Register = () => {
     setSuccessMessage('');
     setErrorMessage('');
     try {
+      const location = await fetchLocation();
+      const userData = { ...formData, location };
+
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000));
-      const responsePromise = axios.post(`${SERVER_URL}/user/register`, formData);
+      const responsePromise = axios.post(`${SERVER_URL}/user/register`, userData);
       const response = await Promise.race([timeoutPromise, responsePromise]);
 
       setSuccessMessage('Registration successful! Redirecting to login...');

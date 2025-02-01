@@ -16,10 +16,11 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  isVerified: {
-    type: Boolean,
-    default: false,
+  location: {
+    latitude: { type: Number, },
+    longitude: { type: Number, },
   },
+  registerAddress: String,
   currentAddress: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Address',

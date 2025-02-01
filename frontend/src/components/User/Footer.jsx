@@ -17,55 +17,90 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-blue-900 text-white py-8 mt-20">
-      <div className="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
-        
-        {/* Left Side: Links */}
-        <div className="mb-6 md:mb-0">
-          <div className="flex flex-col space-y-3 text-left ml-24">
-            <Link to="/about" className="hover:underline">About BrillDaddy</Link>
-            <span 
-              onClick={() => handleNavigation('/event')}
-              className="hover:underline cursor-pointer"
-            >
-              Events
-            </span>
-            <span 
-              onClick={() => handleNavigation('/orderList')}
-              className="hover:underline cursor-pointer"
-            >
-              Orders
-            </span>
-            <Link to="/terms" className="hover:underline">Terms & Conditions</Link>
-            <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
-            <Link to="/faqs" className="hover:underline">FAQs</Link>
+    <footer className="bg-blue-900 text-white py-6 mt-10">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Left Side: Quick Links */}
+          <div className="space-y-3 text-center md:text-left md:ml-20">
+            <h4 className="text-base font-semibold mb-3">Quick Links</h4>
+            <div className="flex flex-col space-y-2">
+              <Link to="/about" className="text-sm hover:underline transition-colors duration-300">About BrillDaddy</Link>
+              <span 
+                onClick={() => handleNavigation('/event')}
+                className="text-sm hover:underline cursor-pointer transition-colors duration-300"
+              >
+                Events
+              </span>
+              <span 
+                onClick={() => handleNavigation('/orderList')}
+                className="text-sm hover:underline cursor-pointer transition-colors duration-300"
+              >
+                Orders
+              </span>
+              <Link to="/terms" className="text-sm hover:underline transition-colors duration-300">Terms & Conditions</Link>
+              <Link to="/privacyPolicy" className="text-sm hover:underline transition-colors duration-300">Privacy Policy</Link>
+              <Link to="/refundPolicy" className="text-sm hover:underline transition-colors duration-300">Refund Policy</Link>
+            </div>
           </div>
-        </div>
 
-        {/* Middle Section: Social Media and App Download */}
-        <div className="mb-6 md:mb-0">
+          {/* Middle Section: Social Media and App Download */}
           <div className="flex flex-col items-center">
-            <h4 className="mb-4">Follow us on</h4>
-            <div className="flex space-x-4 mb-4">
-              <FaFacebook size={24} className="hover:text-blue-800 cursor-pointer" />
-              <FaPinterest size={24} className="hover:text-red-600 cursor-pointer" />
-              <FaInstagram size={24} className="hover:text-pink-500 cursor-pointer" />
+            <div className="text-center">
+              <h4 className="text-base font-semibold mb-3">Connect With Us</h4>
+              <div className="flex justify-center space-x-4 mb-4">
+                <FaFacebook 
+                  size={20} 
+                  className="hover:text-blue-500 cursor-pointer transition-colors duration-300" 
+                  onClick={() => window.open('https://facebook.com', '_blank')}
+                />
+                <FaPinterest 
+                  size={20} 
+                  className="hover:text-red-500 cursor-pointer transition-colors duration-300" 
+                  onClick={() => window.open('https://pinterest.com', '_blank')}
+                />
+                <FaInstagram 
+                  size={20} 
+                  className="hover:text-pink-500 cursor-pointer transition-colors duration-300" 
+                  onClick={() => window.open('https://instagram.com', '_blank')}
+                />
+              </div>
+
+              <h4 className="text-base font-semibold mb-3">Download App</h4>
+              <div className="flex justify-center space-x-4">
+                <SiGoogleplay 
+                  size={24} 
+                  className="hover:text-green-500 cursor-pointer transition-colors duration-300"
+                  onClick={() => window.open('https://play.google.com', '_blank')}
+                />
+                <SiAppstore 
+                  size={24} 
+                  className="hover:text-gray-300 cursor-pointer transition-colors duration-300"
+                  onClick={() => window.open('https://apps.apple.com', '_blank')}
+                />
+              </div>
             </div>
-            <div className="border-t border-gray-300 w-full mb-4" />
-            <h4 className="mb-2">Download</h4>
-            <div className="flex space-x-4">
-              <SiGoogleplay size={32} className="hover:text-green-500 cursor-pointer" />
-              <SiAppstore size={32} className="hover:text-black cursor-pointer" />
+          </div>
+
+          {/* Right Side: Payment Methods */}
+          <div className="flex flex-col items-center md:items-center md:mr-2">
+            <h4 className="text-base font-semibold mb-3">Secure Payments</h4>
+            <div className="flex flex-wrap justify-center space-x-3">
+              <div className="w-10 h-6 bg-white rounded flex items-center justify-center">
+                <span className="text-xs text-gray-700">Visa</span>
+              </div>
+              <div className="w-10 h-6 bg-white rounded flex items-center justify-center">
+                <span className="text-xs text-gray-700">MC</span>
+              </div>
+              <div className="w-10 h-6 bg-white rounded flex items-center justify-center">
+                <span className="text-xs text-gray-700">PP</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Payment Logos */}
-        <div className='mr-20'>
-          <h4 className="mb-4">Payment</h4>
-          <div className="flex flex-wrap space-x-4">
-            {/* Add other payment logos here */}
-          </div>
+        {/* Bottom Section: Copyright */}
+        <div className="mt-2 pt-2 border-t border-blue-700 text-center">
+          <p className="text-xs">&copy; 2024 BrillDaddy. All Rights Reserved.</p>
         </div>
       </div>
     </footer>

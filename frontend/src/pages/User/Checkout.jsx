@@ -8,6 +8,7 @@ import axios from 'axios';
 import { useAppSelector } from '../../Redux/Store/store';
 import { SERVER_URL } from "../../Constants";
 
+
 const Checkout = () => {
   const location = useLocation();
   const { total, gst, cartItems } = location.state; // Access passed cart data
@@ -96,29 +97,110 @@ const Checkout = () => {
     }
   };
 
+  // const handlePlaceOrder = async () => {
+  //   if (!selectedAddress || !paymentMethod) {
+  //     alert("Please select both an address and a payment method before placing the order.");
+  //     return;
+  //   }
+  
+  //   try {
+  //     const orderData = {
+  //       userId,
+  //       total,
+  //       cartItems,
+  //       selectedAddressId: selectedAddress._id,
+  //       paymentMethod,
+  //       paid: paymentMethod === "COD" ? false : true,
+  //       orderStatus: "Pending"  
+  //     };
+  //     await axios.post(`${SERVER_URL}/user/checkout/placeorder`, orderData);
+  //     navigate('/orderSuccessful', { state: { orderedItems: cartItems, userId } });
+  //   } catch (error) {
+  //     console.error('Error placing order:', error);
+  //     alert('Failed to place order');
+  //   }
+  // };
+
   const handlePlaceOrder = async () => {
     if (!selectedAddress || !paymentMethod) {
-      alert("Please select both an address and a payment method before placing the order.");
-      return;
+        alert("Please select both an address and a payment method before placing the order.");
+        return;
     }
-  
-    try {
-      const orderData = {
-        userId,
-        total,
-        cartItems,
-        selectedAddressId: selectedAddress._id,
-        paymentMethod,
-        paid: paymentMethod === "COD" ? false : true,
-        orderStatus: "Pending"  
-      };
-      await axios.post(`${SERVER_URL}/user/checkout/placeorder`, orderData);
-      navigate('/orderSuccessful', { state: { orderedItems: cartItems, userId } });
-    } catch (error) {
-      console.error('Error placing order:', error);
-      alert('Failed to place order');
+
+    if (paymentMethod === "Razorpay") {
+        try {
+            // Call backend to create order
+            const { data } = await axios.post(`${SERVER_URL}/user/checkout/createOrder`, {
+                amount: total,
+                receipt: `receipt_${Date.now()}`
+            });
+
+            const options = {
+                key: "rzp_test_Je6Htj61yVkGEb", // Replace with Razorpay Key ID
+                amount: data.order.amount,
+                currency: data.order.currency,
+                name: "Brill daddy",
+                description: "Order Payment",
+                order_id: data.order.id,
+                handler: async (response) => {
+                    // Verify the payment signature
+                    const verifyResponse = await axios.post(`${SERVER_URL}/user/checkout/verifyPayment`, {
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                    });
+
+                    if (verifyResponse.data.success) {
+                        // Place the order
+                        const orderData = {
+                            userId,
+                            total,
+                            cartItems,
+                            selectedAddressId: selectedAddress._id,
+                            paymentMethod,
+                            paid: true,
+                            orderStatus: "Paid",
+                        };
+                        await axios.post(`${SERVER_URL}/user/checkout/placeorder`, orderData);
+                        navigate('/orderSuccessful', { state: { orderedItems: cartItems, userId } });
+                    } else {
+                        alert('Payment verification failed. Please try again.');
+                    }
+                },
+                prefill: {
+                    name: user.name,
+                    email: user.email,
+                    contact: user.phone,
+                },
+                notes: {
+                    address: selectedAddress.addressLine,
+                },
+                theme: {
+                    color: "#3399cc",
+                },
+            };
+
+            const paymentObject = new window.Razorpay(options);
+            paymentObject.open();
+        } catch (error) {
+            console.error('Error during payment:', error);
+            alert('Payment failed. Please try again.');
+        }
+    } else {
+        // Handle COD
+        const orderData = {
+            userId,
+            total,
+            cartItems,
+            selectedAddressId: selectedAddress._id,
+            paymentMethod,
+            paid: false,
+            orderStatus: "Pending",
+        };
+        await axios.post(`${SERVER_URL}/user/checkout/placeorder`, orderData);
+        navigate('/orderSuccessful', { state: { orderedItems: cartItems, userId } });
     }
-  };
+};
   
 
   const validateField = (name, value) => {
@@ -171,7 +253,7 @@ const Checkout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
 

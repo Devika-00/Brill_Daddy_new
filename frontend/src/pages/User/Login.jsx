@@ -9,6 +9,7 @@ import { SERVER_URL } from '../../Constants';
 import { setUser } from '../../Redux/Slice/userSlice';
 import { useAppDispatch } from '../../Redux/Store/store';
 import { FaPhoneAlt, FaEnvelope } from 'react-icons/fa';
+import { makeApiCall } from "../../Constants";
 
 const Login = () => {
   const [identifier, setIdentifier] = useState('');
@@ -22,7 +23,7 @@ const Login = () => {
   const [resendEnabled, setResendEnabled] = useState(false);
   const [loadingOtp, setLoadingOtp] = useState(false);
   const [loadingLogin, setLoadingLogin] = useState(false);
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState(120);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
@@ -32,21 +33,47 @@ const Login = () => {
       return;
     }
 
+    // Validate identifier before sending request
+    const validationError = validateIdentifier(identifier);
+    if (validationError) {
+      setErrorMessage(validationError);
+      return;
+    }
+
     setLoadingOtp(true);
+    setErrorMessage(''); // Clear any previous error messages
 
     try {
-      const response = await axios.post(`${SERVER_URL}/user/sendOtp`, { identifier });
-      if (response.data.message === 'OTP sent successfully') {
-        alert('OTP sent!');
+      const response = await makeApiCall('user/sendOtp', {
+        method: 'POST',
+        data: { identifier },
+      });
+
+      // Check if response exists and has the expected message
+      if (response && response.message === 'OTP sent successfully') {
         setIsOtpSent(true);
         setOtpSentTime(new Date());
         setErrorMessage('');
+        alert('OTP sent successfully!');
+      } else {
+        throw new Error('Unexpected response from server');
       }
     } catch (error) {
       console.error('Error sending OTP:', error);
-      alert('Failed to send OTP. Please check your input.');
+      
+      // More specific error messages based on the error type
+      if (error.response) {
+        // Server responded with an error
+        setErrorMessage(error.response.data?.message || 'Server error. Please try again.');
+      } else if (error.request) {
+        // Request was made but no response received
+        setErrorMessage('Network error. Please check your internet connection.');
+      } else {
+        // Something else went wrong
+        setErrorMessage('Failed to send OTP. Please try again.');
+      }
     } finally {
-      setLoadingOtp(false); // Hide loading indicator once OTP is sent or error occurs
+      setLoadingOtp(false);
     }
   };
 
@@ -98,22 +125,25 @@ const Login = () => {
 
   useEffect(() => {
     if (isOtpSent && otpSentTime) {
+      setResendEnabled(false); // Ensure resend is disabled when timer starts
+      
       const timerInterval = setInterval(() => {
         const elapsed = new Date() - otpSentTime;
-        const remainingTime = Math.max(30 - Math.floor(elapsed / 1000), 0);
+        const remainingTime = Math.max(120 - Math.floor(elapsed / 1000), 0);
         setTimer(remainingTime);
 
         if (remainingTime === 0) {
           setResendEnabled(true);
         }
       }, 1000);
+
       return () => clearInterval(timerInterval);
     }
   }, [isOtpSent, otpSentTime]);
 
   const handleResendOtp = () => {
     setResendEnabled(false);
-    setTimer(30); // Reset the timer immediately
+    setTimer(120); // Reset the timer immediately
     setOtpSentTime(new Date()); // Update the OTP sent time to restart the timer
     handleOtpRequest(); // Send the OTP
   };

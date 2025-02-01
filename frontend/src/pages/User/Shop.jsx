@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 //frontend/src/pages/user/Shop.js
 import React, { useState, useEffect } from 'react';
 import OrginalNavbar from '../../components/User/OrginalUserNavbar';
@@ -8,15 +9,40 @@ import axios from 'axios';
 import { SERVER_URL } from "../../Constants/index";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../Redux/Store/store';
+=======
+import React, { useState, useEffect } from "react";
+import OrginalNavbar from "../../components/User/OrginalUserNavbar";
+import NavbarWithMenu from "../../components/User/NavbarwithMenu";
+import Footer from "../../components/User/Footer";
+import { FaHeart, FaSearch } from "react-icons/fa";
+import axios from "axios";
+import { SERVER_URL } from "../../Constants";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAppSelector } from "../../Redux/Store/store";
+import ChatBotButton from "../../components/User/chatBot";
+import { makeApiCall } from "../../Constants";
+
+const formatCurrency = (value) => {
+  if (value === undefined || value === null) return "";
+
+  const [integerPart, decimalPart] = value.toString().split(".");
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+};
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
 
 const Shop = () => {
-  const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('default');
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("default");
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [currentParentId, setCurrentParentId] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [wishlist, setWishlist] = useState({});
+  const [productImageIndices, setProductImageIndices] = useState({});
+  const [hoveredProduct, setHoveredProduct] = useState(null);
+
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
   const token = user.token;
@@ -27,41 +53,55 @@ const Shop = () => {
 
   useEffect(() => {
     const query = new URLSearchParams(location.search);
-    const searchQuery = query.get('search') || '';
+    const searchQuery = query.get("search") || "";
     setSearch(searchQuery);
   }, [location.search]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/user/products`);
-        const productsWithImages = await Promise.all(response.data.map(async (product) => {
-          if (product.images && product.images.length > 0) {
-            const imageResponse = await axios.get(`${SERVER_URL}/user/images/${product.images[0]}`);
-            product.imageUrl = imageResponse.data.imageUrl;
-          }
-          return product;
-        }));
+        const response = await makeApiCall('user/products');
+        const productsArray = Array.isArray(response) ? response : [];
+        
+        const productsWithImages = await Promise.all(
+          productsArray.map(async (product) => {
+            let imageUrl = null;
+    
+            if (product.images?.[0]) {
+              try {
+                const imageResponse = await makeApiCall(`user/images/${product.images[0]}`);
+                product.imageUrl = imageResponse.imageUrl;
+                product.imageSubUrl = imageResponse.subImageUrl;
+                console.log(product.imageSubUrl,"amakernd");
+
+              } catch (imageError) {
+                console.error(`Error fetching image for product ${product._id}:`, imageError);
+              }
+            }
+            return product;
+          })
+        );
         setProducts(productsWithImages);
       } catch (error) {
         console.error("Error fetching products:", error);
+        setProducts([]);
       }
     };
 
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/user/category`);
-        setCategories(response.data);
+        const response = await makeApiCall('user/category');
+        setCategories(response || []);
       } catch (error) {
         console.error("Error fetching categories:", error);
+        setCategories([]);
       }
     };
 
     const fetchWishlist = async () => {
       try {
-        console.log("Retrieved token:", token);  // Log token
-        console.log("Retrieved userId:", userId);  // Log userId
         if (!userId || !token) return;
+<<<<<<< HEAD
 
         const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -70,15 +110,28 @@ const Shop = () => {
         // Check if wishlist is empty and only process if not empty
         if (response.data.length > 0) {
           const wishlistItems = response.data.reduce((acc, item) => {
+=======
+        const response = await makeApiCall('user/wishlist',{
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        
+        if (response.length > 0) {
+          const wishlistItems = response.reduce((acc, item) => {
+            acc[item.productId._id] = item.wishlistStatus === "added";
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
             return acc;
           }, {});
-          console.log("Wishlist fetched:", JSON.stringify(wishlistItems, null, 2));
           setWishlist(wishlistItems);
         } else {
+<<<<<<< HEAD
           console.log("Wishlist is empty, no products found.");
+=======
+          setWishlist({});
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
         }
       } catch (error) {
         console.error("Error fetching wishlist:", error);
+        setWishlist({});
       }
     };
 
@@ -87,50 +140,84 @@ const Shop = () => {
     fetchWishlist();
   }, [userId, token]);
 
-  const handleCategoryClick = (category) => {
-    setSelectedCategory(category);
-    setCurrentPage(1);
-  };
+  useEffect(() => {
+    const initialImageIndices = products.reduce((acc, product) => {
+      acc[product._id] = 0;
+      return acc;
+    }, {});
+    setProductImageIndices(initialImageIndices);
+  }, [products]);
 
-  const toggleFavorite = async (productId) => {
-    try {
-    console.log("Retrieved token:", token);
-    console.log("Retrieved userId:", userId);
-    console.log("Product ID:", productId);
-    if (!userId || !token) {
-      navigate("/login");
-      return;
+  useEffect(() => {
+    let intervalId;
+
+    if (hoveredProduct) {
+      intervalId = setInterval(() => {
+        setProductImageIndices((prevIndices) => {
+          const newIndices = { ...prevIndices };
+          newIndices[hoveredProduct] =
+            (newIndices[hoveredProduct] + 1) %
+            products.find((p) => p._id === hoveredProduct).imageSubUrl.length;
+          return newIndices;
+        });
+      }, 1000);
     }
-  
-      const headers = {
-        Authorization: `Bearer ${token}`,
-      };
-  
-      console.log("Toggling favorite for productId:", productId);
-  
+
+    return () => clearInterval(intervalId);
+  }, [hoveredProduct, products]);
+
+  const handleMouseEnter = (productId) => setHoveredProduct(productId);
+  const handleMouseLeave = () => setHoveredProduct(null);
+
+<<<<<<< HEAD
+  const toggleFavorite = async (productId) => {
+=======
+  const toggleFavorite = async (productId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
+    try {
+      if (!userId || !token) {
+        navigate("/login");
+        return;
+      }
+
+      const headers = { Authorization: `Bearer ${token}` };
       const requestBody = {
         productId,
         userId,
-        wishlistStatus: wishlist[productId] ? 'removed' : 'added',
+        wishlistStatus: wishlist[productId] ? "removed" : "added",
       };
-  
-      console.log("Current wishlist state before update:", wishlist);
-  
+
       if (wishlist[productId]) {
-        const response = await axios.delete(`${SERVER_URL}/user/wishlist/remove`, {
-          headers,
-          data: requestBody
-        });
-  
+        const response = await axios.delete(
+          `${SERVER_URL}/user/wishlist/remove`,
+          {
+            headers,
+            data: requestBody,
+          }
+        );
         if (response.status === 200) {
+<<<<<<< HEAD
           setWishlist(prev => ({ ...prev, [product]: false }));
+=======
+          setWishlist((prev) => ({ ...prev, [productId]: false }));
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
           alert("Product removed from wishlist!");
         }
       } else {
-        const response = await axios.post(`${SERVER_URL}/user/wishlist`, requestBody, { headers });
-  
+        const response = await axios.post(
+          `${SERVER_URL}/user/wishlist`,
+          requestBody,
+          { headers }
+        );
         if (response.status === 201) {
+<<<<<<< HEAD
           setWishlist(prev => ({ ...prev, [product]: true }));
+=======
+          setWishlist((prev) => ({ ...prev, [productId]: true }));
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
           alert("Product added to wishlist!");
         }
       }
@@ -139,22 +226,22 @@ const Shop = () => {
       alert("There was an issue adding/removing the item from your wishlist.");
     }
   };
-  
 
-  const filteredProducts = products.filter(product =>
-    (selectedCategory ? product.category === selectedCategory : true) &&
-    product.name.toLowerCase().includes(search.toLowerCase())
+  const filteredProducts = products.filter(
+    (product) =>
+      (selectedCategory ? product.category === selectedCategory : true) &&
+      product.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
-      case 'az':
+      case "az":
         return a.name.localeCompare(b.name);
-      case 'za':
+      case "za":
         return b.name.localeCompare(a.name);
-      case 'priceasc':
+      case "priceasc":
         return a.salePrice - b.salePrice;
-      case 'pricedesc':
+      case "pricedesc":
         return b.salePrice - a.salePrice;
       default:
         return 0;
@@ -168,15 +255,67 @@ const Shop = () => {
 
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
 
+  const handleCategoryClick = (categoryId) => {
+    const category = categories.find((cat) => cat._id === categoryId);
+    if (category) {
+      setSelectedCategory(category.name);
+      setCurrentParentId(categoryId); // Update to the clicked category
+    }
+  };
+
+  const handleBackClick = () => {
+    if (currentParentId) {
+      const parentCategory = categories.find(
+        (category) => category._id === currentParentId
+      )?.parentCategory;
+  
+      setCurrentParentId(parentCategory || null);
+    }
+  };
+
+  const getDisplayedCategories = () => {
+    return categories.filter(
+      (category) =>
+        category.parentCategory === currentParentId // Match parent category
+    );
+  };
+
+  const renderCategoryList = (categoriesToRender) => (
+    <ul>
+      <li
+        key="show-all"
+        className="p-2 hover:bg-gray-100 cursor-pointer font-semibold"
+        onClick={() => {
+          setSelectedCategory("");
+          setCurrentParentId(null);
+        }}
+      >
+        Show All
+      </li>
+      {categoriesToRender.map((category) => (
+        <li
+          key={category._id}
+          className="p-2 hover:bg-gray-100 cursor-pointer"
+          onClick={() => handleCategoryClick(category._id)}
+        >
+          {category.name}
+        </li>
+      ))}
+    </ul>
+  );
+  const displayedCategories = getDisplayedCategories();
+
+  
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
-      <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="container mx-auto px-4 py-6 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <aside className="hidden lg:block p-4 bg-white shadow-md rounded-lg">
             <div className="mb-6">
-              <h3 className="text-xl font-semibold mb-3">Search Products</h3>
+              <h3 className="text-lg font-semibold mb-3">Search Products</h3>
               <div className="flex items-center border border-gray-300 rounded-lg px-3">
                 <FaSearch className="text-gray-500 mr-2" />
                 <input
@@ -188,92 +327,99 @@ const Shop = () => {
                 />
               </div>
             </div>
-
             <div className="mb-6">
-              <h3 className="text-xl font-semibold mb-3">Categories</h3>
-              <ul>
+              <h2 className="text-xl font-bold mb-4">
+                {currentParentId
+                  ? categories.find((cat) => cat._id === currentParentId)?.name
+                  : "Categories"}
+              </h2>
+              {currentParentId && (
                 <button
-                  onClick={() => handleCategoryClick('')}
-                  className={`text-gray-700 mb-2 ${!selectedCategory && 'font-bold'}`}
+                  onClick={handleBackClick}
+                  className="text-blue-500 text-sm mb-4"
                 >
-                  Show All
+                  &larr; Back
                 </button>
-                {categories.map((category) => (
-                  <li key={category._id} className="mb-2">
-                    <button
-                      onClick={() => handleCategoryClick(category.name)}
-                      className={`text-gray-700 hover:text-blue-600 transition ${selectedCategory === category.name ? 'font-bold' : ''}`}
-                    >
-                      {category.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              )}
+              {renderCategoryList(getDisplayedCategories())}
             </div>
           </aside>
-
           <section className="lg:col-span-3">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <label className="mr-2 font-medium">Sort By:</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none"
-                >
-                  <option value="default">Relevant</option>
-                  <option value="az">A to Z</option>
-                  <option value="za">Z to A</option>
-                  <option value="priceasc">Price: Low to High</option>
-                  <option value="pricedesc">Price: High to Low</option>
-                </select>
-              </div>
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+              <label className="font-medium mb-3 md:mb-0">Sort By:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none"
+              >
+                <option value="default">Relevant</option>
+                <option value="az">A to Z</option>
+                <option value="za">Z to A</option>
+                <option value="priceasc">Price: Low to High</option>
+                <option value="pricedesc">Price: High to Low</option>
+              </select>
             </div>
-
             {displayedProducts.length === 0 ? (
               <div className="text-center text-lg font-semibold text-gray-500 mt-10">
                 No Products Available
               </div>
             ) : (
               <>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {displayedProducts.map((product) => (
-                  <div key={product._id} className="relative bg-white p-6 rounded-lg shadow-lg">
-                    
-                    <button
-                      className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${
-                        wishlist[product._id] ? "text-red-500" : "text-gray-500"
-                      }`}
-                      onClick={(e) => toggleFavorite(product._id, e)} // Pass event object to toggleFavorite
-                    >
-                      <FaHeart className={wishlist[product._id] ? "fill-current" : ""} />
-                    </button>
-
+                <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {displayedProducts.map((product) => (
                     <div
-                      onClick={() => navigate(`/singleProduct/${product._id}`)} // Navigate to single product page
-                      className="cursor-pointer"
+                      key={product._id}
+                      className="relative bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition"
+                      onMouseEnter={() => handleMouseEnter(product._id)}
+                      onMouseLeave={handleMouseLeave}
                     >
-  <img
-    src={product.imageUrl}
-    alt={product.title}
-    className="h-56 object-cover rounded-lg mb-4"
-  />
-</div>
-
-                    <div>
-                      <h4 className="text-lg font-semibold mb-2 truncate">{product.name}</h4>
-                      <p className="text-gray-500 mb-4">Category: {product.category}</p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-lg font-bold text-blue-600">₹ {product.salePrice}</span>
+                      <button
+                        className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${
+                          wishlist[product._id]
+                            ? "text-red-500"
+                            : "text-gray-500"
+                        }`}
+                        onClick={(e) => toggleFavorite(product._id, e)}
+                      >
+                        <FaHeart
+                          className={wishlist[product._id] ? "fill-current" : ""}
+                        />
+                      </button>
+                      <div
+                        onClick={() =>
+                          navigate(`/singleProduct/${product._id}`)
+                        }
+                        className="cursor-pointer"
+                      >
+                        <img
+                          src={
+                            product.imageSubUrl?.[
+                              productImageIndices[product._id] || 0
+                            ] || product.imageUrl
+                          }
+                          alt={product.name}
+                          className="w-48 h-56 object-cover rounded-md"
+                        />
+                      </div>
+                      <h4 className="text-lg font-semibold mt-3 truncate">
+                        {product.name}
+                      </h4>
+                      <p className="text-gray-500">
+                        Category: {product.category}
+                      </p>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-lg font-bold text-blue-600">
+                          ₹{formatCurrency(product.productPrice)}
+                        </span>
                         {product.salePrice !== product.productPrice && (
-                          <span className="line-through text-gray-400">₹ {product.productPrice}</span>
+                          <span className="line-through text-gray-400">
+                            ₹{formatCurrency(product.salePrice)}
+                          </span>
                         )}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
                 </div>
-
                 {displayedProducts.length > 0 && totalPages > 1 && (
                   <div className="mt-8 flex justify-center">
                     <ul className="inline-flex items-center">
@@ -290,7 +436,11 @@ const Shop = () => {
                         <li key={page + 1}>
                           <button
                             onClick={() => setCurrentPage(page + 1)}
-                            className={`px-4 py-2 bg-white border border-gray-300 ${currentPage === page + 1 ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'}`}
+                            className={`px-4 py-2 border ${
+                              currentPage === page + 1
+                                ? "bg-blue-500 text-white"
+                                : "hover:bg-gray-200"
+                            }`}
                           >
                             {page + 1}
                           </button>
@@ -314,6 +464,9 @@ const Shop = () => {
         </div>
       </div>
       <Footer />
+      <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
     </div>
   );
 };

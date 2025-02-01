@@ -18,20 +18,22 @@ const Product = () => {
     description: "",
     category: "",
     brand: "",
-    price: "",
-    salesPrice: "",
+    productPrice: "",
+    salePrice: "",
     discount: "",
     color: "",
     mainImage: "",
     smallImages: [],
     quantity: "",
+    existingMainImage: null,
+    existingSmallImages: [],
   });
 
   const [errors, setErrors] = useState({
     name: "",
     description: "",
-    price: "",
-    salesPrice: "",
+    productPrice: "",
+    salePrice: "",
     discount: "",
     category: "",
     color: "",
@@ -71,7 +73,11 @@ const Product = () => {
             return populatedProduct.data;
           })
         );
-        setProducts(populatedProducts); // Set fetched products with populated images
+        const sortedProducts = populatedProducts.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setProducts(sortedProducts);
+        // Set fetched products with populated images
       } catch (error) {
         console.error("Error fetching products:", error);
         setProducts([]); // Set to empty array on error
@@ -84,37 +90,41 @@ const Product = () => {
   const validateForm = () => {
     let formErrors = {};
 
-  // Name validation: Minimum 2 characters, Max 30 characters, and no more than 10 digits allowed
-  if (newProduct.name.length < 2) {
-    formErrors.name = "Product name must be at least 2 characters.";
-  } else if (newProduct.name.length > 30) {
-    formErrors.name = "Product name can have a maximum of 30 characters.";
-  }
+    // Name validation: Minimum 2 characters, Max 30 characters, and no more than 10 digits allowed
+    if (newProduct.name.length < 2) {
+      formErrors.name = "Product name must be at least 2 characters.";
+    } else if (newProduct.name.length > 30) {
+      formErrors.name = "Product name can have a maximum of 30 characters.";
+    }
 
     // Description validation: Max 150 characters
     if (newProduct.description.length > 150) {
-      formErrors.description = "Description can have a maximum of 150 characters.";
+      formErrors.description =
+        "Description can have a maximum of 150 characters.";
     }
 
-      // Price, Sales Price, and Discount validation: Must be numbers (no strings or alphabets)
-  if (isNaN(newProduct.price) || newProduct.price < 0) {
-    formErrors.price = "Price must be a valid number.";
-  }
-  if (isNaN(newProduct.salesPrice) || newProduct.salesPrice < 0) {
-    formErrors.salesPrice = "Sales price must be a valid number.";
-  }
-  if (isNaN(newProduct.discount) || newProduct.discount < 0) {
-    formErrors.discount = "Discount must be a valid number.";
-  }
-  if (isNaN(newProduct.quantity) || newProduct.quantity < 0) {
-    formErrors.quantity = "Discount must be a valid number.";
-  }
+    // Price, Sales Price, and Discount validation: Must be numbers (no strings or alphabets)
+    if (isNaN(newProduct.productPrice) || newProduct.productPrice < 0) {
+      formErrors.productPrice = "Price must be a valid number.";
+    }
+    if (isNaN(newProduct.salePrice) || newProduct.salePrice < 0) {
+      formErrors.salePrice = "Sales price must be a valid number.";
+    }
+    if (isNaN(newProduct.discount) || newProduct.discount < 0) {
+      formErrors.discount = "Discount must be a valid number.";
+    }
+    if (isNaN(newProduct.quantity) || newProduct.quantity < 0) {
+      formErrors.quantity = "Discount must be a valid number.";
+    }
 
     // Required fields validation
     if (!newProduct.name) formErrors.name = "Product name is required.";
-    if (!newProduct.description) formErrors.description = "Description is required.";
-    if (!newProduct.price) formErrors.price = "Price is required.";
-    if (!newProduct.salesPrice) formErrors.salesPrice = "Sales price is required.";
+    if (!newProduct.description)
+      formErrors.description = "Description is required.";
+    if (!newProduct.productPrice)
+      formErrors.productPrice = "Price is required.";
+    if (!newProduct.salePrice)
+      formErrors.salePrice = "Sales price is required.";
     if (!newProduct.discount) formErrors.discount = "Discount is required.";
     if (!newProduct.category) formErrors.category = "Category is required.";
     if (!newProduct.brand) formErrors.brand = "Brand is required.";
@@ -134,7 +144,9 @@ const Product = () => {
   const handleAddProductSubmit = async () => {
     if (!validateForm()) return;
     // Ensure sales price is valid
-    if (parseFloat(newProduct.salesPrice) >= parseFloat(newProduct.price)) {
+    if (
+      parseFloat(newProduct.salePrice) >= parseFloat(newProduct.productPrice)
+    ) {
       alert("Sales price should be less than price");
       return;
     }
@@ -152,8 +164,8 @@ const Product = () => {
     const productWithImages = {
       name: newProduct.name,
       description: newProduct.description,
-      price: newProduct.price,
-      salesPrice: newProduct.salesPrice,
+      productPrice: newProduct.productPrice,
+      salePrice: newProduct.salePrice,
       category: newProduct.category,
       brand: newProduct.brand,
       quantity: newProduct.quantity,
@@ -181,8 +193,8 @@ const Product = () => {
           description: "",
           category: "",
           brand: "",
-          price: "",
-          salesPrice: "",
+          productPrice: "",
+          salePrice: "",
           discount: "",
           color: "",
           mainImage: "",
@@ -202,13 +214,43 @@ const Product = () => {
 
   const handleEditProduct = (product) => {
     setSelectedProduct(product);
-    setNewProduct({ ...product, mainImage: "", smallImages: [] }); // Reset images for upload
+    setNewProduct({
+      ...product,
+      mainImage: "",
+      smallImages: [],
+      existingMainImage: product.images[0]?.thumbnailUrl || null,
+      existingSmallImages: product.images[0]?.imageUrl || [],
+    }); // Reset images for upload
     setIsEditModalOpen(true);
+  };
+
+  const handleRemoveMainImage = () => {
+    setNewProduct((prev) => ({
+      ...prev,
+      mainImage: "",
+      existingMainImage: null,
+    }));
+  };
+
+  // New method to remove small image
+  const handleRemoveSmallImage = (index) => {
+    setNewProduct((prev) => {
+      // Create a copy of existing small images
+      const updatedExistingSmallImages = [...prev.existingSmallImages];
+      updatedExistingSmallImages.splice(index, 1);
+
+      return {
+        ...prev,
+        existingSmallImages: updatedExistingSmallImages,
+      };
+    });
   };
 
   const handleEditProductSubmit = async () => {
     // Ensure sales price is valid
-    if (parseFloat(newProduct.salesPrice) >= parseFloat(newProduct.price)) {
+    if (
+      parseFloat(newProduct.salePrice) >= parseFloat(newProduct.productPrice)
+    ) {
       alert("Sales price should be less than price");
       return;
     }
@@ -217,24 +259,36 @@ const Product = () => {
       ...selectedProduct,
       name: newProduct.name,
       description: newProduct.description,
-      price: newProduct.price,
-      salesPrice: newProduct.salesPrice,
+      productPrice: newProduct.productPrice,
+      salePrice: newProduct.salePrice,
       category: newProduct.category,
       brand: newProduct.brand,
       quantity: newProduct.quantity,
       color: newProduct.color,
       discount: newProduct.discount,
+      images: {
+        thumbnailUrl: newProduct.existingMainImage,
+        imageUrl: newProduct.existingSmallImages,
+      },
     };
 
     // Handle image uploads if new images are provided
     if (newProduct.mainImage) {
-      updatedProduct.images.thumbnailUrl = await uploadImagesToCloudinary(newProduct.mainImage);
+      const mainImageUrl = await uploadImagesToCloudinary(newProduct.mainImage);
+      updatedProduct.images.thumbnailUrl = mainImageUrl;
     }
 
+    // Handle small images upload
     if (newProduct.smallImages.length > 0) {
-      updatedProduct.images.imageUrl = await Promise.all(
+      const smallImagesUrls = await Promise.all(
         newProduct.smallImages.map((image) => uploadImagesToCloudinary(image))
       );
+
+      // Combine existing and new small images
+      updatedProduct.images.imageUrl = [
+        ...newProduct.existingSmallImages,
+        ...smallImagesUrls,
+      ];
     }
 
     try {
@@ -243,10 +297,14 @@ const Product = () => {
         `${SERVER_URL}/admin/updateProducts/${selectedProduct._id}`,
         updatedProduct
       );
-      console.log(response,"evide entha avastha")
+
       if (response.status === 200) {
         // Update the product list after successful update
-        setProducts(products.map(product => product._id === selectedProduct._id ? response.data : product));
+        setProducts(
+          products.map((product) =>
+            product._id === selectedProduct._id ? response.data : product
+          )
+        );
 
         setIsEditModalOpen(false);
         setNewProduct({
@@ -254,8 +312,8 @@ const Product = () => {
           description: "",
           category: "",
           brand: "",
-          price: "",
-          salesPrice: "",
+          productPrice: "", // Explicitly set these
+          salePrice: "",
           discount: "",
           color: "",
           mainImage: "",
@@ -301,7 +359,9 @@ const Product = () => {
 
   const handleDeleteProduct = async (productId) => {
     try {
-      const response = await axios.delete(`${SERVER_URL}/admin/deleteProducts/${productId}`);
+      const response = await axios.delete(
+        `${SERVER_URL}/admin/deleteProducts/${productId}`
+      );
       if (response.status === 200) {
         // Remove the deleted product from the state
         setProducts(products.filter((product) => product._id !== productId));
@@ -314,9 +374,6 @@ const Product = () => {
       alert("Error deleting product.");
     }
   };
-
-
-  
 
   return (
     <div className="flex">
@@ -382,19 +439,18 @@ const Product = () => {
                       </button>
                     </td>
                     <td className="px-4 py-2">
-                    <button
+                      <button
                         onClick={() => handleEditProduct(product)}
                         className="bg-yellow-500 text-white px-2 py-1 rounded-md hover:bg-yellow-600 mr-2"
                       >
                         Edit
                       </button>
                       <button
-                            onClick={() => handleDeleteProduct(product._id)}
-                            className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
-                          >
-                            Delete
-                          </button>
-
+                        onClick={() => handleDeleteProduct(product._id)}
+                        className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -410,19 +466,30 @@ const Product = () => {
                 <input
                   type="text"
                   value={newProduct.name}
-                  onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                  onChange={(e) =>
+                    setNewProduct({ ...newProduct, name: e.target.value })
+                  }
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Product Name"
                 />
-                {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
+                {errors.name && (
+                  <p className="text-red-500 text-xs">{errors.name}</p>
+                )}
 
                 <textarea
                   value={newProduct.description}
-                  onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewProduct({
+                      ...newProduct,
+                      description: e.target.value,
+                    })
+                  }
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Description"
                 />
-                {errors.description && <p className="text-red-500 text-xs">{errors.description}</p>}
+                {errors.description && (
+                  <p className="text-red-500 text-xs">{errors.description}</p>
+                )}
                 <select
                   value={newProduct.category}
                   onChange={(e) =>
@@ -437,7 +504,9 @@ const Product = () => {
                     </option>
                   ))}
                 </select>
-                {errors.category && <p className="text-red-500 text-xs">{errors.category}</p>}
+                {errors.category && (
+                  <p className="text-red-500 text-xs">{errors.category}</p>
+                )}
                 <select
                   value={newProduct.brand}
                   onChange={(e) =>
@@ -452,27 +521,36 @@ const Product = () => {
                     </option>
                   ))}
                 </select>
-                {errors.brand && <p className="text-red-500 text-xs">{errors.brand}</p>}
+                {errors.brand && (
+                  <p className="text-red-500 text-xs">{errors.brand}</p>
+                )}
                 <input
                   type="number"
-                  value={newProduct.price}
+                  value={newProduct.productPrice}
                   onChange={(e) =>
-                    setNewProduct({ ...newProduct, price: e.target.value })
+                    setNewProduct({
+                      ...newProduct,
+                      productPrice: e.target.value,
+                    })
                   }
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Price"
                 />
-                {errors.price && <p className="text-red-500 text-xs">{errors.price}</p>}
+                {errors.productPrice && (
+                  <p className="text-red-500 text-xs">{errors.productPrice}</p>
+                )}
                 <input
                   type="number"
-                  value={newProduct.salesPrice}
+                  value={newProduct.salePrice}
                   onChange={(e) =>
-                    setNewProduct({ ...newProduct, salesPrice: e.target.value })
+                    setNewProduct({ ...newProduct, salePrice: e.target.value })
                   }
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Sales Price"
                 />
-                {errors.salesPrice && <p className="text-red-500 text-xs">{errors.salesPrice}</p>}
+                {errors.salePrice && (
+                  <p className="text-red-500 text-xs">{errors.salePrice}</p>
+                )}
                 <input
                   type="number"
                   value={newProduct.discount}
@@ -482,7 +560,9 @@ const Product = () => {
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Discount"
                 />
-                {errors.discount && <p className="text-red-500 text-xs">{errors.discount}</p>}
+                {errors.discount && (
+                  <p className="text-red-500 text-xs">{errors.discount}</p>
+                )}
                 <input
                   type="text"
                   value={newProduct.color}
@@ -492,24 +572,30 @@ const Product = () => {
                   className="border p-2 mb-2 w-full rounded-md"
                   placeholder="Color"
                 />
-                {errors.color && <p className="text-red-500 text-xs">{errors.color}</p>}
-                  <input
-                    type="number"
-                    value={newProduct.quantity}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, quantity: e.target.value })
-                    }
-                    className="border p-2 mb-2 w-full rounded-md"
-                    placeholder="Quantity"
-                  />
-                  {errors.quantity && <p className="text-red-500 text-xs">{errors.quantity}</p>}
+                {errors.color && (
+                  <p className="text-red-500 text-xs">{errors.color}</p>
+                )}
+                <input
+                  type="number"
+                  value={newProduct.quantity}
+                  onChange={(e) =>
+                    setNewProduct({ ...newProduct, quantity: e.target.value })
+                  }
+                  className="border p-2 mb-2 w-full rounded-md"
+                  placeholder="Quantity"
+                />
+                {errors.quantity && (
+                  <p className="text-red-500 text-xs">{errors.quantity}</p>
+                )}
                 <input
                   type="file"
                   onChange={(e) => handleImageUpload(e, "main")}
                   className="border p-2 mb-2 w-full rounded-md"
                   accept="image/*"
                 />
-                {errors.mainImage && <p className="text-red-500 text-xs">{errors.mainImage}</p>}
+                {errors.mainImage && (
+                  <p className="text-red-500 text-xs">{errors.mainImage}</p>
+                )}
                 <input
                   type="file"
                   onChange={(e) => handleImageUpload(e, "small")}
@@ -535,8 +621,8 @@ const Product = () => {
             </div>
           )}
 
-           {/* Product Details Modal */}
-           {isModalOpen && selectedProduct && (
+          {/* Product Details Modal */}
+          {isModalOpen && selectedProduct && (
             <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
               <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
                 <h3 className="text-xl font-bold mb-4">Product Details</h3>
@@ -576,17 +662,21 @@ const Product = () => {
                     <strong>Description:</strong>
                     <p>{selectedProduct.description}</p>
                   </div>
-                    <strong>Sub Images:</strong>
+                  <strong>Sub Images:</strong>
                   <div className="grid grid-cols-5 gap-2">
-              {selectedProduct.images[0]?.imageUrl.map((url, index) => (
-                <img 
-                  key={index} 
-                  src={url} 
-                  alt={`Product Image ${index + 1}`} 
-                  style={{ width: '700px', height: '50px', margin: '10px' }}
-                />
-              ))}
-            </div>
+                    {selectedProduct.images[0]?.imageUrl.map((url, index) => (
+                      <img
+                        key={index}
+                        src={url}
+                        alt={`Product Image ${index + 1}`}
+                        style={{
+                          width: "700px",
+                          height: "50px",
+                          margin: "10px",
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
                 <div className="mt-4 flex justify-end">
                   <button
@@ -600,131 +690,223 @@ const Product = () => {
             </div>
           )}
 
-            {/* Edit Product Modal */}
-            {isEditModalOpen && (
+          {/* Edit Product Modal */}
+          {isEditModalOpen && (
             <div className="fixed inset-0 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg shadow-lg p-6 w-2/4">
                 <h3 className="text-xl font-bold mb-4">Edit Product</h3>
                 <div className="max-h-96 overflow-y-auto">
-                <div className="grid grid-cols-1 gap-2">
-                  <p className="font-semibold text-gray-500 ml-1">Name</p>
-                  <input
-                    type="text"
-                    placeholder="Product Name"
-                    value={newProduct.name}
-                    onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                    className="border p-2 rounded"
-                  />
-                  <p className="font-semibold text-gray-500 ml-1">Description</p>
-                  <textarea
-                    placeholder="Description"
-                    value={newProduct.description}
-                    onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                    className="border p-2 rounded"
-                  />
-                  <p className="font-semibold text-gray-500 ml-1">Category</p>
-                  <select
-                    value={newProduct.category}
-                    onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                    className="border p-2 rounded"
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((category) => (
-                      <option key={category._id} value={category._id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="font-semibold text-gray-500 ml-1">Brand</p>
-                  <select
-                    value={newProduct.brand}
-                    onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
-                    className="border p-2 rounded"
-                  >
-                    <option value="">Select Brand</option>
-                    {brands.map((brand) => (
-                      <option key={brand._id} value={brand._id}>
-                        {brand.name}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="font-semibold text-gray-500 ml-1">ProductPrice</p>
-                  <input
-                    type="number"
-                    placeholder="Price"
-                    value={newProduct.productPrice}
-                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                    className="border p-2 rounded"
-                  />
-                  <p className="font-semibold text-gray-500 ml-1">SalesPrice</p>
-                  <input
-                    type="number"
-                    placeholder="Sales Price"
-                    value={newProduct.salesPrice}
-                    onChange={(e) => setNewProduct({ ...newProduct, salesPrice: e.target.value })}
-                    className="border p-2 rounded"
-                  />
-                  <p className="font-semibold text-gray-500 ml-1">Discount</p>
-                  <input
-                    type="number"
-                    placeholder="Discount"
-                    value={newProduct.discount}
-                    onChange={(e) => setNewProduct({ ...newProduct, discount: e.target.value })}
-                    className="border p-2 rounded"
-                  />
-                  <p className="font-semibold text-gray-500 ml-1">colour</p>
-                  <input
-                    type="text"
-                    placeholder="Color"
-                    value={newProduct.color}
-                    onChange={(e) => setNewProduct({ ...newProduct, color: e.target.value })}
-                    className="border p-2 rounded"
-                  />
-                  <p className="font-semibold text-gray-500 ml-1">Quantity</p>
-                  <input
-                    type="number"
-                    placeholder="Quantity"
-                    value={newProduct.quantity}
-                    onChange={(e) => setNewProduct({ ...newProduct, quantity: e.target.value })}
-                    className="border p-2 rounded"
-                  />
-                  <p className="font-semibold text-gray-500 ml-1">Main Image</p>
-                  {/* First Image Upload Input */}
-                  <input
-                    type="file"
-                    onChange={(e) => handleImageUpload(e, "main")}
-                    className="border p-2 rounded"
-                  />
-                  
-                  {/* Display Thumbnail URL under the first input */}
-                  {newProduct?.images[0]?.thumbnailUrl && (
-                    <div className="mt-2">
-                      <img src={newProduct?.images[0]?.thumbnailUrl} alt="Thumbnail" className="h-20 w-20 object-cover" />
-                    </div>
-                  )}
-                  <p className="font-semibold text-gray-500 ml-1">sub Image</p>
-                  {/* Second Image Upload Input */}
-                  <input
-                    type="file"
-                    multiple
-                    onChange={(e) => handleImageUpload(e, "small")}
-                    className="border p-2 rounded"
-                  />
-                  
-                  {/* Display Image URLs under the second input */}
-                  {newProduct.images && newProduct.images.length > 0 && (
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      {newProduct?.images[0]?.imageUrl.map((image, index) => (
-                        <img
-                          key={index}
-                          src={image}
-                          alt={`Image ${index + 1}`}
-                          className="h-20 w-20 object-cover"
-                        />
+                  <div className="grid grid-cols-1 gap-2">
+                    <p className="font-semibold text-gray-500 ml-1">Name</p>
+                    <input
+                      type="text"
+                      placeholder="Product Name"
+                      value={newProduct.name}
+                      onChange={(e) =>
+                        setNewProduct({ ...newProduct, name: e.target.value })
+                      }
+                      className="border p-2 rounded"
+                    />
+                    <p className="font-semibold text-gray-500 ml-1">
+                      Description
+                    </p>
+                    <textarea
+                      placeholder="Description"
+                      value={newProduct.description}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          description: e.target.value,
+                        })
+                      }
+                      className="border p-2 rounded"
+                    />
+                    <p className="font-semibold text-gray-500 ml-1">Category</p>
+                    <select
+                      value={newProduct.category}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          category: e.target.value,
+                        })
+                      }
+                      className="border p-2 rounded"
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map((category) => (
+                        <option key={category._id} value={category._id}>
+                          {category.name}
+                        </option>
                       ))}
-                    </div>
-                  )}
-                </div>
+                    </select>
+                    <p className="font-semibold text-gray-500 ml-1">Brand</p>
+                    <select
+                      value={newProduct.brand}
+                      onChange={(e) =>
+                        setNewProduct({ ...newProduct, brand: e.target.value })
+                      }
+                      className="border p-2 rounded"
+                    >
+                      <option value="">Select Brand</option>
+                      {brands.map((brand) => (
+                        <option key={brand._id} value={brand._id}>
+                          {brand.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="font-semibold text-gray-500 ml-1">
+                      ProductPrice
+                    </p>
+                    <input
+                      type="number"
+                      placeholder="Price"
+                      value={newProduct.productPrice}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          productPrice: e.target.value,
+                        })
+                      }
+                      className="border p-2 rounded"
+                    />
+                    <p className="font-semibold text-gray-500 ml-1">
+                      SalesPrice
+                    </p>
+                    <input
+                      type="number"
+                      placeholder="Sales Price"
+                      value={newProduct.salePrice}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          salePrice: e.target.value,
+                        })
+                      }
+                      className="border p-2 rounded"
+                    />
+                    <p className="font-semibold text-gray-500 ml-1">Discount</p>
+                    <input
+                      type="number"
+                      placeholder="Discount"
+                      value={newProduct.discount}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          discount: e.target.value,
+                        })
+                      }
+                      className="border p-2 rounded"
+                    />
+                    <p className="font-semibold text-gray-500 ml-1">colour</p>
+                    <input
+                      type="text"
+                      placeholder="Color"
+                      value={newProduct.color}
+                      onChange={(e) =>
+                        setNewProduct({ ...newProduct, color: e.target.value })
+                      }
+                      className="border p-2 rounded"
+                    />
+                    <p className="font-semibold text-gray-500 ml-1">Quantity</p>
+                    <input
+                      type="number"
+                      placeholder="Quantity"
+                      value={newProduct.quantity}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          quantity: e.target.value,
+                        })
+                      }
+                      className="border p-2 rounded"
+                    />
+                    <p className="font-semibold text-gray-500 ml-1">
+                      Main Image
+                    </p>
+                    {/* First Image Upload Input */}
+                    <input
+                      type="file"
+                      onChange={(e) => handleImageUpload(e, "main")}
+                      className="border p-2 rounded"
+                    />
+
+                    {/* Display Thumbnail URL under the first input */}
+                    {(newProduct.existingMainImage || newProduct.mainImage) && (
+                      <div className="mt-2 relative w-20 h-20">
+                        <img
+                          src={
+                            newProduct.mainImage
+                              ? URL.createObjectURL(newProduct.mainImage)
+                              : newProduct.existingMainImage
+                          }
+                          alt="Thumbnail"
+                          className="h-full w-full object-cover"
+                        />
+                        <button
+                          onClick={handleRemoveMainImage}
+                          className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transform translate-x-1/2 -translate-y-1/2"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+
+                    <p className="font-semibold text-gray-500 ml-1">
+                      sub Image
+                    </p>
+                    {/* Second Image Upload Input */}
+                    <input
+                      type="file"
+                      multiple
+                      onChange={(e) => handleImageUpload(e, "small")}
+                      className="border p-2 rounded"
+                    />
+
+                    {/* Display Image URLs under the second input */}
+                    {(newProduct.existingSmallImages.length > 0 ||
+                      newProduct.smallImages.length > 0) && (
+                      <div className="mt-2 grid grid-cols-3 gap-2">
+                        {newProduct.existingSmallImages.map((image, index) => (
+                          <div key={index} className="relative w-20 h-20">
+                            <img
+                              src={image}
+                              alt={`Image ${index + 1}`}
+                              className="h-full w-full object-cover"
+                            />
+                            <button
+                              onClick={() => handleRemoveSmallImage(index)}
+                              className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transform translate-x-1/2 -translate-y-1/2"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                        {newProduct.smallImages.map((image, index) => (
+                          <div key={`new-${index}`} className="relative">
+                            <img
+                              src={URL.createObjectURL(image)}
+                              alt={`New Image ${index + 1}`}
+                              className="h-full w-full object-cover"
+                            />
+                            <button
+                              onClick={() => {
+                                // Create a new state update to remove the specific new image
+                                setNewProduct((prev) => ({
+                                  ...prev,
+                                  smallImages: prev.smallImages.filter(
+                                    (_, i) => i !== index
+                                  ),
+                                }));
+                              }}
+                              className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transform translate-x-1/2 -translate-y-1/2"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-4 flex justify-end">
                   <button
@@ -743,7 +925,6 @@ const Product = () => {
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>

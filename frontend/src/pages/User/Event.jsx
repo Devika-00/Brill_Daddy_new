@@ -3,55 +3,11 @@ import { Gift, Award, Sparkles, Clock, Tag, Package } from "lucide-react";
 import OrginalNavbar from "../../components/User/OrginalUserNavbar";
 import NavbarWithMenu from "../../components/User/NavbarwithMenu";
 import Footer from "../../components/User/Footer";
-import { SERVER_URL } from "../../Constants";
-import axios from "axios";
+import { makeApiCall } from "../../Constants";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../Redux/Store/store";
-
-const CountdownTimer = ({ voucher }) => {
-  const [timeLeft, setTimeLeft] = useState({});
-  useEffect(() => {
-    const calculateTimeLeft = () => {
-      // Determine the correct end time based on rebid_active
-      const endTime = voucher.rebid_active
-        ? new Date(voucher.rebid_end_time).getTime()
-        : new Date(voucher.end_time).getTime();
-        
-      const difference = endTime - new Date().getTime();
-
-      if (difference > 0) {
-        return {
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60)
-        };
-      }
-      return null;
-    };
-
-    const timer = setInterval(() => {
-      const timeLeft = calculateTimeLeft();
-      if (timeLeft) {
-        setTimeLeft(timeLeft);
-      } else {
-        clearInterval(timer);
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [voucher]);
-
-
-  if (!timeLeft) return null;
-
-  return (
-    <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-sm text-white px-3 py-2 rounded-lg font-mono text-sm">
-      {timeLeft.days > 0 && `${timeLeft.days}d `}
-      {`${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`}
-    </div>
-  );
-};
+import ChatBotButton from "../../components/User/chatBot";
+import CountdownTimer from "../../components/User/CountDownTimer";
 
 const EventPage = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -79,33 +35,34 @@ const EventPage = () => {
   useEffect(() => {
     const fetchVouchers = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/voucher/getVouchers`);
+        const response = await makeApiCall('voucher/getVouchers');
         const currentTime = new Date().getTime();
 
-        const validVouchers = response.data.filter((voucher) => {
-          const isEligibleUser = voucher.eligible_rebid_users.includes(userId);
+        // Make sure response is an array before filtering
+        const voucherData = Array.isArray(response) ? response : [];
+        
+        const validVouchers = voucherData.filter((voucher) => {
+          const isEligibleUser = voucher.eligible_rebid_users?.includes(userId);
           const isRebidActive = voucher.rebid_active && new Date(voucher.rebid_end_time).getTime() > currentTime;
           const isActiveVoucher = new Date(voucher.start_time).getTime() <= currentTime && new Date(voucher.end_time).getTime() > currentTime;
           
           return (isEligibleUser && isRebidActive) || isActiveVoucher;
         });
 
-        const freeVouchers = validVouchers.filter((voucher) => voucher.price === 0).slice(0, 2);
+        const freeVouchers = validVouchers.filter((voucher) => voucher.price === 0);
         const paidVouchers = validVouchers.filter((voucher) => voucher.price !== 0);
 
         setVouchers([...freeVouchers, ...paidVouchers]);
 
         // Fetch eligible free vouchers
-        const freeVoucherResponse = await axios.get(
-          `${SERVER_URL}/voucher/getEligibleFreeVouchers`
-        );
-        setEligibleFreeVouchers(freeVoucherResponse.data.eligibleVouchers);
+        const freeVoucherResponse = await makeApiCall('voucher/getEligibleFreeVouchers');
+        setEligibleFreeVouchers(freeVoucherResponse.eligibleVouchers || []);
 
         // Fetch winners
-        const winnersResponse = await axios.get(
-          `${SERVER_URL}/voucher/getWinners`
-        );
-        const validWinners = winnersResponse.data.filter(
+        const winnersResponse = await makeApiCall('voucher/getWinners');
+        const winnersData = Array.isArray(winnersResponse) ? winnersResponse : [];
+        
+        const validWinners = winnersData.filter(
           (winner) => new Date(winner.endTime).getTime() > currentTime
         );
         setWinners(validWinners);
@@ -116,12 +73,11 @@ const EventPage = () => {
 
     fetchVouchers();
 
-    // Set interval to fetch every minute (adjust as necessary)
-    const intervalId = setInterval(fetchVouchers, 1000);
+    // Set interval to fetch every minute
+    const intervalId = setInterval(fetchVouchers, 60000);
 
-    // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
-  }, []);
+  }, [userId]);
 
  
 
@@ -135,8 +91,11 @@ const EventPage = () => {
     }
   };
 
+  console.log(vouchers,"aaaaaaaaaaaaaaaaaa");
+  console.log(winners,"bbbbbbbbbbbbbbbb");
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
 
@@ -167,6 +126,9 @@ const EventPage = () => {
                           <p className="text-sm text-gray-500">
                             Name: {winner.userId.username}
                           </p>
+                          <p className="text-sm text-gray-500">
+                            State: {winner.userId.currentAddress.state}
+                          </p>
                         </div>
                         <Sparkles className="w-5 h-5 text-yellow-500" />
                       </div>
@@ -181,7 +143,7 @@ const EventPage = () => {
 
           {/* Vouchers Section */}
           <div className="lg:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
               {vouchers.length > 0 ? (
                 vouchers.map((voucher, index) => {
                   // Check if the voucher is eligible for free claiming
@@ -193,6 +155,7 @@ const EventPage = () => {
                       className="relative group"
                       onMouseEnter={() => setHoveredCard(voucher._id)}
                       onMouseLeave={() => setHoveredCard(null)}
+                      onClick={() => handleClaimVoucher(voucher)}
                     >
                       <div
                         className={`${
@@ -210,7 +173,7 @@ const EventPage = () => {
                         <div className="absolute -right-2 -top-2 transform rotate-12">
                           <div
                             className={`${
-                              isEligibleForFree  || voucher.price === 0 ? "bg-green-400" : "bg-yellow-400"
+                              isEligibleForFree  || voucher.price === 0 ? "bg-green-500" : "bg-yellow-400"
                             } text-gray-900 font-bold px-8 py-2 rounded-lg shadow-lg relative`}
                           >
                             <div className="absolute -bottom-2 right-0 w-0 h-0 border-t-8 border-l-8 border-transparent border-yellow-600" />
@@ -263,11 +226,12 @@ const EventPage = () => {
                               </span>
                             </div>
                             <button
-                              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-300"
-                              onClick={() => handleClaimVoucher(voucher)}
-                            >
-                              <span className="mr-1">{isEligibleForFree || voucher.price === 0 ? "Bid Now" : "Claim Now"}</span>
-                            </button>
+                            className="bg-gradient-to-r from-green-600 to-blue-500 text-white px-6 py-2 rounded-lg shadow-lg hover:from-green-500 hover:to-blue-600 hover:scale-105 transition-transform duration-300 flex items-center"
+                            onClick={() => handleClaimVoucher(voucher)}
+                          >
+                            <Gift className="w-4 h-4 mr-2" />
+                            Claim now
+                          </button>
                           </div>
                         </div>
                       </div>
@@ -290,6 +254,9 @@ const EventPage = () => {
         </div>
       </div>
       <Footer />
+      <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
     </div>
   );
 };

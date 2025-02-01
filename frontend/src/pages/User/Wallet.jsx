@@ -6,6 +6,7 @@ import { ArrowUpRight, ArrowDownLeft, Clock } from "lucide-react";
 import axios from "axios"; // Import axios
 import { useAppSelector } from "../../Redux/Store/store";
 import { SERVER_URL } from "../../Constants";
+import ChatBotButton from "../../components/User/chatBot";
 
 const Wallet = () => {
   const user = useAppSelector((state) => state.user);
@@ -53,7 +54,7 @@ const Wallet = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
       <div className="flex-1 p-4 md:p-6 space-y-6">
@@ -136,6 +137,9 @@ const Wallet = () => {
         </div>
       </div>
       <Footer />
+      <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
     </div>
   );
 };

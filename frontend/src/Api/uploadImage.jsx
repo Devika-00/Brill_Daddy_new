@@ -1,4 +1,4 @@
-import { CLOUDINARY_UPLOAD_API, cloudinaryUploadPreset } from "../Constants/index";
+import { CLOUDINARY_UPLOAD_API, cloudinaryUploadPreset } from "../Constants";
 import showToast from "../utils/toaster";
 
 export const uploadImagesToCloudinary = async (imageFile) => {

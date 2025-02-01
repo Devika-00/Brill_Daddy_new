@@ -14,7 +14,8 @@ const Orders = () => {
     const fetchOrders = async () => {
       try {
         const response = await axios.get(`${SERVER_URL}/admin/orders`);
-        setOrders(response.data);
+        const sortedOrders = response.data.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+        setOrders(sortedOrders);
 
         console.log('Orders fetched:', response.data); // Debugging log
 

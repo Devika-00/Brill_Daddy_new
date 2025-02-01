@@ -7,6 +7,7 @@ const Order = require("../Models/orderModel");
 const Voucher = require("../Models/voucherModel");
 const User = require('../Models/userModel');
 const Bid = require('../Models/bidModel'); 
+const CarouselImage = require('../Models/carouselModel');
 
 const getAllUsers = async (req, res) => {
   try {
@@ -27,20 +28,26 @@ const getAllUsers = async (req, res) => {
 };
 
 
-const addCategory = async (req,res) =>{
-    try {
-        const {name, description} = req.body;
-        const category = new Category({name,description});
+const addCategory = async (req, res) => {
+  try {
+      const { name, description, parentCategory } = req.body;
 
-        const savedCategory = await category.save();
+      // Create a new category object
+      const categoryData = { name, description };
+      if (parentCategory) {
+          categoryData.parentCategory = parentCategory; // Add parent category if provided
+      }
 
-        res.status(201).json(savedCategory);
-        
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-}
+      const category = new Category(categoryData);
+      const savedCategory = await category.save();
+
+      res.status(201).json(savedCategory);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+  }
+};
+
 
 
 const getcategories = async (req,res) =>{
@@ -128,7 +135,7 @@ const deleteBrand = async (req,res) =>{
 
 const addProduct = async (req,res) =>{
     try {
-        const { name, description, price, salesPrice, category, brand, quantity, discount, color, images } = req.body;
+        const { name, description, productPrice, salePrice, category, brand, quantity, discount, color, images } = req.body;
 
         
         // Create an entry for the images
@@ -143,8 +150,8 @@ const addProduct = async (req,res) =>{
         const newProduct = new Product({
           name,
           description,
-          productPrice: price,
-          salePrice: salesPrice,
+          productPrice: productPrice,
+          salePrice: salePrice,
           category,
           brand,
           quantity,
@@ -216,10 +223,10 @@ const deleteProducts = async (req, res) =>{
 const editProduct = async (req, res) => {
     try {
         const { id } = req.params; // Get the product ID from the request parameters
-        const { name, description, price, salesPrice, category, brand, quantity, discount, color, images } = req.body;
+        const { name, description, productPrice, salePrice, category, brand, quantity, discount, color, images } = req.body;
 
         // Ensure sales price is valid
-        if (parseFloat(salesPrice) >= parseFloat(price)) {
+        if (parseFloat(salePrice) >= parseFloat(productPrice)) {
             return res.status(400).json({ message: "Sales price should be less than price" });
         }
 
@@ -227,36 +234,44 @@ const editProduct = async (req, res) => {
         const updateData = {
             name,
             description,
-            productPrice: price,
-            salePrice: salesPrice,
+            productPrice,
+            salePrice,
             category,
             brand,
             quantity,
             discount,
             color,
-            images:images
+            images:[],
         };
 
-        if (images) {
-            const newImageIds = []; // Array to hold new image IDs
+        if (images && images.thumbnailUrl) {
+          // Check if existing images are to be preserved
+          const existingProduct = await Product.findById(id);
 
-            for (const img of images) {
-                const newImages = new Images({
-                    thumbnailUrl: img.thumbnailUrl,
-                    imageUrl: img.imageUrl,
-                });
+          // Preserve existing small images if not replaced
+          const existingSmallImages = images.imageUrl || 
+              (existingProduct.images[0] && existingProduct.images[0].imageUrl) || 
+              [];
 
-                const savedImage = await newImages.save(); // Save each new image
-                newImageIds.push(savedImage._id); // Store the saved image ID
-            }
+          // Create or update image document
+          const imageDocument = {
+              thumbnailUrl: images.thumbnailUrl,
+              imageUrl: existingSmallImages
+          };
 
-            updateData.images = newImageIds; // Update the product's images
-     
-        }
+          // Create new Images document or update existing
+          const savedImage = await Images.findOneAndUpdate(
+              { _id: existingProduct.images[0]?._id }, // If exists
+              imageDocument,
+              { upsert: true, new: true }
+          );
+
+          updateData.images = [savedImage._id];
+      }
 
 
         // Find the product and update it in one operation
-        const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+        const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).populate('images');;
 
 
         if (!updatedProduct) {
@@ -323,14 +338,9 @@ const getOrders = async (req, res) => {
   const addVouchers = async (req, res) => {
     try {
         console.log(req.body, "Request Body"); // Log incoming request body
-        const { voucher_name, details, product_name, price, productPrice, imageUrl, date, time, endDate, endTime } = req.body;
+        const { voucher_name, details, product_name, price,  productPrice, imageUrl, date, time, endDate, endTime } = req.body;
 
-        // Log the parsed fields
-        console.log("Voucher Name:", voucher_name);
-        console.log("Details:", details);
-        console.log("Product Name:", product_name);
-        console.log("Price:", price);
-        console.log("Product Price:",productPrice);
+        
 
         // Combine date and time into a single Date object for start_time
         const start_time = new Date(`${date}T${time}`);
@@ -341,8 +351,8 @@ const getOrders = async (req, res) => {
             voucher_name,
             details,
             product_name,
-            price,
             productPrice,
+            price,
             imageUrl,
             start_time,
             end_time,
@@ -387,7 +397,7 @@ const deletevoucher = async (req, res) => {
 
 const editVoucher = async (req, res) => {
     const { id } = req.params;
-  const { voucher_name, details, product_name, price,productPrice, imageUrl, date, time, endDate, endTime } = req.body;
+  const { voucher_name, details, product_name, productPrice, imageUrl, date, time, endDate, endTime } = req.body;
 
   try {
     const start_time = new Date(`${date}T${time}`);
@@ -396,7 +406,7 @@ const editVoucher = async (req, res) => {
     // Find the voucher by ID and update its fields
     const updatedVoucher = await Voucher.findByIdAndUpdate(
       id,
-      { voucher_name, details, product_name, price,productPrice, imageUrl,start_time,end_time },
+      { voucher_name, details, product_name,productPrice, imageUrl,start_time,end_time },
       { new: true } // Return the updated document
     );
 
@@ -460,8 +470,141 @@ const getDashboardCounts = async (req, res) => {
   }
 };
 
+const refundUserList = async (req, res) => {
+  try {
+    const refundOrders = await Order.find({
+        $or: [
+            { 
+                paymentMethod: 'Razorpay', 
+                'cartItems.status': { $in: ['Cancelled', 'Returned'] }
+            },
+            { 
+                paymentMethod: 'COD', 
+                'cartItems.status': 'Returned' 
+            }
+        ]
+    })
+    .populate('userId', 'username email phone')
+    .populate('cartItems.productId', 'name')
+    .populate('selectedAddressId', 'addressLine city state zip');
+
+    res.status(200).json(refundOrders);
+} catch (error) {
+    res.status(500).json({ error: error.message });
+}
+};
+
+const updateStatusRefund = async (req, res) => {
+  try {
+    const { orderId, productId, newAction } = req.body;
+
+
+  const allowedActions = ['Refund Pending', 'Refund Completed'];
+  if (!allowedActions.includes(newAction)) {
+    return res.status(400).json({ message: 'Invalid action provided' });
+  }
+
+  const refundStatus = newAction === 'Refund Pending' ? 'Pending' : 'Completed';
+
+
+  // Find the order and update the specific cart item's refund status
+  const updatedOrder = await Order.findOneAndUpdate(
+    { 
+      _id: orderId, 
+      'cartItems.productId': productId 
+    },
+    { 
+      $set: { 
+        'cartItems.$.refundAmountStatus': refundStatus 
+      } 
+    },
+    { 
+      new: true,  // Return the updated document
+      runValidators: true  // Ensure schema validations are run
+    }
+  ).populate('userId cartItems.productId');
+
+
+  // If no order found
+  if (!updatedOrder) {
+    return res.status(404).json({ message: 'Order or Product not found' });
+  }
+
+  res.status(200).json({
+    message: 'Refund status updated successfully',
+    order: {
+      orderId,
+      productId,
+      refundStatus,
+    }
+  });
+
+} catch (error) {
+  console.error('Error updating refund status:', error);
+  res.status(500).json({ 
+    message: 'Internal server error', 
+    error: error.message 
+  });
+}
+};
+
+const uploadCarsouelImage = async (req, res) => {
+
+  try {
+    const { imageUrl } = req.body;
+
+    // Validate the request body
+    if (!imageUrl) {
+      return res.status(400).json({ message: 'Image URL is required' });
+    }
+
+    // Create a new Carousel entry
+    const newCarouselImage = new CarouselImage({
+      imageUrl, // Assuming your Carousel model has an `imageUrl` field
+    });
+
+    // Save to the database
+    await newCarouselImage.save();
+
+    res.status(200).json({ message: 'Image saved successfully', data: newCarouselImage });
+  } catch (error) {
+    console.error('Error saving image:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const fetchCarouselImages = async (req,res) =>{
+  try {
+    // Fetch all images from the database
+    const images = await CarouselImage.find().sort({ uploadedAt: -1 }); // Sort by newest first
+    res.status(200).json(images);
+  } catch (error) {
+    console.error('Error fetching carousel images:', error);
+    res.status(500).json({ error: 'Failed to fetch carousel images' });
+  }
+}
+
+const deleteImageCarousel = async (req,res) =>{
+  const { imageId } = req.params;
+  try {
+    // Find the image by ID and remove it from the database
+    const deletedImage = await CarouselImage.findByIdAndDelete(imageId);
+    
+    if (!deletedImage) {
+      return res.status(404).json({ message: 'Image not found' });
+    }
+
+    // Send a success response
+    res.status(200).json({ message: 'Image deleted successfully!' });
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    res.status(500).json({ message: 'Failed to delete image' });
+  }
+}
+
 
 
 module.exports = {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCategory,getBrand,editBrand,deleteBrand,addProduct,fetchProduct,fetchimages,
-    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts
+    deleteProducts,editProduct, getOrders, updateOrderStatus, addVouchers, getAllVoucher, deletevoucher, editVoucher, getDashboardCounts, refundUserList, updateStatusRefund, uploadCarsouelImage,
+    fetchCarouselImages, deleteImageCarousel
 }

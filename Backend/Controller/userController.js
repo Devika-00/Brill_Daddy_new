@@ -14,6 +14,13 @@ const Address = require("../Models/addressModel");
 const Order = require("../Models/orderModel");
 const Voucher = require("../Models/voucherModel");
 const Wallet = require("../Models/walletModel");
+const Winner = require("../Models/winnerModel");
+const Bid = require("../Models/bidModel");
+const axios = require('axios');
+const Razorpay = require('razorpay');
+const CarouselImage = require("../Models/carouselModel");
+
+
 
 const getProducts = async (req,res) =>{
     try {
@@ -29,7 +36,9 @@ const fetchimages = async (req, res) =>{
         const id = req.params.id;
         const image = await Images.findById(id);
         if (image) {
-          res.json({ imageUrl: image.thumbnailUrl }); // Adjust based on your image model structure
+          res.json({ imageUrl: image.thumbnailUrl,
+            subImageUrl: image.imageUrl,
+           }); 
         } else {
           res.status(404).json({ error: "Image not found" });
         }
@@ -37,6 +46,20 @@ const fetchimages = async (req, res) =>{
         res.status(500).json({ error: "Server error" });
       }
 }
+
+// const fetchimagesSub = async (req, res) =>{
+//   try {
+//       const id = req.params.id;
+//       const image = await Images.findById(id);
+//       if (image) {
+//         res.json({ imageSubUrl: image.imageUrl }); 
+//       } else {
+//         res.status(404).json({ error: "Image not found" });
+//       }
+//     } catch (error) {
+//       res.status(500).json({ error: "Server error" });
+//     }
+// }
 
 const fetchCategory = async (req, res) =>{
     try {
@@ -67,7 +90,7 @@ const fetchSingleProduct = async (req, res) =>{
 const registerUser = async (req, res) => {
     try {
        
-      const { username, email, phone } = req.body;
+      const { username, email, phone, location } = req.body;
   
       if (!username || !email || !phone) {
         return res.status(400).json({ message: 'All fields are required' });
@@ -77,8 +100,27 @@ const registerUser = async (req, res) => {
       if (existingUser) {
         return res.status(409).json({ message: 'Email or phone number already in use' });
       }
+
+       // Fetch human-readable address using a geocoding API
+       const apiKey = 'AIzaSyAPqZgIUS_du5n_W_Aaw4hQkaxNouifWaM'; // Replace with your Google Maps API key
+       const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.latitude},${location.longitude}&key=${apiKey}`;
+       let registerAddress = 'Unknown Address';
+
+       try {
+           const response = await axios.get(geocodeUrl);
+           if (response.data.status === 200 && response.data.results.length > 0) {
+               registerAddress = response.data.results[0].formatted_address;
+           }
+       } catch (geocodeError) {
+           console.error('Error fetching address from geocoding API:', geocodeError.message);
+       }
   
-      const newUser = new User({ username, email, phone });
+      const newUser = new User({ username, email, phone, location: {
+        latitude: location.latitude,
+        longitude: location.longitude,
+      },
+      registerAddress,
+     });
       await newUser.save();
   
       res.status(201).json({ message: 'User registered successfully' });
@@ -417,6 +459,37 @@ const addWishlist = async (req, res) => {
   } catch (error) {
     console.error("Error in addWishlist:", error);  // Log detailed error
     res.status(500).json({ message: "Error adding to wishlist", error: error.message });
+  }
+};
+
+
+const addWishlistFromCart = async (req, res) => {
+  const { userId } = req.params;
+  const { productId } = req.body;
+
+  try {
+    // Check if the product is already in the wishlist
+    const existingItem = await Wishlist.findOne({ userId, productId });
+
+    if (existingItem) {
+      // Update wishlistStatus to 'added' if it already exists
+      existingItem.wishlistStatus = 'added';
+      await existingItem.save();
+      return res.status(200).json({ message: "Product added to wishlist again." });
+    }
+
+    // Create a new wishlist item
+    const wishlistItem = new Wishlist({
+      userId,
+      productId,
+      wishlistStatus: 'added',
+    });
+
+    await wishlistItem.save();
+    res.status(201).json({ message: "Product added to wishlist successfully." });
+  } catch (error) {
+    console.error("Error adding item to wishlist:", error);
+    res.status(500).json({ error: "Failed to add product to wishlist." });
   }
 };
 
@@ -781,10 +854,202 @@ const updateQuantity = async (req, res) => {
 };
 
 
+const getWinningDetails = async (req, res) => {
+  try {
+  
+    const { userId } = req.params;
+    const winner = await Winner.find({userId : userId});
+
+    if (!winner) {
+      return res.status(404).json({ message: 'Winner not found' });
+    }
+
+    res.json(winner);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+const getParticularVoucher = async (req, res) => {
+  try {
+    const { voucherId } = req.params;
+    const voucher = await Voucher.find({ _id: voucherId });
+
+    if (!voucher) {
+      return res.status(404).json({ message: 'Voucher not found' });
+    }
+   
+    res.json(voucher);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+const getUserBids = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    // Fetch all bids by the user
+    const userBids = await Bid.find({ userId }).lean();
+
+    if (!userBids.length) {
+      return res.status(404).json({ message: "No bids found for the user." });
+    }
+
+    // Group bids by voucherId
+    const groupedBids = userBids.reduce((acc, bid) => {
+      if (!acc[bid.voucherId]) {
+        acc[bid.voucherId] = [];
+      }
+      acc[bid.voucherId].push(bid);
+      return acc;
+    }, {});
+
+    return res.status(200).json(groupedBids);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+const getVoucherBidAmount = async (req, res) => {
+  const { voucherId } = req.params;
+
+  try {
+    // Validate voucherId (if necessary)
+    if (!voucherId) {
+      return res.status(400).json({ message: "Voucher ID is required." });
+    }
+
+    const bids = await Bid.find({ voucherId }).sort({ createdAt: -1 });
+
+    // Respond with bids
+    if (bids.length === 0) {
+      return res.status(404).json({ message: "No bids found for this voucher." });
+    }
+
+    res.status(200).json(bids);
+  } catch (error) {
+    console.error("Error fetching bids:", error);
+    res.status(500).json({ message: "Server error. Please try again later." });
+  }
+};
+
+const createOrder = async (req, res) => {
+  const razorpay = new Razorpay({
+    key_id: 'rzp_test_Je6Htj61yVkGEb',
+    key_secret: 'TbAjlRbnAiKGc8lTYGhM8yOK',
+});
+const { amount, currency = "INR", receipt } = req.body;
+
+try {
+    const order = await razorpay.orders.create({
+        amount: amount * 100, 
+        currency,
+        receipt,
+    });
+    res.status(200).json({ success: true, order });
+} catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error });
+}
+
+};
+
+
+const verifyPayment = async (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+  const body = razorpay_order_id + "|" + razorpay_payment_id;
+  const expectedSignature = crypto
+      .createHmac('sha256', 'TbAjlRbnAiKGc8lTYGhM8yOK')
+      .update(body.toString())
+      .digest('hex');
+
+  if (expectedSignature === razorpay_signature) {
+      // Update the database to mark the order as paid
+      res.status(200).json({ success: true });
+  } else {
+      res.status(400).json({ success: false, error: "Invalid signature" });
+  }
+};
+
+
+const getSingleUserDetails = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Find user by userId
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Return the user details (for example, username)
+    res.status(200).json({
+      username: user.username,
+      // Add other user details if necessary (e.g., email, profile picture, etc.)
+    });
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    res.status(500).json({ message: "Server error. Please try again later." });
+  }
+};
+
+
+const getWinningBid = async (req, res) => {
+  try {
+    const { voucherId } = req.params;
+
+    // Find the winning bid for the specified voucher
+    const winningBid = await Winner.findOne({ voucherId }).populate('winningBidId');
+
+    if (!winningBid) {
+      return res.status(404).json({ message: "No winning bid found for this voucher." });
+    }
+
+    // Return the winning bid data
+    res.status(200).json(winningBid);
+  } catch (error) {
+    console.error('Error fetching winning bid:', error);
+    res.status(500).json({ message: "Server error while fetching winning bid." });
+  }
+};
+
+const fetchRelatedProducts = async (req, res) => {
+  const { category, exclude } = req.query;
+  const products = await Product.find({
+    category,
+    _id: { $ne: exclude },
+  });
+  res.json(products);
+};
+
+const fetchImagesCarousel = async (req, res) => {
+  try {
+    console.log("Fetching carousel images ooooooooooooooooooooooooooo");
+    const images = await CarouselImage.find(); // Fetch all images
+    res.status(200).json(images); // Send image data as JSON
+  } catch (error) {
+    console.error("Error fetching images:", error);
+    res.status(500).json({ message: "Failed to fetch images" });
+  }
+};
+
+
 
 
 
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
-  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity
+  updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity, getWinningDetails, getParticularVoucher,
+  getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid, createOrder, verifyPayment, fetchRelatedProducts, fetchImagesCarousel, addWishlistFromCart
 }

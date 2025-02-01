@@ -13,6 +13,11 @@ const OrderSchema = new mongoose.Schema({
         type: String, 
         enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Out for Delivery', 'Cancelled', 'Returned'], 
         default: 'Pending' 
+      },
+      refundAmountStatus: {
+        type: String,
+        enum: ['Pending', 'Completed'],
+        default: null
       }
     }
   ],

@@ -189,6 +189,13 @@ const AddModal = ({ isOpen, onClose, onSubmit }) => {
   );
 };
 
+const convertUTCToIST = (utcTime) => {
+  const utcDate = new Date(utcTime);
+  const offset = 5.5 * 60 * 60 * 1000; // IST is UTC + 5:30
+  const istDate = new Date(utcDate.getTime() + offset);
+  return istDate.toISOString().split("T")[1].slice(0, 5); // Return time in HH:mm format
+};
+
 // Modal Component for Edit Voucher
 const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -212,10 +219,10 @@ const EditModal = ({ isOpen, onClose, voucher, onSubmit }) => {
         product_name: voucher.product_name,
         price: voucher.price,
         productPrice: voucher.productPrice,
-        date: voucher.start_time ? voucher.start_time.split("T")[0] : "", 
-        time: voucher.start_time ? voucher.start_time.split("T")[1].slice(0, 5) : "", 
-        endDate: voucher.end_time ? voucher.end_time.split("T")[0] : "", 
-        endTime: voucher.end_time ? voucher.end_time.split("T")[1].slice(0, 5) : "",
+        date: voucher.start_time ? voucher.start_time.split("T")[0] : "",
+        time: voucher.start_time ? convertUTCToIST(voucher.start_time) : "",
+        endDate: voucher.end_time ? voucher.end_time.split("T")[0] : "",
+        endTime: voucher.end_time ? convertUTCToIST(voucher.end_time) : "",
         image:voucher.imageUrl || null,
       });
     } else {
@@ -430,7 +437,10 @@ const Voucher = () => {
   const fetchVouchers = async () => {
     try {
       const response = await axios.get(`${SERVER_URL}/admin/voucher`);
-      setVouchers(response.data);
+      const sortedVouchers = response.data.sort(
+        (a, b) => new Date(b.start_time) - new Date(a.start_time)
+      );
+      setVouchers(sortedVouchers);
     } catch (error) {
       console.error("Error fetching vouchers:", error);
     }

@@ -6,7 +6,8 @@ import Footer from "../../components/User/Footer";
 import axios from "axios";
 import { useAppSelector } from "../../Redux/Store/store";
 import { SERVER_URL } from "../../Constants";
-import { Award, Sparkles, Tag, DollarSign, Ticket, Timer } from "lucide-react";
+import { Award, Sparkles, Tag, DollarSign, Ticket, Timer, } from "lucide-react";
+import ChatBotButton from "../../components/User/chatBot";
 
 const EventDetail = () => {
   const location = useLocation();
@@ -16,16 +17,44 @@ const EventDetail = () => {
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
 
-  const [bidAmount, setBidAmount] = useState(null);
+
+  const [bidAmount, setBidAmount] = useState("");
   const [bidId, setBidId] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [confirmEnabled, setConfirmEnabled] = useState(false);
 
+  // Calculated minimum and maximum bid amounts
+  const minBidAmount = 0.1;
+  const maxBidAmount = voucher?.productPrice || 0;
+
+  const handleBidAmountChange = (newAmount) => {
+    // Ensure the new amount is within the specified range
+    if (newAmount >= minBidAmount && newAmount <= maxBidAmount) {
+      setBidAmount(parseFloat(newAmount.toFixed(1)));
+      setErrorMessage("");
+      setConfirmEnabled(false);
+    } else {
+      // Set error message if out of range
+      setErrorMessage(`Bid amount must be between ₹${minBidAmount} and ₹${maxBidAmount}`);
+    }
+  };
+
+  const handleIncrement = () => {
+    const newAmount = Math.min(bidAmount + 0.1, maxBidAmount);
+    handleBidAmountChange(newAmount);
+  };
+
+  const handleDecrement = () => {
+    const newAmount = Math.max(bidAmount - 0.1, minBidAmount);
+    handleBidAmountChange(newAmount);
+  };
+
   const handleBid = () => {
-    if (bidAmount === null) {
-      setErrorMessage("Please enter a value.");
+    if (bidAmount < minBidAmount || bidAmount > maxBidAmount) {
+      setErrorMessage(`Bid amount must be between ₹${minBidAmount} and ₹${maxBidAmount}`);
       return;
     }
+    
     const uniqueId = "BID-" + Math.random().toString(36).substr(2, 9);
     setBidId(uniqueId);
     setConfirmEnabled(true);
@@ -48,6 +77,12 @@ const EventDetail = () => {
       setErrorMessage("Failed to submit bid. Please try again.");
     }
   };
+
+
+
+  
+
+ 
 
   useEffect(() => {
     const fetchWinners = async () => {
@@ -75,7 +110,7 @@ const EventDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-purple-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-purple-100 scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
 
@@ -109,6 +144,9 @@ const EventDetail = () => {
                           </p>
                           <p className="text-sm text-gray-500">
                             Name: {winner.userId.username}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            State: {winner.userId.currentAddress.state}
                           </p>
                         </div>
                         <Sparkles className="w-5 h-5 text-yellow-500" />
@@ -197,65 +235,65 @@ const EventDetail = () => {
 
             {/* Bidding Section */}
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 space-y-4">
-              <div className="relative">
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Your Bid Amount
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
-                    ₹
-                  </span>
-                  <input
-                    type="number"
-                    value={bidAmount === null ? "" : bidAmount}
-                    onChange={(e) => {
-                      const value =
-                        e.target.value === ""
-                          ? null
-                          : parseFloat(parseFloat(e.target.value).toFixed(1));
-                      setBidAmount(value);
-                      setErrorMessage("");
-                      setConfirmEnabled(false);
-                    }}
-                    className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter amount"
-                    step="0.1"
-                  />
-                </div>
-              </div>
-
-              {errorMessage && (
-                <div className="flex items-center gap-2 text-red-500 bg-red-50 p-3 rounded-lg">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <p>{errorMessage}</p>
-                </div>
-              )}
-
-              <div className="flex gap-4 justify-end">
-                <button
-                  onClick={handleBid}
-                  disabled={bidAmount === null}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
-                  hover:from-blue-700 hover:to-purple-700 transition-all duration-200 
-                  disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl
-                  transform hover:-translate-y-0.5"
-                >
-                  Place Bid
-                </button>
-              </div>
+        <div className="relative">
+          <label className="text-sm font-medium text-gray-700 mb-2 block">
+            Your Bid Amount
+          </label>
+          <div className="flex items-center">
+            <div className="relative flex-grow mr-2">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+                ₹
+              </span>
+              <input
+                type="number"
+                value={bidAmount}
+                onChange={(e) => {
+                  const value = parseFloat(parseFloat(e.target.value).toFixed(1));
+                  handleBidAmountChange(value);
+                }}
+                className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter amount"
+                step="0.1"
+                min={minBidAmount}
+                max={maxBidAmount}
+              />
             </div>
+            
+          </div>
+        </div>
+
+        {errorMessage && (
+          <div className="flex items-center gap-2 text-red-500 bg-red-50 p-3 rounded-lg">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <p>{errorMessage}</p>
+          </div>
+        )}
+
+        <div className="flex gap-4 justify-end">
+          <button
+            onClick={handleBid}
+            disabled={bidAmount < minBidAmount || bidAmount > maxBidAmount}
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
+            hover:from-blue-700 hover:to-purple-700 transition-all duration-200 
+            disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl
+            transform hover:-translate-y-0.5"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
 
             {/* Bid Confirmation Section */}
             {bidId && (
@@ -264,7 +302,7 @@ const EventDetail = () => {
                   Bid Confirmation
                 </h3>
                 <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm">
-                  <span className="text-gray-600">Bid ID:</span>
+                  <span className="text-gray-600">Unique ID:</span>
                   <span className="font-mono font-medium text-gray-800">
                     {bidId}
                   </span>
@@ -277,7 +315,7 @@ const EventDetail = () => {
           hover:from-green-600 hover:to-emerald-700 transition-all duration-200 font-medium
           shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                     >
-                      Confirm Bid
+                      Confirm
                     </button>
                   </div>
                 )}
@@ -288,6 +326,9 @@ const EventDetail = () => {
       </div>
 
       <Footer className="mt-8" />
+      <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
     </div>
   );
 };

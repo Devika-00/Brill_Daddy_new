@@ -8,6 +8,21 @@ import { useAppSelector } from '../../Redux/Store/store';
 import axios from 'axios';
 import { SERVER_URL } from "../../Constants";
 import { useNavigate } from 'react-router-dom'; 
+import ChatBotButton from "../../components/User/chatBot";
+import { makeApiCall } from "../../Constants";
+
+const formatCurrency = (value) => {
+  if (value === undefined || value === null) return '';
+  
+  // Convert to string and split decimal parts
+  const [integerPart, decimalPart] = value.toString().split('.');
+  
+  // Add commas to integer part
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  // Recombine with decimal part if exists
+  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+};
 
 const WishlistPage = () => {
   const user = useAppSelector((state) => state.user);
@@ -22,11 +37,13 @@ const WishlistPage = () => {
   useEffect(() => {
     const fetchWishlist = async () => {
       try {
-        if (!token) {
-          console.error("No token found!");
-          return;
-        }
+       const response = await makeApiCall('user/wishlist',{
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const items = Array.isArray(response) ? response : [];
+        setWishlistItems(items);
 
+<<<<<<< HEAD
         const headers = {
           Authorization: `Bearer ${token}`,
         };
@@ -51,12 +68,26 @@ const WishlistPage = () => {
               } catch (error) {
                 console.error(`Error fetching image for product ${productId}:`, error);
               }
+=======
+        // Fetch images for each product
+        const imageUrls = {};
+        await Promise.all(items.map(async (item) => {
+          const productId = item.productId._id;
+          if (item.productId.images && item.productId.images.length > 0) {
+            const imageId = item.productId.images[0];
+            try {
+              const imageResponse = await makeApiCall(`user/images/${imageId}`);
+              imageUrls[imageId] = imageResponse.imageUrl;
+            } catch (error) {
+              console.error(`Error fetching image for product ${productId}:`, error);
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
             }
-          }));
-          setImageUrls(imageUrls);
-        }
+          }
+        }));
+        setImageUrls(imageUrls);
       } catch (error) {
         console.error("Error fetching wishlist:", error);
+        setWishlistItems([]);
       }
     };
 
@@ -135,8 +166,9 @@ const WishlistPage = () => {
     navigate("/cart");
   };
 
+
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
       <div className="container flex-grow mx-auto px-4 py-8">
@@ -160,7 +192,7 @@ const WishlistPage = () => {
                     <div className="flex-grow px-4 mt-4 lg:mt-0">
                       <h3 className="text-lg font-semibold">{item.productId.name}</h3>
                       <p className="text-gray-600">{item.productId.description}</p>
-                      <p className="text-red-600 text-bold">₹{item.productId.salePrice}</p>
+                      <p className="text-red-600 text-bold">₹{formatCurrency(item.productId.salePrice)}</p>
                       <div className="flex items-center mt-4 space-x-4">
                       <button
                           onClick={() => isInCart ? handleGoToCart() : handleAddToCart(item.productId)}
@@ -186,6 +218,9 @@ const WishlistPage = () => {
         </div>
       </div>
       <Footer />
+      <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
     </div>
   );
 };

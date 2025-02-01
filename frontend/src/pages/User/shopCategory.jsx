@@ -4,8 +4,23 @@ import NavbarWithMenu from '../../components/User/NavbarwithMenu';
 import Footer from '../../components/User/Footer';
 import { FaHeart } from 'react-icons/fa';
 import axios from 'axios';
-import { SERVER_URL } from "../../Constants/index";
-import { useLocation } from 'react-router-dom';
+import { SERVER_URL } from "../../Constants";
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAppSelector } from "../../Redux/Store/store";
+import ChatBotButton from "../../components/User/chatBot";
+
+const formatCurrency = (value) => {
+  if (value === undefined || value === null) return '';
+  
+  // Convert to string and split decimal parts
+  const [integerPart, decimalPart] = value.toString().split('.');
+  
+  // Add commas to integer part
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  // Recombine with decimal part if exists
+  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+};
 
 const ShopCategory = () => {
   const [search, setSearch] = useState('');
@@ -14,9 +29,16 @@ const ShopCategory = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const [wishlist, setWishlist] = useState({});
+  const [productImageIndices, setProductImageIndices] = useState({});
+  const [hoveredProduct, setHoveredProduct] = useState(null);
+  const itemsPerPage = 40;
 
   const location = useLocation();
+  const navigate = useNavigate();
+  const user = useAppSelector((state) => state.user);
+  const userId = user.id;
+  const token = user.token;
 
   useEffect(() => {
     const query = new URLSearchParams(location.search);
@@ -33,6 +55,7 @@ const ShopCategory = () => {
           if (product.images && product.images.length > 0) {
             const imageResponse = await axios.get(`${SERVER_URL}/user/images/${product.images[0]}`);
             product.imageUrl = imageResponse.data.imageUrl;
+            product.imageSubUrl = imageResponse.data.subImageUrl;
           }
           return product;
         }));
@@ -51,9 +74,120 @@ const ShopCategory = () => {
       }
     };
 
+    const fetchWishlist = async () => {
+      try {
+        console.log("Retrieved token:", token); // Log token
+        console.log("Retrieved userId:", userId); // Log userId
+        if (!userId || !token) return;
+
+        const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // Check if wishlist is empty and only process if not empty
+        if (response.data.length > 0) {
+          const wishlistItems = response.data.reduce((acc, item) => {
+            acc[item.productId._id] = item.wishlistStatus === "added";
+            return acc;
+          }, {});
+          console.log(
+            "Wishlist fetched:",
+            JSON.stringify(wishlistItems, null, 2)
+          );
+          setWishlist(wishlistItems);
+        } else {
+          console.log("Wishlist is empty, no products found.");
+          setWishlist({});
+        }
+      } catch (error) {
+        console.error("Error fetching wishlist:", error);
+      }
+    };
+
     fetchProducts();
     fetchCategories();
-  }, []);
+    fetchWishlist();
+  }, [userId, token]);
+
+  useEffect(() => {
+    const initialImageIndices = products.reduce((acc, product) => {
+      acc[product._id] = 0;
+      return acc;
+    }, {});
+    setProductImageIndices(initialImageIndices);
+  }, [products]);
+
+  useEffect(() => {
+    let intervalId;
+
+    if (hoveredProduct) {
+      intervalId = setInterval(() => {
+        setProductImageIndices((prevIndices) => {
+          const newIndices = { ...prevIndices };
+          newIndices[hoveredProduct] =
+            (newIndices[hoveredProduct] + 1) %
+            products.find((p) => p._id === hoveredProduct).imageSubUrl.length;
+          return newIndices;
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(intervalId);
+  }, [hoveredProduct, products]);
+
+  const handleMouseEnter = (productId) => setHoveredProduct(productId);
+  const handleMouseLeave = () => setHoveredProduct(null);
+
+  const toggleFavorite = async (productId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      if (!userId || !token) {
+        navigate("/login");
+        return;
+      }
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      const requestBody = {
+        productId,
+        userId,
+        wishlistStatus: wishlist[productId] ? "removed" : "added",
+      };
+
+      if (wishlist[productId]) {
+        const response = await axios.delete(
+          `${SERVER_URL}/user/wishlist/remove`,
+          {
+            headers,
+            data: requestBody,
+          }
+        );
+
+        if (response.status === 200) {
+          setWishlist((prev) => ({ ...prev, [productId]: false }));
+          alert("Product removed from wishlist!");
+        }
+      } else {
+        const response = await axios.post(
+          `${SERVER_URL}/user/wishlist`,
+          requestBody,
+          { headers }
+        );
+
+        if (response.status === 201) {
+          setWishlist((prev) => ({ ...prev, [productId]: true }));
+          alert("Product added to wishlist!");
+        }
+      }
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+      alert("There was an issue adding/removing the item from your wishlist.");
+    }
+  };
 
   const filteredProducts = products.filter(product =>
     (selectedCategory ? product.category === selectedCategory : true) &&
@@ -85,12 +219,12 @@ const ShopCategory = () => {
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-300 to-white scrollbar-thin scrollbar-track-gray-100 h-screen overflow-y-scroll">
       <OrginalNavbar />
       <NavbarWithMenu />
 
       <div className="container mx-auto flex-grow px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {selectedCategory && (
             <h2 className="text-2xl font-bold text-center col-span-4 mb-3 text-blue-900">
               {selectedCategory} Products
@@ -99,12 +233,12 @@ const ShopCategory = () => {
 
           {hasProducts && (
             <div className="mb-4">
-              <label htmlFor="sortBy" className="mb-2 text-lg font-semibold mr-2">Sort By:</label>
+              <label htmlFor="sortBy" className="mb-2 text-lg font-semibold ml-14">Sort By:</label>
               <select
                 id="sortBy"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-md"
+                className="px-4 py-2 border border-gray-300 rounded-md ml-2"
               >
                 <option value="default">Relevant</option>
                 <option value="az">Name: A-Z</option>
@@ -119,24 +253,41 @@ const ShopCategory = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 ml-10 mr-10 flex-1">
               {hasProducts ? (
                 displayedProducts.map((product) => (
-                  <div key={product._id} className="relative bg-white p-4 rounded-lg shadow-lg">
-                    <button className="absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full text-gray-500 hover:text-red-500">
-                      <FaHeart />
-                    </button>
+                  <div key={product._id} className="relative bg-white p-4 rounded-lg shadow-lg" onMouseEnter={() => handleMouseEnter(product._id)}
+                  onMouseLeave={handleMouseLeave}
+                  >
+                    <button
+                        className={`absolute top-4 right-4 p-2 bg-white border border-gray-400 rounded-full ${
+                          wishlist[product._id]
+                            ? "text-red-500"
+                            : "text-gray-500"
+                        }`}
+                        onClick={(e) => toggleFavorite(product._id, e)} // Pass event object to toggleFavorite
+                      >
+                        <FaHeart
+                          className={
+                            wishlist[product._id] ? "fill-current" : ""
+                          }
+                        />
+                      </button>
                     <a href={`/singleProduct/${product._id}`}>
-                      <img
-                        src={product.imageUrl}
-                        alt={product.title}
-                        className="h-56 w-full object-cover rounded-lg mb-4"
-                      />
+                    <img
+                    src={
+                      product.imageSubUrl?.[
+                        productImageIndices[product._id] || 0
+                      ] || product.imageUrl
+                    }
+                    alt={product.name}
+                    className="w-64 h-64 object-cover"
+                  />
                     </a>
                     <div>
                       <h4 className="text-lg font-semibold mb-2 truncate">{product.name}</h4>
                       <p className="text-gray-500 mb-4">Category: {product.category}</p>
                       <div className="flex justify-between items-center">
-                        <span className="text-lg font-bold text-blue-600">₹ {product.salePrice}</span>
+                        <span className="text-lg font-bold text-blue-600">₹{formatCurrency(product.salePrice)}</span>
                         {product.salePrice !== product.productPrice && (
-                          <span className="line-through text-gray-400">₹ {product.productPrice}</span>
+                          <span className="line-through text-gray-400">₹{formatCurrency(product.productPrice)}</span>
                         )}
                       </div>
                     </div>
@@ -188,6 +339,9 @@ const ShopCategory = () => {
         )}
       </div>
       <Footer />
+      <div className="fixed bottom-8 right-8 z-50">
+        <ChatBotButton />
+      </div>
     </div>
   );
 };

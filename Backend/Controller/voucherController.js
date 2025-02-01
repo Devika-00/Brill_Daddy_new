@@ -15,13 +15,21 @@ const getVouchersUserSide = async (req, res) => {
 
 const getWinners = async (req, res) => {
     try {
-        const winners = await Winner.find().populate('userId voucherId winningBidId');
+        const winners = await Winner.find()
+      .populate({
+        path: 'userId',
+        populate: {
+          path: 'currentAddress',
+          model: 'Address' // Make sure this matches your Address model name
+        }
+      })
+      .populate('voucherId winningBidId');
         res.json(winners);
       } catch (error) {
         console.error("Error fetching winners:", error);
         res.status(500).json({ message: "Internal server error" });
       }
-  };
+};
   
 
   const freeVoucher = async (req, res) => {

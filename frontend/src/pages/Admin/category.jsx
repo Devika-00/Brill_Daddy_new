@@ -1,4 +1,3 @@
-//frontend/src/pages/Admin/Category.jsx
 import React, { useState, useEffect } from 'react';
 import Navbar from "../../components/Admin/Navbar";
 import Sidebar from '../../components/Admin/Sidebar';
@@ -10,7 +9,8 @@ const Category = () => {
     const [categories, setCategories] = useState([]);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [error, setError] = useState(''); // State for form validation errors
+    const [parentCategory, setParentCategory] = useState(''); // Store the selected parent category ID
+    const [error, setError] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [currentCategoryId, setCurrentCategoryId] = useState('');
@@ -20,7 +20,6 @@ const Category = () => {
         const fetchCategories = async () => {
             try {
                 const response = await axios.get(`${SERVER_URL}/admin/categories`);
-                console.log(response);
                 setCategories(response.data); 
             } catch (error) {
                 console.error('Error fetching categories:', error);
@@ -38,9 +37,6 @@ const Category = () => {
         if (name.length > 50) {
             return "Name cannot exceed 50 characters.";
         }
-        if (!/^\D*(\d{0,4})$/.test(name)) {
-            return "Name can include up to 4 digits only.";
-        }
         if (description.length > 100) {
             return "Description cannot exceed 100 characters.";
         }
@@ -50,7 +46,7 @@ const Category = () => {
     // Add a new category
     const addCategory = async (e) => {
         e.preventDefault();
-        setError(''); // Reset error state
+        setError('');
 
         const validationError = validateForm();
         if (validationError) {
@@ -58,7 +54,7 @@ const Category = () => {
             return;
         }
 
-        const newCategory = { name, description };
+        const newCategory = { name, description, parentCategory: parentCategory || null };
         try {
             const response = await axios.post(`${SERVER_URL}/admin/addCategory`, newCategory);
             const createdCategory = response.data;
@@ -78,6 +74,7 @@ const Category = () => {
         if (category) {
             setName(category.name);
             setDescription(category.description);
+            setParentCategory(category.parentCategory || '');
             setCurrentCategoryId(categoryId);
             setIsEditMode(true);
             setIsModalOpen(true);
@@ -87,7 +84,7 @@ const Category = () => {
     // Update an existing category
     const updateCategory = async (e) => {
         e.preventDefault();
-        setError(''); // Reset error state
+        setError('');
 
         const validationError = validateForm();
         if (validationError) {
@@ -96,12 +93,12 @@ const Category = () => {
         }
 
         try {
-            const updatedCategory = { name, description };
+            const updatedCategory = { name, description, parentCategory: parentCategory || null };
             await axios.put(`${SERVER_URL}/admin/updateCategory/${currentCategoryId}`, updatedCategory);
             
             // Update categories in state
             setCategories(categories.map(cat => 
-                cat._id === currentCategoryId ? { ...cat, name, description } : cat
+                cat._id === currentCategoryId ? { ...cat, name, description, parentCategory } : cat
             ));
             resetForm();
         } catch (error) {
@@ -123,7 +120,8 @@ const Category = () => {
     const resetForm = () => {
         setName('');
         setDescription('');
-        setError(''); // Reset error state
+        setParentCategory('');
+        setError('');
         setIsModalOpen(false);
         setIsEditMode(false);
         setCurrentCategoryId('');
@@ -151,6 +149,7 @@ const Category = () => {
                             <tr className="bg-gray-100">
                                 <th className="border px-4 py-2">Name</th>
                                 <th className="border px-4 py-2">Description</th>
+                                <th className="border px-4 py-2">Parent Category</th>
                                 <th className="border px-4 py-2">Actions</th>
                             </tr>
                         </thead>
@@ -159,6 +158,11 @@ const Category = () => {
                                 <tr key={category._id}>
                                     <td className="border px-4 py-2">{category.name}</td>
                                     <td className="border px-4 py-2">{category.description}</td>
+                                    <td className="border px-4 py-2">
+                                        {category.parentCategory 
+                                            ? categories.find(cat => cat._id === category.parentCategory)?.name 
+                                            : 'None'}
+                                    </td>
                                     <td className="border px-4 py-2 flex space-x-2">
                                         <button onClick={() => editCategory(category._id)}>
                                             <FaEdit className="text-blue-500 hover:text-blue-700 mr-5" />
@@ -197,6 +201,21 @@ const Category = () => {
                                         className="border rounded w-full px-3 py-2"
                                         required
                                     />
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-bold mb-2">Parent Category</label>
+                                    <select
+                                        value={parentCategory}
+                                        onChange={(e) => setParentCategory(e.target.value)}
+                                        className="border rounded w-full px-3 py-2"
+                                    >
+                                        <option value="">None</option>
+                                        {categories.map(cat => (
+                                            <option key={cat._id} value={cat._id}>
+                                                {cat.name}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                                 {error && <p className="text-red-500 text-sm">{error}</p>}
                                 <div className="flex justify-end">
