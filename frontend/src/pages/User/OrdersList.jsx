@@ -63,10 +63,6 @@ const OrdersList = () => {
         return 'text-yellow-500';
       case 'Shipped':
         return 'text-orange-500';
-      case 'Delivered':
-        return 'text-green-600';
-      case 'Cancelled':
-        return 'text-red-500';
       default:
         return 'text-gray-500';
     }
@@ -123,6 +119,11 @@ const OrdersList = () => {
                     <p className="text-gray-500 italic text-sm">Quantity: {item.quantity}</p>
                   </div>
 
+<<<<<<< HEAD
+                  {/* Delivery Info */}
+                  <div className="w-1/4 text-right mr-5">
+                    <p className="text-gray-500 italic">
+=======
                   {/* Delivery Info - Right-aligned on both mobile and desktop */}
                   <div className="w-full md:w-1/4 text-center md:text-right">
                     <p className={`${getStatusClassName(item.status)} font-semibold text-sm md:text-base`}>
@@ -134,6 +135,7 @@ const OrdersList = () => {
                       {item.status === 'Delivered' 
                         ? 'Your item is delivered' 
                         : `Your Order is ${item.status}`}
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
                     </p>
                     <div className="mt-2 flex justify-center md:justify-end items-center">
                       <ArrowRight className="text-blue-500 w-5 h-5 ml-2" />

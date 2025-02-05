@@ -16,28 +16,9 @@ const {getAllUsers, addCategory,addBrand,getcategories,updateCategory,deleteCate
 adminRoute.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
-    // Prebuilt admin credentials
-    const prebuiltEmail = "admin@gmail.com";
-    const prebuiltPassword = "admin123";
-
-    // Log received email and password
-    console.log("Received email:", email);
-    console.log("Received password:", password);
-
     try {
         // Check if the admin exists in the database
         let admin = await Admin.findOne({ email });
-
-        // If admin does not exist, create a new one with prebuilt credentials
-        if (!admin) {
-            const hashedPassword = await bcrypt.hash(prebuiltPassword, 10);
-            admin = new Admin({
-                email: prebuiltEmail,
-                password: hashedPassword,
-            });
-            await admin.save();
-            console.log("New admin created:", admin);
-        }
 
         // Validate the password
         const isMatch = await bcrypt.compare(password, admin.password);

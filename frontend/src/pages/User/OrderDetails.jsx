@@ -96,11 +96,7 @@ const OrderDetails = () => {
         }
         setImageUrls(imageUrlsMap);
         // Ensure cancel button state persists across refreshes
-        const isCancelled = response.data.status === "Cancelled";
         const isDelivered = response.data.status === "Delivered";
-        setIsOrderCancelled(isCancelled);
-        setIsCancelButtonDisabled(isCancelled);
-        setIsCancelButtonDisabled(isCancelled || isDelivered);
         console.log("Final image URLs map:", imageUrlsMap);
       } catch (error) {
         console.error("Error fetching order details:", error);
@@ -198,8 +194,12 @@ const OrderDetails = () => {
       console.log("Order cancelled successfully:", response.data);
       // Close the modal and handle any success actions
       setShowCancelModal(false);
+<<<<<<< HEAD
+      alert('Order has been cancelled.');
+=======
       alert("Order has been cancelled.");
       setIsOrderCancelled(true);
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
       setIsCancelButtonDisabled(true);
     } catch (error) {
       console.error("Error cancelling order:", error);
@@ -266,6 +266,18 @@ const OrderDetails = () => {
 
   if (!order) return <p>Loading...</p>;
 
+<<<<<<< HEAD
+  const totalAmount = order.cartItems.reduce((total, item) => {
+    return total + (item.pric * item.quantity);
+  }, 0).toFixed(2);
+
+  // Order status mapping
+  const statusMapping = {
+    "Pending": 25,
+    "Shipped": 50,
+    "Delivered": 100,
+    "Cancelled": 100,
+=======
   const totalAmount = order.cartItems
     .reduce((total, item) => {
       return total + item.price * item.quantity;
@@ -279,9 +291,19 @@ const OrderDetails = () => {
     "Out for Delivery": 75,
     Delivered: 100,
     Cancelled: 100,
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
   };
 
   const productStatus = order?.cartItems[0]?.status;
+<<<<<<< HEAD
+  const progressPercentage = productStatus === "Cancelled" ? 0 : statusMapping[productStatus] || 0;
+  const progressBarColor = productStatus === "Cancelled" ? "bg-red-600" : progressPercentage === 100 ? "bg-green-600" : "bg-blue-600";
+  const orderStatusText = productStatus === "Cancelled"
+  ? "Cancelled"
+  : productStatus === "Delivered"
+  ? "Delivered"
+  : "In Progress";
+=======
   const progressPercentage =
     productStatus === "Cancelled" ? 0 : statusMapping[productStatus] || 0;
   const progressBarColor =
@@ -298,6 +320,7 @@ const OrderDetails = () => {
       : productStatus === "Returned"
       ? "Returning"
       : "In Progress";
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
 
   // Updated icon logic based on order status
   const getStatusIcon = () => {
@@ -307,6 +330,8 @@ const OrderDetails = () => {
     return <FaCheckCircle />;
   };
 
+<<<<<<< HEAD
+=======
   // Icon color logic based on order status
   const getIconColor = (status) => {
     const productStatus = order?.cartItems[0]?.status;
@@ -324,6 +349,7 @@ const OrderDetails = () => {
     return "text-gray-600";
   };
 
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
   const stepClasses = (step) => {
     const activeSteps = [
       "Processed",
@@ -465,6 +491,21 @@ const OrderDetails = () => {
           <hr className="my-6 border-gray-300" />
 
           {/* Order Status and Progress Bar */}
+<<<<<<< HEAD
+          <div className="flex items-center space-x-2 mb-4">
+            <FaMapMarkerAlt className="text-blue-600" size={20} />
+            <h4 className="text-lg font-semibold">Order Status</h4>
+          </div>
+
+
+          <div className="px-4 py-6 md:px-8 flex flex-col items-center">
+            <div className="flex items-center space-x-20 mb-4">
+            </div>
+
+            <div className="flex flex-col items-center mb-4 w-full">
+              {/* Set width to w-full for full width on all screen sizes */}
+              <div className="bg-gray-200 w-full h-4 rounded-full overflow-hidden">
+=======
           <div className="mb-4">
             {/* Title with Icon */}
             <div className="flex items-center space-x-2 mb-4">
@@ -516,6 +557,7 @@ const OrderDetails = () => {
                 <p className="text-sm md:text-lg font-semibold mt-2">
                   Status: {orderStatusText}
                 </p>
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
               </div>
             </div>
           </div>

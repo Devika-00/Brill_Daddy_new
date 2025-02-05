@@ -62,16 +62,6 @@ const Orders = () => {
     setNewStatus('');
   };
 
-  const statusColors = {
-    Pending: 'bg-yellow-200 text-yellow-800',
-    Shipped: 'bg-blue-200 text-blue-800',
-    'Out for Delivery': 'bg-orange-200 text-orange-800',
-    Delivered: 'bg-green-200 text-green-800',
-    'Pending Cancel': 'bg-red-200 text-red-800',
-    Cancelled: 'bg-red-200 text-red-800',
-    Returned: 'bg-purple-200 text-purple-800',
-  };
-
   const handleStatusChange = async () => {
     if (selectedOrder) {
       try {

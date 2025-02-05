@@ -1,3 +1,15 @@
+<<<<<<< HEAD
+//frontend/src/pages/user/Shop.js
+import React, { useState, useEffect } from 'react';
+import OrginalNavbar from '../../components/User/OrginalUserNavbar';
+import NavbarWithMenu from '../../components/User/NavbarwithMenu';
+import Footer from '../../components/User/Footer';
+import { FaHeart, FaSearch } from 'react-icons/fa';
+import axios from 'axios';
+import { SERVER_URL } from "../../Constants/index";
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAppSelector } from '../../Redux/Store/store';
+=======
 import React, { useState, useEffect } from "react";
 import OrginalNavbar from "../../components/User/OrginalUserNavbar";
 import NavbarWithMenu from "../../components/User/NavbarwithMenu";
@@ -17,6 +29,7 @@ const formatCurrency = (value) => {
   const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
 };
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
 
 const Shop = () => {
   const [search, setSearch] = useState("");
@@ -88,6 +101,16 @@ const Shop = () => {
     const fetchWishlist = async () => {
       try {
         if (!userId || !token) return;
+<<<<<<< HEAD
+
+        const response = await axios.get(`${SERVER_URL}/user/wishlist`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // Check if wishlist is empty and only process if not empty
+        if (response.data.length > 0) {
+          const wishlistItems = response.data.reduce((acc, item) => {
+=======
         const response = await makeApiCall('user/wishlist',{
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -95,11 +118,16 @@ const Shop = () => {
         if (response.length > 0) {
           const wishlistItems = response.reduce((acc, item) => {
             acc[item.productId._id] = item.wishlistStatus === "added";
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
             return acc;
           }, {});
           setWishlist(wishlistItems);
         } else {
+<<<<<<< HEAD
+          console.log("Wishlist is empty, no products found.");
+=======
           setWishlist({});
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
         }
       } catch (error) {
         console.error("Error fetching wishlist:", error);
@@ -141,10 +169,14 @@ const Shop = () => {
   const handleMouseEnter = (productId) => setHoveredProduct(productId);
   const handleMouseLeave = () => setHoveredProduct(null);
 
+<<<<<<< HEAD
+  const toggleFavorite = async (productId) => {
+=======
   const toggleFavorite = async (productId, e) => {
     e.preventDefault();
     e.stopPropagation();
 
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
     try {
       if (!userId || !token) {
         navigate("/login");
@@ -167,7 +199,11 @@ const Shop = () => {
           }
         );
         if (response.status === 200) {
+<<<<<<< HEAD
+          setWishlist(prev => ({ ...prev, [product]: false }));
+=======
           setWishlist((prev) => ({ ...prev, [productId]: false }));
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
           alert("Product removed from wishlist!");
         }
       } else {
@@ -177,7 +213,11 @@ const Shop = () => {
           { headers }
         );
         if (response.status === 201) {
+<<<<<<< HEAD
+          setWishlist(prev => ({ ...prev, [product]: true }));
+=======
           setWishlist((prev) => ({ ...prev, [productId]: true }));
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
           alert("Product added to wishlist!");
         }
       }

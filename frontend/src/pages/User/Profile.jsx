@@ -53,7 +53,7 @@ const Profile = () => {
   const toggleAddressModal = () => setShowAddressModal(!showAddressModal);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name } = e.target;
     setAddressData({ ...addressData, [name]: value });
   };
 
@@ -176,7 +176,6 @@ const Profile = () => {
     if (activeTab === "manageAddress") {
       fetchAddresses();
     }
-    fetchUserInfo();
   }, [activeTab]);
 
   const handleImageUpload = async (e) => {

@@ -43,6 +43,32 @@ const WishlistPage = () => {
         const items = Array.isArray(response) ? response : [];
         setWishlistItems(items);
 
+<<<<<<< HEAD
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        };
+
+        const response = await axios.get(`${SERVER_URL}/user/wishlist`, { headers });
+
+        if (response.status === 200) {
+          const items = Array.isArray(response.data) ? response.data : [];
+          setWishlistItems(items);
+
+          // Fetch images for each product
+          const imageUrls = {};
+          await Promise.all(items.map(async (item) => {
+            const productId = item.productId._id;
+            if (item.productId.images && item.productId.images.length > 0) {
+              const imageId = item.productId.images[0];
+              try {
+                const imageResponse = await axios.get(`${SERVER_URL}/user/images/${imageId}`);
+                if (imageResponse.status === 200) {
+                  imageUrls[imageId] = imageResponse.data.image;
+                }
+              } catch (error) {
+                console.error(`Error fetching image for product ${productId}:`, error);
+              }
+=======
         // Fetch images for each product
         const imageUrls = {};
         await Promise.all(items.map(async (item) => {
@@ -54,6 +80,7 @@ const WishlistPage = () => {
               imageUrls[imageId] = imageResponse.imageUrl;
             } catch (error) {
               console.error(`Error fetching image for product ${productId}:`, error);
+>>>>>>> 1e99b5e1a26ae4dfa614302433e66f2deab3f6bb
             }
           }
         }));
@@ -66,7 +93,7 @@ const WishlistPage = () => {
 
     const fetchCart = async () => {
       try {
-        const response = await axios.get(`${SERVER_URL}/user/cart/${userId}`);
+        const response = await axios.get(`${SERVER_URL}/user/cart`);
         if (response.status === 200) {
           setCartItems(response.data);
         }
@@ -81,11 +108,11 @@ const WishlistPage = () => {
     } else {
       console.error("User not authenticated!");
     }
-  }, [token, userId]);
+  }, [token]);
 
   const handleAddToCart = async (product) => {
     try {
-      const isInCart = cartItems.some((item) => item.productId._id === product._id);
+      const isInCart = cartItems.some((item) => item.productId.id === product.id);
 
       if (isInCart) {
         alert('Product is already in the cart!');
@@ -95,7 +122,7 @@ const WishlistPage = () => {
       const priceToAdd = product.salePrice;
       const response = await axios.post(`${SERVER_URL}/user/cart/add`, {
         userId,
-        productId: product._id,
+        productId: product.id,
         quantity: 1,
         price: priceToAdd,
         walletDiscountApplied: false,
@@ -119,7 +146,6 @@ const WishlistPage = () => {
           Authorization: `Bearer ${token}`,
         },
         data: {
-          userId,
           productId,
         },
       });
@@ -153,9 +179,9 @@ const WishlistPage = () => {
               <p className="text-center text-lg text-gray-500">No items in wishlist.</p>
             ) : (
               wishlistItems.map((item) => {
-                const isInCart = cartItems.some((cartItem) => cartItem.productId._id === item.productId._id);
+                const isInCart = cartItems.some((cartItem) => cartItem.productId === item.productId);
                 return (
-                  <div key={item.productId._id} className="flex flex-col lg:flex-row items-center bg-white shadow-lg rounded-lg p-4">
+                  <div key={item.productId} className="flex flex-col lg:flex-row items-center bg-white shadow-lg rounded-lg p-4">
                     <img
                       src={item.productId.images && item.productId.images.length > 0
                         ? imageUrls[item.productId.images[0]] || "/path/to/placeholder.jpg"
@@ -176,7 +202,7 @@ const WishlistPage = () => {
                           {isInCart && <FontAwesomeIcon icon={faShoppingCart} className="ml-2" />}
                         </button>
                         <button
-                          onClick={() => handleRemoveFromWishlist(item.productId._id)}
+                          onClick={() => handleRemoveFromWishlist(item.productId)}
                           className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 flex items-center"
                         >
                           Remove

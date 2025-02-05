@@ -6,9 +6,6 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Clear admin credentials from localStorage
-    localStorage.removeItem('adminEmail');
-    localStorage.removeItem('adminPassword');
 
     // Check if credentials are removed successfully
     const email = localStorage.getItem('adminEmail');

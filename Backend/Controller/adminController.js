@@ -11,7 +11,7 @@ const CarouselImage = require('../Models/carouselModel');
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find(userid);
     
     if (!users || users.length === 0) {
       console.warn('No users found');
@@ -140,8 +140,8 @@ const addProduct = async (req,res) =>{
         
         // Create an entry for the images
         const newImages = new Images({
-          thumbnailUrl: images.thumbnailUrl,
-          imageUrl: images.imageUrl,
+          thumbnailUrl: image.thumbnailUrl,
+          imageUrl: image.imageUrl,
         });
     
         await newImages.save();
@@ -157,7 +157,7 @@ const addProduct = async (req,res) =>{
           quantity,
           discount,
           color,
-          images: newImages._id,  // Link the images to the product
+          images: images.id,  // Link the images to the product
         });
     
         await newProduct.save();
@@ -301,7 +301,7 @@ const getOrders = async (req, res) => {
   };
 
   const updateOrderStatus = async (req, res) => {
-    const { orderStatus, productId } = req.body;
+    const { status, productId } = req.body;
     const { orderId } = req.params;
   
     try {
@@ -312,18 +312,18 @@ const getOrders = async (req, res) => {
       }
   
       // Find the order by ID
-      const order = await Order.findById(orderId);
+      const order = await Order.findById(order._id);
       if (!order) {
         return res.status(404).json({ message: 'Order not found' });
       }
   
       // Find the product in cartItems and update its status
-      const itemToUpdate = order.cartItems.find(item => item.productId.toString() === productId);
+      const itemToUpdate = order.cartItems.find(item => item.productId() === productId);
       if (!itemToUpdate) {
         return res.status(404).json({ message: 'Product not found in the order' });
       }
   
-      itemToUpdate.status = orderStatus;
+      itemToUpdate.status = status;
   
       // Save the updated order
       await order.save();
@@ -431,23 +431,14 @@ const getDashboardCounts = async (req, res) => {
     const userCount = users.length;
 
     // Count unique user IDs in bids (auction participants) and include auction date
-    const bids = await Bid.find({}, { userId: 1, createdAt: 1 }); // Retrieve user IDs and auction dates
-    const auctionParticipants = new Set(bids.map(bid => bid.userId.toString()));
-    const auctionCount = auctionParticipants.size; // Unique user IDs participating in auctions
+    const bids = await Bid.find({}, { userId, createdAt: 1 }); // Retrieve user IDs and auction dates
+    const auctionParticipants = new Set(bids(bid => bid.userId()));
+    const auctionCount = auctionParticipant; // Unique user IDs participating in auctions
 
     // Count unique user and product IDs in orders and include order date
-    const orders = await Order.find({}, { userId: 1, cartItems: 1, orderDate: 1 }); // Retrieve user IDs, cartItems, and order dates
-    const orderUserProductSet = new Set();
+    const orders = await Order.find({}, { userId, cartItems, orderDate }); // Retrieve user IDs, cartItems, and order dates
+    const orderUserProductSet = new Set(new);
     const orderDates = orders.map(order => order.orderDate); // Collect order dates
-    const orderStatusCounts = {
-      Pending: { count: 0, dates: [] },
-      Processing: { count: 0, dates: [] },
-      Shipped: { count: 0, dates: [] },
-      Delivered: { count: 0, dates: [] },
-      'Out for Delivery': { count: 0, dates: [] },
-      Cancelled: { count: 0, dates: [] },
-      Returned: { count: 0, dates: [] }
-    };
 
     // Loop through orders and cartItems to track status counts and dates
     orders.forEach(order => {
@@ -472,9 +463,6 @@ const getDashboardCounts = async (req, res) => {
         const userBids = bids.filter(bid => bid.userId.toString() === userId);
         return userBids.map(bid => bid.createdAt); // Get bid dates for each user
       }).flat(), // Flatten the nested arrays
-      orderCount,
-      orderDates, // Add order dates
-      orderStatusCounts
     });
   } catch (error) {
     console.error('Error fetching dashboard counts:', error);

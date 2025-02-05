@@ -34,7 +34,6 @@ const OrginalNavbar = () => {
   const token = user.token;
   const dispatch = useDispatch();
   
-
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -48,7 +47,7 @@ const OrginalNavbar = () => {
     };
 
     const fetchUserAddresses = async () => {
-      if (user.isAuthenticated) {
+      if (isAuthenticated) {
         try {
           const response = await axios.get(
             `${SERVER_URL}/user/addresses/${user.id}`
@@ -61,7 +60,7 @@ const OrginalNavbar = () => {
     };
 
     const fetchUserDetails = async () => {
-      if (user.isAuthenticated && user.id) {
+      if (user.isAuthenticated) {
         try {
           const userDetailsResponse = await axios.get(`${SERVER_URL}/user/getUserDetails`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -85,7 +84,7 @@ const OrginalNavbar = () => {
     fetchProducts();
     fetchUserAddresses();
     fetchUserDetails();
-  }, [user.isAuthenticated, user.id]);
+  }, [user.isAuthenticated]);
 
 
   const handleSearchChange = (e) => {
