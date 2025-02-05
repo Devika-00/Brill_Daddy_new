@@ -1,8 +1,12 @@
 import axios from 'axios';
 
-// Always use proxy path since we're handling the actual URL in vite config
-export const SERVER_URL = '/api';
-export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+const isDevelopment = import.meta.env.MODE === 'development';
+
+export const SERVER_URL = isDevelopment ? '/api' : import.meta.env.VITE_API_URL;
+export const SOCKET_URL = isDevelopment 
+  ? `ws://localhost:${import.meta.env.VITE_PORT}` 
+  : import.meta.env.VITE_SOCKET_URL;
+
 export const CLOUDINARY_UPLOAD_API = "https://api.cloudinary.com/v1_1/dbl7wgz51/upload";
 export const cloudinaryUploadPreset = "ml_default";
 
@@ -13,12 +17,8 @@ const axiosInstance = axios.create({
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest',
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0'
-  },
-  proxy: false
+    'X-Requested-With': 'XMLHttpRequest'
+  }
 });
 
 // Add request interceptor

@@ -6,15 +6,14 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
-  // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '')
   const isDev = mode === 'development'
   const isPreview = command === 'serve' && mode === 'production'
 
+  // Configure proxy target based on environment
   const proxyTarget = isDev 
-    ? 'https://mollusk-creative-cockatoo.ngrok-free.app'
+    ? 'http://localhost:5000'  // Local development backend
     : 'https://api.brilldaddy.com'
 
   const proxyConfig = {
@@ -24,36 +23,59 @@ export default defineConfig(({ command, mode }) => {
       secure: !isDev,
       ws: true,
       configure: (proxy, options) => {
+        // Error handling
         proxy.on('error', (err, req, res) => {
           console.log('proxy error', err);
         });
+
+        // Request handling
         proxy.on('proxyReq', (proxyReq, req, res) => {
-          // Modify the origin header
           proxyReq.setHeader('origin', proxyTarget);
-          // Prevent caching
-          proxyReq.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-          proxyReq.setHeader('Pragma', 'no-cache');
-          proxyReq.setHeader('Expires', '0');
-          console.log('Sending Request to the Target:', req.method, req.url);
+          
+          // Development specific headers
+          if (isDev) {
+            proxyReq.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            proxyReq.setHeader('Pragma', 'no-cache');
+            proxyReq.setHeader('Expires', '0');
+          }
+          
+          console.log('Proxying request:', req.method, req.url, 'to', proxyTarget);
         });
+
+        // Response handling
         proxy.on('proxyRes', (proxyRes, req, res) => {
-          // Remove caching headers from response
-          proxyRes.headers['cache-control'] = 'no-cache, no-store, must-revalidate';
-          proxyRes.headers['pragma'] = 'no-cache';
-          proxyRes.headers['expires'] = '0';
-          console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+          if (isDev) {
+            proxyRes.headers['cache-control'] = 'no-cache, no-store, must-revalidate';
+            proxyRes.headers['pragma'] = 'no-cache';
+            proxyRes.headers['expires'] = '0';
+          }
+          console.log('Received response:', proxyRes.statusCode, req.url);
         });
       }
-    }
+    },
+    // Separate WebSocket proxy configuration for development
+    ...(isDev && {
+      '/socket.io': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        ws: true
+      }
+    })
   }
-  
+
   const serverConfig = {
     port: isDev ? 5173 : 4173,
     strictPort: true,
     proxy: proxyConfig,
-    cors: false
+    cors: isDev, // Enable CORS in development
+    hmr: {
+      overlay: true
+    },
+    watch: {
+      usePolling: true
+    }
   }
-  
+
   return {
     plugins: [react()],
     preview: serverConfig,
@@ -69,7 +91,14 @@ export default defineConfig(({ command, mode }) => {
     },
     build: {
       outDir: 'dist',
-      assetsDir: 'assets'
-    }
+      assetsDir: 'assets',
+      sourcemap: isDev
+    },
+    // Development specific options
+    ...(isDev && {
+      optimizeDeps: {
+        include: ['react', 'react-dom']
+      },
+    })
   }
 })

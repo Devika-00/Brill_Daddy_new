@@ -1,5 +1,6 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const cors = require("cors");
 dotenv.config();
 const ENV = require("./Config/ENV");
 const connectDb = require("./Config/Connection");
@@ -17,31 +18,16 @@ require("./jobs/winnerSelction");
 const app = express();
 const server = http.createServer(app);
 
-// CORS configuration for all environments
-app.use((req, res, next) => {
-  const allowedOrigins = [
-    'https://brilldaddy.com',
-    'https://www.brilldaddy.com',
-    'http://localhost:5173',
-    'http://localhost:4173'
-  ];
-  
-  const origin = req.headers.origin;
-  
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
-  }
-  
-  // Handle preflight
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  
-  next();
-});
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'development' 
+    ? ['http://localhost:5173', 'http://localhost:4173']
+    : ['https://brilldaddy.com', 'https://www.brilldaddy.com'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 
 // Update helmet configuration to be less restrictive in development
 const helmetConfig = {

@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import jsPDF from "jspdf";
 import OrginalNavbar from "../../components/User/OrginalUserNavbar";
 import NavbarWithMenu from "../../components/User/NavbarwithMenu";
 import Footer from "../../components/User/Footer";
@@ -19,6 +18,15 @@ import {
 } from "react-icons/fa";
 import ChatBotButton from "../../components/User/chatBot";
 
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
+
+// Initialize pdfMake with fonts
+if (typeof window !== 'undefined') {
+  pdfMake.vfs = pdfFonts && pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts;
+}
+
+// Utility function to format numbers as currency
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return "";
   const [integerPart, decimalPart] = value.toString().split(".");
@@ -115,46 +123,57 @@ const OrderDetails = () => {
   }, [order]);
 
   const handleDownloadInvoice = () => {
-    const doc = new jsPDF();
-    const element = invoiceRef.current;
-    doc.setFontSize(18);
-    doc.text("Invoice", 105, 20, null, null, "center");
-    doc.setFontSize(12);
-    doc.text(`Order ID: ${id}`, 10, 30);
-    doc.text(`Shipping Address:`, 10, 35);
-    doc.text(`${order.selectedAddressId.userName}`, 10, 40);
-    doc.text(`${order.selectedAddressId.addressLine}`, 10, 45);
-    doc.text(
-      `${order.selectedAddressId.street}, ${order.selectedAddressId.state}, ${order.selectedAddressId.pincode}`,
-      10,
-      50
-    );
-    doc.text(`${order.selectedAddressId.flatNumber}`, 10, 55);
-    doc.text(`Phone: ${order.selectedAddressId.phoneNumber}`, 10, 60);
-
-    const startY = 90;
-    doc.text("Product Name", 10, startY);
-    doc.text("Description", 70, startY);
-    doc.text("Price", 130, startY);
-    doc.text("Quantity", 160, startY);
-    doc.text("Total", 190, startY);
-
-    let rowIndex = startY + 10;
-    order.cartItems.forEach((item) => {
-      doc.text(item.productId.name, 10, rowIndex);
-      doc.text(item.productId.description, 70, rowIndex);
-      doc.text(`$${item.price.toFixed(2)}`, 130, rowIndex);
-      doc.text(`${item.quantity}`, 160, rowIndex);
-      doc.text(`$${(item.price * item.quantity).toFixed(2)}`, 190, rowIndex);
-      rowIndex += 10;
-    });
+    const items = order.cartItems.map((item) => [
+      item.productId.name,
+      item.productId.description,
+      `₹${item.price.toFixed(2)}`,
+      item.quantity,
+      `₹${(item.price * item.quantity).toFixed(2)}`,
+    ]);
 
     const totalAmount = order.cartItems
       .reduce((total, item) => total + item.price * item.quantity, 0)
       .toFixed(2);
-    doc.text(`Total Amount: $${totalAmount}`, 10, rowIndex + 10);
-    doc.save(`Order_${id}_Invoice.pdf`);
+
+    const documentDefinition = {
+      content: [
+        { text: "Invoice", style: "header", alignment: "center" },
+        { text: `Order ID: ${id}`, style: "subheader" },
+        { text: "Shipping Address:", style: "subheader" },
+        {
+          text: `${order.selectedAddressId.userName}, 
+          ${order.selectedAddressId.addressLine}, 
+          ${order.selectedAddressId.street}, ${order.selectedAddressId.state}, ${order.selectedAddressId.pincode}, 
+          Phone: ${order.selectedAddressId.phoneNumber}`,
+        },
+        { text: "Order Details", style: "subheader", margin: [0, 10, 0, 10] },
+        {
+          table: {
+            headerRows: 1,
+            widths: ["*", "*", "auto", "auto", "auto"],
+            body: [
+              ["Product Name", "Description", "Price", "Quantity", "Total"],
+              ...items,
+              [
+                { text: "Total Amount", colSpan: 4, alignment: "right" },
+                {},
+                {},
+                {},
+                `₹${totalAmount}`,
+              ],
+            ],
+          },
+        },
+      ],
+      styles: {
+        header: { fontSize: 18, bold: true },
+        subheader: { fontSize: 12, bold: true, margin: [0, 10, 0, 5] },
+      },
+    };
+
+    pdfMake.createPdf(documentDefinition).download(`Order_${id}_Invoice.pdf`);
   };
+
 
   const handleCancelOrder = () => {
     setShowCancelModal(true);

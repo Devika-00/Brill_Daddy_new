@@ -28,6 +28,7 @@ const Cart = () => {
 
   const user = useAppSelector((state) => state.user);
   const userId = user.id;
+  const token = user.token;
 
   const [cartItems, setCartItems] = useState([]);
   const [imageUrls, setImageUrls] = useState({});
@@ -106,7 +107,13 @@ const Cart = () => {
 
   const addToWishlist = async (productId) => {
     try {
-      await axios.post(`${SERVER_URL}/user/wishlist/${userId}`, { productId });
+      await axios.post(`${SERVER_URL}/user/wishlist/${userId}`, { productId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       alert("Product added to wishlist");
     } catch (error) {
       console.error("Error adding item to wishlist:", error);

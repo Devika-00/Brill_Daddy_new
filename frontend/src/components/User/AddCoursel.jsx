@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { SERVER_URL } from "../../Constants";
 
 const ResponsiveCarousel = ({carouselImages}) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const minSwipeDistance = 50;
 
   const handlePrev = () => {
     setCurrentImageIndex(
@@ -15,14 +17,38 @@ const ResponsiveCarousel = ({carouselImages}) => {
     setCurrentImageIndex((prevIndex) => (prevIndex + 1) % carouselImages.length);
   };
 
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      handleNext();
+    }
+    if (isRightSwipe) {
+      handlePrev();
+    }
+  };
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentImageIndex(
         (prevIndex) => (prevIndex + 1) % carouselImages.length
       );
-    }, 3000); // Change image every 3 seconds
+    }, 3000);
 
-    return () => clearInterval(intervalId); // Cleanup on unmount
+    return () => clearInterval(intervalId);
   }, [carouselImages.length]);
 
   return (
@@ -33,14 +59,18 @@ const ResponsiveCarousel = ({carouselImages}) => {
           <div
             className="flex transition-transform duration-500"
             style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
           >
             {carouselImages.map((image, index) => (
-              <img
-                key={index}
-                src={image.imageUrl} // Access the `imageUrl` from the fetched data
-                alt={`Carousel ${index}`}
-                className="w-full h-44 sm:h-44 md:h-44 object-cover"
-              />
+              <div key={index} className="w-full flex-shrink-0">
+                <img
+                  src={image.imageUrl}
+                  alt={`Carousel ${index}`}
+                  className="w-full md:h-44 md:object-cover h-24 "
+                />
+              </div>
             ))}
           </div>
 

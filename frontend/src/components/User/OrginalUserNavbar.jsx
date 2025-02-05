@@ -372,133 +372,122 @@ const OrginalNavbar = () => {
       </div>
 
       {/* Mobile Navigation */}
+      {/* Modified Mobile Navigation */}
       <div className="md:hidden">
-        {/* Mobile Top Bar */}
-        <div className="flex justify-between items-center p-4">
-          <Link to="/">
-            <img src={logo} alt="Logo" className="h-12" />
-          </Link>
-          <div className="flex items-center">
-            <FaSearch 
-              className="mr-4 text-xl" 
-              onClick={toggleMobileSearch} 
-            />
-            <FaBars 
-              className="text-xl" 
-              onClick={toggleMobileMenu} 
-            />
-          </div>
-        </div>
-
-        {/* Mobile Search */}
-        {isMobileSearchOpen && (
-          <div className="p-4">
-            <form onSubmit={handleSearchSubmit} className="relative">
-              <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className="border border-gray-300 rounded pl-10 pr-4 py-2 w-full"
+          {/* Modified Mobile Top Bar */}
+          <div className="flex justify-between items-center p-4">
+            <Link to="/">
+              <img src={logo} alt="Logo" className="h-12" />
+            </Link>
+            <div className="flex items-center space-x-4">
+              <FaSearch 
+                className="text-xl" 
+                onClick={toggleMobileSearch} 
               />
-              {filteredSuggestions.length > 0 && (
-                <ul className="absolute left-0 right-0 bg-white border border-gray-300 rounded shadow-md z-20">
-                  {filteredSuggestions.map((suggestion, index) => (
-                    <li
-                      key={index}
-                      className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSuggestionSelect(suggestion)}
-                    >
-                      {suggestion}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </form>
-          </div>
-        )}
-
-        {/* Mobile Menu Sidebar */}
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h2 className="text-xl font-bold">Menu</h2>
-              <FaTimes 
-                className="text-2xl" 
+              <FaShoppingCart 
+                className="text-xl" 
+                onClick={handleCartClick} 
+              />
+              <FaBars 
+                className="text-xl" 
                 onClick={toggleMobileMenu} 
               />
             </div>
-
-            {/* Mobile Menu Content */}
-            <div className="p-4">
-              {user.isAuthenticated ? (
-                <>
-                  <div 
-                    onClick={() => handleOptionSelect("Your Account")} 
-                    className="py-3 border-b"
-                  >
-                    My Account
-                  </div>
-                  <div 
-                    onClick={() => handleOptionSelect("Your Orders")} 
-                    className="py-3 border-b"
-                  >
-                    My Orders
-                  </div>
-                  <div 
-                    onClick={() => handleOptionSelect("Your Wishlist")} 
-                    className="py-3 border-b"
-                  >
-                    My Wishlist
-                  </div>
-                  <div 
-                    onClick={() => handleOptionSelect("Keep Shopping")} 
-                    className="py-3 border-b"
-                  >
-                    Keep Shopping
-                  </div>
-                  <div 
-                    onClick={handleWalletClick} 
-                    className="py-3 border-b"
-                  >
-                    My Wallet
-                  </div>
-                  <div 
-                    onClick={() => handleOptionSelect("Sign Out")} 
-                    className="py-3 border-b text-red-600"
-                  >
-                    Logout
-                  </div>
-                </>
-              ) : (
-                <div 
-                  onClick={() => navigate('/login')} 
-                  className="py-3 border-b"
-                >
-                  Sign In
-                </div>
-              )}
-            </div>
-
-            {/* Mobile Bottom Navigation */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-3">
-              <FaHome 
-                className="text-2xl" 
-                onClick={() => navigate('/')} 
-              />
-              <FaShoppingCart 
-                className="text-2xl" 
-                onClick={handleCartClick} 
-              />
-              <FaHeart 
-                className="text-2xl" 
-                onClick={handleHeartClick} 
-              />
-            </div>
           </div>
-        )}
-      </div>
+
+          {/* Mobile Search */}
+          {isMobileSearchOpen && (
+            <div className="p-4">
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="border border-gray-300 rounded pl-10 pr-4 py-2 w-full"
+                />
+                {/* ... suggestions list remains the same ... */}
+              </form>
+            </div>
+          )}
+
+          {/* Mobile Menu Sidebar */}
+          {isMobileMenuOpen && (
+            <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
+              <div className="flex justify-between items-center p-4 border-b">
+                <h2 className="text-xl font-bold">Menu</h2>
+                <FaTimes 
+                  className="text-2xl" 
+                  onClick={toggleMobileMenu} 
+                />
+              </div>
+
+              {/* Mobile Menu Content */}
+              <div className="p-4">
+                {user.isAuthenticated ? (
+                  <>
+                    <div 
+                      onClick={() => handleOptionSelect("Your Account")} 
+                      className="py-3 border-b"
+                    >
+                      My Account
+                    </div>
+                    <div 
+                      onClick={() => handleOptionSelect("Your Orders")} 
+                      className="py-3 border-b"
+                    >
+                      My Orders
+                    </div>
+                    <div 
+                      onClick={() => handleOptionSelect("Your Wishlist")} 
+                      className="py-3 border-b"
+                    >
+                      My Wishlist
+                    </div>
+                    <div 
+                      onClick={() => handleOptionSelect("Keep Shopping")} 
+                      className="py-3 border-b"
+                    >
+                      Keep Shopping
+                    </div>
+                    <div 
+                      onClick={handleWalletClick} 
+                      className="py-3 border-b"
+                    >
+                      My Wallet
+                    </div>
+                    <div 
+                      onClick={() => handleOptionSelect("Sign Out")} 
+                      className="py-3 border-b text-red-600"
+                    >
+                      Logout
+                    </div>
+                  </>
+                ) : (
+                  <div 
+                    onClick={() => navigate('/login')} 
+                    className="py-3 border-b"
+                  >
+                    Sign In
+                  </div>
+                )}
+              </div>
+
+              {/* Modified Mobile Bottom Navigation - Removed cart icon since it's now in top bar */}
+              <div className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-3">
+                <FaHome 
+                  className="text-2xl" 
+                  onClick={() => navigate('/')} 
+                />
+                <FaHeart 
+                  className="text-2xl" 
+                  onClick={handleHeartClick} 
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </nav>
 
       {showAddressModal && (

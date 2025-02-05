@@ -980,14 +980,14 @@ const getVoucherBidAmount = async (req, res) => {
 
 const createOrder = async (req, res) => {
   const razorpay = new Razorpay({
-    key_id: 'rzp_test_Je6Htj61yVkGEb',
-    key_secret: 'TbAjlRbnAiKGc8lTYGhM8yOK',
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 const { amount, currency = "INR", receipt } = req.body;
 
 try {
     const order = await razorpay.orders.create({
-        amount: amount * 100, 
+      amount: Math.round(amount * 100),
         currency,
         receipt,
     });
@@ -1005,7 +1005,7 @@ const verifyPayment = async (req, res) => {
 
   const body = razorpay_order_id + "|" + razorpay_payment_id;
   const expectedSignature = crypto
-      .createHmac('sha256', 'TbAjlRbnAiKGc8lTYGhM8yOK')
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(body.toString())
       .digest('hex');
 
@@ -1080,6 +1080,37 @@ const fetchImagesCarousel = async (req, res) => {
   }
 };
 
+const uploadProfileImage = async (req, res) => {
+  try {
+    const { imageUrl } = req.body;
+    const { userId } = req.params;
+
+    // Validate inputs
+    if (!userId || !imageUrl) {
+      return res.status(400).json({ message: "Missing required fields." });
+    }
+
+    // Find the user and update their profile image
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { profileImage: imageUrl },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    res.status(200).json({
+      message: "Profile image updated successfully.",
+      imageUrl: updatedUser.profileImage,
+    });
+  } catch (error) {
+    console.error("Error uploading profile image:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
 
 
 
@@ -1087,5 +1118,5 @@ const fetchImagesCarousel = async (req, res) => {
 module.exports = { getProducts,fetchimages,fetchCategory,fetchSingleProduct,registerUser,sendOtp,verifyOtp,addItemToCart, getCartItems, addWishlist,clearCart,
   getWishlist, removeWishlist,addAddress, getAddress, deleteAddress,placeOrder, getOrders,getOrderDetail, getProductSuggestions, getUserDetails, updateQuantityOfProduct,
   updateAddressUser, getUserAddress, getVouchersUserSide, getWallet, removeCartProduct, removeFromWishlist, editAddress, updateQuantity, getWinningDetails, getParticularVoucher,
-  getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid, createOrder, verifyPayment, fetchRelatedProducts, fetchImagesCarousel, addWishlistFromCart
+  getUserBids, getVoucherBidAmount, getSingleUserDetails, getWinningBid, createOrder, verifyPayment, fetchRelatedProducts, fetchImagesCarousel, addWishlistFromCart, uploadProfileImage,
 }

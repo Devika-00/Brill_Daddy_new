@@ -139,10 +139,10 @@ const Checkout = () => {
             });
 
             const options = {
-                key: "rzp_test_Je6Htj61yVkGEb", // Replace with Razorpay Key ID
+                key: "rzp_test_yjMX4hSQ75uCRn", // Replace with Razorpay Key ID
                 amount: data.order.amount,
                 currency: data.order.currency,
-                name: "Brill daddy",
+                name: "BRILLDADDY ECOMMERCE PVT LTD.",
                 description: "Order Payment",
                 order_id: data.order.id,
                 handler: async (response) => {
