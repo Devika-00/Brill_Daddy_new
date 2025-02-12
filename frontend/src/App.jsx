@@ -12,27 +12,6 @@ import { SocketProvider } from './context/SocketContext';
 const App = () => {
 
   return (
-    
-
-       <ErrorBoundary>
-        <Provider store={store}>
-        <PersistGate persistor={persistor}>
-          <SocketProvider>
-         <MainRouter />
-         <Toaster 
-         position="top-right"
-         reverseOrder={false}
-         gutter={8}
-         containerClassName=""
-         containerStyle={{}}
-         toastOptions={{
-           // Default options for all toasts
-           className: '',
-           duration: 5000,
-           style: {
-             background: '#333',
-             color: '#fff',
-           },
            // Custom success toast styling
            success: {
              duration: 5000,
